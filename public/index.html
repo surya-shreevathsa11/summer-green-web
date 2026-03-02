@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Summer Green — Homestay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Montserrat:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav" id="nav">
+    <div class="nav__inner container">
+      <a href="#" class="nav__logo">Summer Green</a>
+      <button class="nav__toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav__links" id="navLinks">
+        <li><a href="#home">Home</a></li>
+        <li><a href="#rooms">Rooms</a></li>
+        <li><a href="#gallery">Gallery</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+      <button class="btn btn--outline nav__auth" id="authBtn">Sign In</button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="hero" id="home">
+    <div class="hero__content container">
+      <p class="hero__subtitle">Homestay Experience</p>
+      <h1 class="hero__title">Benvenuti</h1>
+      <div class="divider"></div>
+      <p class="hero__desc">An intimate Italian retreat nestled among olive groves and cypress hills.</p>
+      <a href="#rooms" class="btn btn--primary">Explore Rooms</a>
+    </div>
+  </header>
+
+  <main>
+  <!-- About -->
+  <section class="section" id="about">
+    <div class="container">
+      <p class="section__subtitle">About Us</p>
+      <h2 class="section__title">Chi Siamo</h2>
+      <div class="divider"></div>
+      <div class="about__grid">
+        <div class="about__text">
+          <p>Summer Green is a family-owned homestay offering authentic Italian hospitality. Each room is thoughtfully curated to reflect the landscape and traditions of the region.</p>
+          <p>From sunrise over the vineyards to evenings under the pergola, every moment here is designed for tranquility.</p>
+        </div>
+        <div class="about__stats">
+          <div class="stat"><span class="stat__num">8</span><span class="stat__label">Rooms</span></div>
+          <div class="stat"><span class="stat__num">12</span><span class="stat__label">Years</span></div>
+          <div class="stat"><span class="stat__num">2k+</span><span class="stat__label">Guests</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Rooms -->
+  <section class="section section--alt" id="rooms">
+    <div class="container">
+      <p class="section__subtitle">Our Rooms</p>
+      <h2 class="section__title">Le Camere</h2>
+      <div class="divider"></div>
+      <div class="rooms__grid" id="roomsGrid"></div>
+    </div>
+  </section>
+
+  <!-- Gallery -->
+  <section class="section" id="gallery">
+    <div class="container">
+      <p class="section__subtitle">Visual Journey</p>
+      <h2 class="section__title">La Galleria</h2>
+      <div class="divider"></div>
+      <div class="gallery__filters">
+        <button class="gallery__filter active" data-filter="all">All</button>
+        <button class="gallery__filter" data-filter="rooms">Rooms</button>
+        <button class="gallery__filter" data-filter="exterior">Exterior</button>
+        <button class="gallery__filter" data-filter="dining">Dining</button>
+      </div>
+      <div class="gallery__grid" id="galleryGrid">
+        <div class="gallery__item" data-category="exterior"><div class="gallery__placeholder">Courtyard</div></div>
+        <div class="gallery__item" data-category="rooms"><div class="gallery__placeholder">Suite Interior</div></div>
+        <div class="gallery__item" data-category="dining"><div class="gallery__placeholder">Breakfast Terrace</div></div>
+        <div class="gallery__item" data-category="exterior"><div class="gallery__placeholder">Garden Path</div></div>
+        <div class="gallery__item" data-category="rooms"><div class="gallery__placeholder">Room Detail</div></div>
+        <div class="gallery__item" data-category="dining"><div class="gallery__placeholder">Wine Cellar</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="section section--alt" id="testimonials">
+    <div class="container">
+      <p class="section__subtitle">Guest Voices</p>
+      <h2 class="section__title">Testimonianze</h2>
+      <div class="divider"></div>
+      <div class="testimonials__grid">
+        <div class="testimonial">
+          <p class="testimonial__text">"An unforgettable stay. The attention to detail and warmth of the hosts made it feel like home."</p>
+          <span class="testimonial__author">— Elena M.</span>
+        </div>
+        <div class="testimonial">
+          <p class="testimonial__text">"Waking up to the vineyard views every morning was pure magic. We will return."</p>
+          <span class="testimonial__author">— Marco & Sofia</span>
+        </div>
+        <div class="testimonial">
+          <p class="testimonial__text">"Simple elegance at its finest. The perfect escape from the city."</p>
+          <span class="testimonial__author">— James L.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section class="section" id="contact">
+    <div class="container">
+      <p class="section__subtitle">Reach Out</p>
+      <h2 class="section__title">Contatti</h2>
+      <div class="divider"></div>
+      <div class="contact__grid">
+        <div class="contact__info">
+          <div class="contact__item">
+            <h4>Address</h4>
+            <p>Via dei Cipressi 42, Tuscany, Italy</p>
+          </div>
+          <div class="contact__item">
+            <h4>Phone</h4>
+            <p>+39 055 123 4567</p>
+          </div>
+          <div class="contact__item">
+            <h4>Email</h4>
+            <p>info@summergreen.it</p>
+          </div>
+        </div>
+        <form class="contact__form" id="contactForm">
+          <input type="text" placeholder="Name" required>
+          <input type="email" placeholder="Email" required>
+          <textarea placeholder="Message" rows="4" required></textarea>
+          <button type="submit" class="btn btn--primary">Send Message</button>
+        </form>
+      </div>
+    </div>
+  </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <div class="footer__brand">
+          <h3>Summer Green</h3>
+          <p>Italian homestay experience</p>
+        </div>
+        <div class="footer__links">
+          <a href="#home">Home</a>
+          <a href="#rooms">Rooms</a>
+          <a href="#gallery">Gallery</a>
+          <a href="#contact">Contact</a>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p>&copy; 2026 Summer Green. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Sign In Modal -->
+  <div class="modal" id="signInModal">
+    <div class="modal__overlay"></div>
+    <div class="modal__content">
+      <button class="modal__close" data-close>&times;</button>
+      <h3>Sign In</h3>
+      <div class="divider"></div>
+      <form id="signInForm">
+        <div class="form__group">
+          <input type="email" id="signInEmail" placeholder="Email" required>
+        </div>
+        <div class="form__group">
+          <input type="password" id="signInPassword" placeholder="Password" required>
+        </div>
+        <p class="form__error" id="signInError"></p>
+        <button type="submit" class="btn btn--primary btn--full">Sign In</button>
+      </form>
+      <p class="modal__switch">Don't have an account? <a href="#" id="showSignUp">Sign Up</a></p>
+    </div>
+  </div>
+
+  <!-- Sign Up Modal -->
+  <div class="modal" id="signUpModal">
+    <div class="modal__overlay"></div>
+    <div class="modal__content">
+      <button class="modal__close" data-close>&times;</button>
+      <h3>Sign Up</h3>
+      <div class="divider"></div>
+      <form id="signUpForm">
+        <div class="form__group">
+          <input type="text" id="signUpName" placeholder="Full Name" required>
+        </div>
+        <div class="form__group">
+          <input type="email" id="signUpEmail" placeholder="Email" required>
+        </div>
+        <div class="form__group">
+          <input type="password" id="signUpPassword" placeholder="Password" required>
+        </div>
+        <p class="form__error" id="signUpError"></p>
+        <button type="submit" class="btn btn--primary btn--full">Create Account</button>
+      </form>
+      <p class="modal__switch">Already have an account? <a href="#" id="showSignIn">Sign In</a></p>
+    </div>
+  </div>
+
+  <!-- Booking Modal -->
+  <div class="modal" id="bookingModal">
+    <div class="modal__overlay"></div>
+    <div class="modal__content">
+      <button class="modal__close" data-close>&times;</button>
+      <h3>Book <span id="bookingRoomName"></span></h3>
+      <div class="divider"></div>
+      <form id="bookingForm">
+        <input type="hidden" id="bookingRoomId">
+        <div class="form__group">
+          <label>Check In</label>
+          <input type="date" id="bookingCheckIn" required>
+        </div>
+        <div class="form__group">
+          <label>Check Out</label>
+          <input type="date" id="bookingCheckOut" required>
+        </div>
+        <div class="form__group">
+          <label>Guests</label>
+          <input type="number" id="bookingGuests" min="1" max="4" value="1" required>
+        </div>
+        <p class="form__error" id="bookingError"></p>
+        <p class="form__success" id="bookingSuccess"></p>
+        <button type="submit" class="btn btn--primary btn--full">Confirm Booking</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>
