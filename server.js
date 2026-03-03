@@ -1,36 +1,34 @@
-require('dotenv').config();
-const express = require('express');
-const session = require('express-session');
-const path = require('path');
-const { SESSION_CONFIG } = require('./constants');
+import express from "express";
+import cors from "cors";
+import path from "path";
+import "dotenv/config";
+import cookieParser from "cookie-parser";
 
-const authRoutes = require('./routes/authRoutes');
-const bookingRoutes = require('./routes/bookingRoutes');
+//specific to esm
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+import connectDB from "./db.js";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'fallback-secret',
-  ...SESSION_CONFIG
-}));
+app.use(express.json({ limit: "128kb" }));
+app.use(express.static(path.join(__dirname, "public")));
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(cookieParser());
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN,
+    credentials: true,
+  }),
+);
 
-app.use('/api/auth', authRoutes);
-app.use('/api/booking', bookingRoutes);
-
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ success: false, message: 'Internal server error' });
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+connectDB().then(() => {
+  const port = process.env.PORT;
+  app.listen(port, () => {
+    console.log("Server running at port", port);
+  });
 });
