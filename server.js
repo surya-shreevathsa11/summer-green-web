@@ -3,6 +3,8 @@ import cors from "cors";
 import path from "path";
 import "dotenv/config";
 import cookieParser from "cookie-parser";
+import session from "express-session";
+import passport from "passport";
 
 //specific to esm
 import { fileURLToPath } from "url";
@@ -25,6 +27,20 @@ app.use(
     credentials: true,
   }),
 );
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+  }),
+);
+app.use(passport.initialize());
+app.use(passport.session());
+
+import authRouter from "./routes/authRoutes.js";
+
+app.use("/api/auth", authRouter);
 
 connectDB().then(() => {
   const port = process.env.PORT;
