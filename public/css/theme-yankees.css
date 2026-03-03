@@ -1,0 +1,41 @@
+/**
+ * EXPERIMENT: Yankees Blue + Yellow (Dark Tangerine) theme
+ * From palette: Yankees Blue #14213D (major), Dark Tangerine #FCA311 (buttons)
+ *
+ * TO REVERT: Remove or comment out the <link> to this file in index.html
+ * (keep only /css/style.css) to restore the original copper theme.
+ */
+
+:root {
+  /* Major — Yankees Blue (nav, hero bg, footer, dark anchors) */
+  --color-obsidian: #14213D;
+  --color-steel-gray: #1E3460;
+  /* Accent — Dark Tangerine (buttons, links, highlights, dividers) */
+  --color-burnt-copper: #FCA311;
+  --color-copper-dark: #E3940F;
+  --color-copper-light: #FDB838;
+}
+
+/* Button hover glow to match yellow accent */
+.btn--primary:hover {
+  box-shadow: 0 8px 24px rgba(252, 163, 17, 0.4);
+}
+.btn--outline:hover {
+  background: rgba(252, 163, 17, 0.12);
+  color: var(--color-copper-dark);
+}
+
+/* Cursor hover: accent glow + strong shadow for visibility */
+.cursor--ring.is-hover {
+  background: rgba(252, 163, 17, 0.1);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.25),
+    0 0 0 4px rgba(252, 163, 17, 0.2),
+    0 6px 24px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.2);
+}
+.cursor--ring.is-down {
+  box-shadow:
+    0 0 0 2px rgba(252, 163, 17, 0.25),
+    0 2px 12px rgba(0, 0, 0, 0.35);
+}

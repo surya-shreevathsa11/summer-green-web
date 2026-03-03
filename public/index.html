@@ -7,8 +7,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Montserrat:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
+  <!-- Yankees Blue + Yellow theme. Comment out the next line to revert to default copper theme. -->
+  <link rel="stylesheet" href="/css/theme-yankees.css">
 </head>
 <body>
+
+  <!-- Custom cursor (desktop only) -->
+  <div class="cursor cursor--dot" id="cursorDot" aria-hidden="true"></div>
+  <div class="cursor cursor--ring" id="cursorRing" aria-hidden="true"></div>
 
   <!-- Navigation -->
   <nav class="nav" id="nav">
@@ -19,8 +25,10 @@
       </button>
       <ul class="nav__links" id="navLinks">
         <li><a href="#home">Home</a></li>
+        <li><a href="#about">About</a></li>
         <li><a href="#rooms">Rooms</a></li>
         <li><a href="#gallery">Gallery</a></li>
+        <li><a href="#reviews">Reviews</a></li>
         <li><a href="#contact">Contact</a></li>
       </ul>
       <button class="btn btn--outline nav__auth" id="authBtn">Sign In</button>
@@ -29,12 +37,21 @@
 
   <!-- Hero -->
   <header class="hero" id="home">
+    <div class="hero__slides" aria-hidden="true">
+      <div class="hero__slide is-active" style="background-image:url('https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=3840&h=2160&q=80');"></div>
+      <div class="hero__slide" style="background-image:url('https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=3840&h=2160&q=80');"></div>
+      <div class="hero__slide" style="background-image:url('https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=3840&h=2160&q=80');"></div>
+      <div class="hero__slide" style="background-image:url('https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=3840&h=2160&q=80');"></div>
+    </div>
     <div class="hero__content container">
-      <p class="hero__subtitle">Homestay Experience</p>
-      <h1 class="hero__title">Benvenuti</h1>
-      <div class="divider"></div>
-      <p class="hero__desc">An intimate Italian retreat nestled among olive groves and cypress hills.</p>
-      <a href="#rooms" class="btn btn--primary">Explore Rooms</a>
+      <p class="hero__subtitle" data-reveal="fade-up">Homestay Experience</p>
+      <h1 class="hero__title" data-reveal="clip">Benvenuti</h1>
+      <div class="divider" data-reveal="flow" data-reveal-delay="60"></div>
+      <p class="hero__desc" data-reveal="fade-up" data-reveal-delay="120">An intimate Italian retreat nestled among olive groves and cypress hills.</p>
+      <div class="hero__cta" data-reveal="fade-up" data-reveal-delay="220">
+        <a href="#rooms" class="btn btn--primary">Explore Rooms</a>
+        <a href="#directions" class="btn btn--outline">Get Direction</a>
+      </div>
     </div>
   </header>
 
@@ -42,18 +59,18 @@
   <!-- About -->
   <section class="section" id="about">
     <div class="container">
-      <p class="section__subtitle">About Us</p>
-      <h2 class="section__title">Chi Siamo</h2>
-      <div class="divider"></div>
+      <p class="section__subtitle" data-reveal="fade-up">About Us</p>
+      <h2 class="section__title" data-reveal="clip">Chi Siamo</h2>
+      <div class="divider" data-reveal="flow" data-reveal-delay="80"></div>
       <div class="about__grid">
         <div class="about__text">
-          <p>Summer Green is a family-owned homestay offering authentic Italian hospitality. Each room is thoughtfully curated to reflect the landscape and traditions of the region.</p>
-          <p>From sunrise over the vineyards to evenings under the pergola, every moment here is designed for tranquility.</p>
+          <p data-reveal="fade-up" data-reveal-delay="120">Summer Green is a family-owned homestay offering authentic Italian hospitality. Each room is thoughtfully curated to reflect the landscape and traditions of the region.</p>
+          <p data-reveal="fade-up" data-reveal-delay="220">From sunrise over the vineyards to evenings under the pergola, every moment here is designed for tranquility.</p>
         </div>
         <div class="about__stats">
-          <div class="stat"><span class="stat__num">8</span><span class="stat__label">Rooms</span></div>
-          <div class="stat"><span class="stat__num">12</span><span class="stat__label">Years</span></div>
-          <div class="stat"><span class="stat__num">2k+</span><span class="stat__label">Guests</span></div>
+          <div class="stat" data-reveal="slide-down" data-reveal-delay="180"><span class="stat__num">8</span><span class="stat__label">Rooms</span></div>
+          <div class="stat" data-reveal="slide-down" data-reveal-delay="260"><span class="stat__num">12</span><span class="stat__label">Years</span></div>
+          <div class="stat" data-reveal="slide-down" data-reveal-delay="340"><span class="stat__num">2k+</span><span class="stat__label">Guests</span></div>
         </div>
       </div>
     </div>
@@ -62,9 +79,9 @@
   <!-- Rooms -->
   <section class="section section--alt" id="rooms">
     <div class="container">
-      <p class="section__subtitle">Our Rooms</p>
-      <h2 class="section__title">Le Camere</h2>
-      <div class="divider"></div>
+      <p class="section__subtitle" data-reveal="fade-up">Our Rooms</p>
+      <h2 class="section__title" data-reveal="clip">Le Camere</h2>
+      <div class="divider" data-reveal="flow" data-reveal-delay="80"></div>
       <div class="rooms__grid" id="roomsGrid"></div>
     </div>
   </section>
@@ -72,44 +89,98 @@
   <!-- Gallery -->
   <section class="section" id="gallery">
     <div class="container">
-      <p class="section__subtitle">Visual Journey</p>
-      <h2 class="section__title">La Galleria</h2>
-      <div class="divider"></div>
-      <div class="gallery__filters">
+      <p class="section__subtitle" data-reveal="fade-up">Visual Journey</p>
+      <h2 class="section__title" data-reveal="clip">La Galleria</h2>
+      <div class="divider" data-reveal="flow" data-reveal-delay="80"></div>
+      <div class="gallery__filters" data-reveal="flow" data-reveal-delay="120">
         <button class="gallery__filter active" data-filter="all">All</button>
         <button class="gallery__filter" data-filter="rooms">Rooms</button>
         <button class="gallery__filter" data-filter="exterior">Exterior</button>
         <button class="gallery__filter" data-filter="dining">Dining</button>
       </div>
       <div class="gallery__grid" id="galleryGrid">
-        <div class="gallery__item" data-category="exterior"><div class="gallery__placeholder">Courtyard</div></div>
-        <div class="gallery__item" data-category="rooms"><div class="gallery__placeholder">Suite Interior</div></div>
-        <div class="gallery__item" data-category="dining"><div class="gallery__placeholder">Breakfast Terrace</div></div>
-        <div class="gallery__item" data-category="exterior"><div class="gallery__placeholder">Garden Path</div></div>
-        <div class="gallery__item" data-category="rooms"><div class="gallery__placeholder">Room Detail</div></div>
-        <div class="gallery__item" data-category="dining"><div class="gallery__placeholder">Wine Cellar</div></div>
+        <div class="gallery__item" data-category="exterior" data-reveal="slide-down" data-reveal-delay="80">
+          <img class="gallery__img" alt="Courtyard" src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1600&h=1200&q=80">
+          <div class="gallery__label">Courtyard</div>
+        </div>
+        <div class="gallery__item" data-category="rooms" data-reveal="slide-down" data-reveal-delay="160">
+          <img class="gallery__img" alt="Suite interior" src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1600&h=1200&q=80">
+          <div class="gallery__label">Suite Interior</div>
+        </div>
+        <div class="gallery__item" data-category="dining" data-reveal="slide-down" data-reveal-delay="240">
+          <img class="gallery__img" alt="Breakfast terrace" src="https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?auto=format&fit=crop&w=1600&h=1200&q=80">
+          <div class="gallery__label">Breakfast Terrace</div>
+        </div>
+        <div class="gallery__item" data-category="exterior" data-reveal="slide-down" data-reveal-delay="200">
+          <img class="gallery__img" alt="Garden path" src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1600&h=1200&q=80">
+          <div class="gallery__label">Garden Path</div>
+        </div>
+        <div class="gallery__item" data-category="rooms" data-reveal="slide-down" data-reveal-delay="280">
+          <img class="gallery__img" alt="Room detail" src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1600&h=1200&q=80">
+          <div class="gallery__label">Room Detail</div>
+        </div>
+        <div class="gallery__item" data-category="dining" data-reveal="slide-down" data-reveal-delay="320">
+          <img class="gallery__img" alt="Wine cellar" src="https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=1600&h=1200&q=80">
+          <div class="gallery__label">Wine Cellar</div>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- Testimonials -->
-  <section class="section section--alt" id="testimonials">
+  <!-- Reviews -->
+  <section class="section section--alt" id="reviews">
     <div class="container">
-      <p class="section__subtitle">Guest Voices</p>
-      <h2 class="section__title">Testimonianze</h2>
-      <div class="divider"></div>
+      <p class="section__subtitle" data-reveal="fade-up">Guest Voices</p>
+      <h2 class="section__title" data-reveal="clip">Reviews</h2>
+      <div class="divider" data-reveal="flow" data-reveal-delay="80"></div>
       <div class="testimonials__grid">
-        <div class="testimonial">
+        <div class="testimonial" data-reveal="slide-down" data-reveal-delay="0">
           <p class="testimonial__text">"An unforgettable stay. The attention to detail and warmth of the hosts made it feel like home."</p>
           <span class="testimonial__author">— Elena M.</span>
         </div>
-        <div class="testimonial">
+        <div class="testimonial" data-reveal="slide-down" data-reveal-delay="120">
           <p class="testimonial__text">"Waking up to the vineyard views every morning was pure magic. We will return."</p>
           <span class="testimonial__author">— Marco & Sofia</span>
         </div>
-        <div class="testimonial">
+        <div class="testimonial" data-reveal="slide-down" data-reveal-delay="240">
           <p class="testimonial__text">"Simple elegance at its finest. The perfect escape from the city."</p>
           <span class="testimonial__author">— James L.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Directions -->
+  <section class="section" id="directions">
+    <div class="container">
+      <p class="section__subtitle" data-reveal="fade-up">How To Find Us</p>
+      <h2 class="section__title" data-reveal="clip">Directions</h2>
+      <div class="divider" data-reveal="flow" data-reveal-delay="80"></div>
+
+      <div class="directions__grid">
+        <div class="directions__content">
+          <p class="directions__lead" data-reveal="fade-up">
+            Arrive with ease. Use the link below to open turn-by-turn navigation to our homestay.
+          </p>
+          <div class="directions__meta" data-reveal="fade-up" data-reveal-delay="120">
+            <div class="directions__item">
+              <h4>Address</h4>
+              <p>Via dei Cipressi 42, Tuscany, Italy</p>
+            </div>
+            <div class="directions__actions">
+              <a class="btn btn--primary" id="getDirectionsBtn" href="#" rel="noopener">Open in Google Maps</a>
+              <a class="btn btn--outline" href="#contact">Contact Us</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="directions__map" data-reveal="fade-up" data-reveal-delay="180">
+          <iframe
+            title="Summer Green Location Map"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            src="https://www.google.com/maps?q=Via%20dei%20Cipressi%2042%2C%20Tuscany%2C%20Italy&output=embed">
+          </iframe>
         </div>
       </div>
     </div>
@@ -118,11 +189,14 @@
   <!-- Contact -->
   <section class="section" id="contact">
     <div class="container">
-      <p class="section__subtitle">Reach Out</p>
-      <h2 class="section__title">Contatti</h2>
-      <div class="divider"></div>
+      <p class="section__subtitle" data-reveal="fade-up">Reach Out</p>
+      <h2 class="section__title" data-reveal="clip">Contatti</h2>
+      <div class="divider" data-reveal="flow" data-reveal-delay="80"></div>
+      <div class="section__actions" data-reveal="flow" data-reveal-delay="120">
+        <a href="#reviews" class="btn btn--outline btn--sm">Review</a>
+      </div>
       <div class="contact__grid">
-        <div class="contact__info">
+        <div class="contact__info" data-reveal="slide-down" data-reveal-delay="120">
           <div class="contact__item">
             <h4>Address</h4>
             <p>Via dei Cipressi 42, Tuscany, Italy</p>
@@ -136,7 +210,7 @@
             <p>info@summergreen.it</p>
           </div>
         </div>
-        <form class="contact__form" id="contactForm">
+        <form class="contact__form" id="contactForm" data-reveal="slide-down" data-reveal-delay="200">
           <input type="text" placeholder="Name" required>
           <input type="email" placeholder="Email" required>
           <textarea placeholder="Message" rows="4" required></textarea>
@@ -157,8 +231,10 @@
         </div>
         <div class="footer__links">
           <a href="#home">Home</a>
+          <a href="#about">About</a>
           <a href="#rooms">Rooms</a>
           <a href="#gallery">Gallery</a>
+          <a href="#reviews">Reviews</a>
           <a href="#contact">Contact</a>
         </div>
       </div>
