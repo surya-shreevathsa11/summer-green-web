@@ -1,8 +1,5 @@
 (function () {
   let currentUser = null;
-  let revealIO = null;
-  const revealEls = new Set();
-  let hasScrolledDeep = false;
 
   /* Room cover images: 1st–5th and extras for more rooms */
   const roomCoverImages = [
@@ -19,86 +16,22 @@
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => document.querySelectorAll(sel);
 
-  // --- Scroll text flow reveal (reference-like) ---
-  function enhanceClipReveal(el) {
-    if (el.classList.contains("reveal-clip")) return;
-    const text = el.textContent;
-    el.textContent = "";
-    el.classList.add("reveal-clip");
-    const inner = document.createElement("span");
-    inner.className = "reveal-clip__inner";
-    inner.textContent = text;
-    el.appendChild(inner);
-  }
-
-  function setupRevealObserver() {
-    if (revealIO) return;
-    revealIO = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          entry.target.classList.add("is-visible");
-          revealIO.unobserve(entry.target);
-        });
-      },
-      { root: null, threshold: 0.15, rootMargin: "0px 0px -10% 0px" },
-    );
-  }
-
-  function registerReveals(root = document) {
-    setupRevealObserver();
-    const els = Array.from(root.querySelectorAll("[data-reveal]"));
-    els.forEach((el) => {
-      const type = el.dataset.reveal;
-      const delay = Number(el.dataset.revealDelay || 0);
-      if (Number.isFinite(delay) && delay > 0) {
-        el.style.setProperty("--reveal-delay", `${delay}ms`);
-      }
-      if (type === "clip") enhanceClipReveal(el);
-      if (type === "slide-down" || type === "flow") {
-        el.classList.add(
-          type === "slide-down" ? "reveal-slide-down" : "reveal-flow",
-        );
-      } else {
-        el.classList.add("reveal");
-      }
-      revealEls.add(el);
-    });
-    els.forEach((el) => revealIO.observe(el));
-  }
-
-  function resetReveals() {
-    if (!revealIO) return;
-    revealEls.forEach((el) => {
-      el.classList.remove("is-visible");
-      revealIO.observe(el);
-    });
-  }
-
-  function setupRevealResetOnTop() {
-    window.addEventListener(
-      "scroll",
-      () => {
-        const y = window.scrollY || 0;
-        if (y > 400) hasScrolledDeep = true;
-        if (hasScrolledDeep && y < 40) {
-          hasScrolledDeep = false;
-          resetReveals();
-        }
-      },
-      { passive: true },
-    );
-  }
-
   // --- Nav scroll ---
-  window.addEventListener("scroll", () => {
-    $("#nav").classList.toggle("scrolled", window.scrollY > 60);
-  });
+  var navEl = $('#nav');
+  if (navEl) {
+    window.addEventListener('scroll', () => {
+      navEl.classList.toggle('scrolled', window.scrollY > 60);
+    });
+  }
 
   // --- Mobile nav toggle ---
-  $("#navToggle").addEventListener("click", () => {
-    $("#navLinks").classList.toggle("open");
-  });
+  var navToggle = $('#navToggle');
+  if (navToggle) {
+    navToggle.addEventListener('click', () => {
+      var links = $('#navLinks');
+      if (links) links.classList.toggle('open');
+    });
+  }
 
   // --- Smooth scroll for nav links ---
   $$(
@@ -196,10 +129,8 @@
           <p class="room-card__price"><span>&euro;${room.price}</span> / night</p>
           <button class="btn btn--outline btn--sm" data-book="${room.id}" data-name="${room.name}">Book Now</button>
         </div>
-      `,
-        )
-        .join("");
-      registerReveals(grid);
+      `).join('');
+      if (window.refreshScrollReveals) window.refreshScrollReveals();
 
       grid.addEventListener("click", (e) => {
         const bookBtn = e.target.closest("[data-book]");
@@ -314,11 +245,11 @@
     });
   }
 
-  // --- Custom cursor (site-wide) ---
-  function setupCursor() {
-    const dot = $("#cursorDot");
-    const ring = $("#cursorRing");
-    if (!dot || !ring) return;
+  // --- Blob cursor (site-wide) — single blob, small, transparent ---
+  function setupBlobCursor() {
+    const container = $('#blobCursor');
+    const blob = container ? container.querySelector('.blob-cursor__blob') : null;
+    if (!container || !blob) return;
 
     const isCoarse =
       window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
@@ -327,46 +258,33 @@
     document.documentElement.classList.add("custom-cursor-active");
     document.body.classList.add("custom-cursor-active");
 
-    let x = 0,
-      y = 0;
-    let rx = 0,
-      ry = 0;
-    let hasMoved = false;
+    let x = 0, y = 0;
+    let rx = 0, ry = 0;
+    const lerpRate = 0.22;
+    let visible = false;
     let hovering = false;
     let down = false;
     let activeHoverEl = null;
 
     function setVisible(v) {
-      dot.classList.toggle("is-visible", v);
-      ring.classList.toggle("is-visible", v);
+      visible = v;
+      container.classList.toggle('is-visible', v);
     }
 
-    function updateRingClasses() {
-      ring.classList.toggle("is-hover", hovering);
-      ring.classList.toggle("is-down", down);
+    function updateClasses() {
+      container.classList.toggle('is-hover', hovering);
+      container.classList.toggle('is-down', down);
     }
 
-    window.addEventListener(
-      "mousemove",
-      (e) => {
-        x = e.clientX;
-        y = e.clientY;
-        hasMoved = true;
-        setVisible(true);
-        dot.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
-      },
-      { passive: true },
-    );
+    window.addEventListener('mousemove', (e) => {
+      x = e.clientX;
+      y = e.clientY;
+      setVisible(true);
+    }, { passive: true });
 
-    window.addEventListener("mouseleave", () => setVisible(false));
-    window.addEventListener("mousedown", () => {
-      down = true;
-      updateRingClasses();
-    });
-    window.addEventListener("mouseup", () => {
-      down = false;
-      updateRingClasses();
-    });
+    window.addEventListener('mouseleave', () => setVisible(false));
+    window.addEventListener('mousedown', () => { down = true; updateClasses(); });
+    window.addEventListener('mouseup', () => { down = false; updateClasses(); });
 
     document.addEventListener("mouseover", (e) => {
       const target =
@@ -381,7 +299,7 @@
       if (activeHoverEl) {
         activeHoverEl.classList.add("cursor-target");
       }
-      updateRingClasses();
+      updateClasses();
     });
 
     document.addEventListener("mouseout", (e) => {
@@ -389,7 +307,7 @@
         hovering = false;
         if (activeHoverEl) activeHoverEl.classList.remove("cursor-target");
         activeHoverEl = null;
-        updateRingClasses();
+        updateClasses();
         return;
       }
       const stillHover =
@@ -402,15 +320,15 @@
         activeHoverEl.classList.remove("cursor-target");
         activeHoverEl = null;
       }
-      updateRingClasses();
+      updateClasses();
     });
 
     function tick() {
-      if (hasMoved) {
-        rx += (x - rx) * 0.18;
-        ry += (y - ry) * 0.18;
-        const scale = down ? 0.88 : hovering ? 1.22 : 1;
-        ring.style.transform = `translate3d(${rx}px, ${ry}px, 0) translate(-50%, -50%) scale(${scale})`;
+      if (visible) {
+        rx += (x - rx) * lerpRate;
+        ry += (y - ry) * lerpRate;
+        var scale = down ? 0.9 : hovering ? 1.18 : 1;
+        blob.style.transform = 'translate(' + rx + 'px,' + ry + 'px) translate(-50%,-50%) scale(' + scale + ')';
       }
       requestAnimationFrame(tick);
     }
@@ -418,11 +336,9 @@
   }
 
   // --- Init ---
-  registerReveals();
-  setupRevealResetOnTop();
   setupDirections();
   setupHeroSlider();
-  setupCursor();
+  setupBlobCursor();
   checkAuth();
   renderRooms();
 })();

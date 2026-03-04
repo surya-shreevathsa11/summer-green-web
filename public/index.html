@@ -9,12 +9,20 @@
   <link rel="stylesheet" href="/css/style.css">
   <!-- Yankees Blue + Yellow theme. Comment out the next line to revert to default copper theme. -->
   <link rel="stylesheet" href="/css/theme-yankees.css">
+  <!-- Lenis Smooth Scroll -->
+  <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script>if ("scrollRestoration" in history) history.scrollRestoration = "manual";</script>
 </head>
 <body>
-
-  <!-- Custom cursor (desktop only) -->
-  <div class="cursor cursor--dot" id="cursorDot" aria-hidden="true"></div>
-  <div class="cursor cursor--ring" id="cursorRing" aria-hidden="true"></div>
+  <!-- Blob cursor (desktop only) -->
+  <div class="blob-cursor" id="blobCursor" aria-hidden="true">
+    <div class="blob-cursor__main">
+      <div class="blob-cursor__blob"><span class="blob-cursor__inner"></span></div>
+    </div>
+  </div>
 
   <!-- Navigation -->
   <nav class="nav" id="nav">
@@ -36,7 +44,7 @@
   </nav>
 
   <!-- Hero -->
-  <header class="hero" id="home">
+  <header class="hero hero--entry" id="home">
     <div class="hero__slides" aria-hidden="true">
       <div class="hero__slide is-active" style="background-image:url('https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=3840&h=2160&q=80');"></div>
       <div class="hero__slide" style="background-image:url('https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=3840&h=2160&q=80');"></div>
@@ -288,5 +296,6 @@
   </div>
 
   <script src="/js/main.js"></script>
+  <script src="/js/animations.js"></script>
 </body>
 </html>

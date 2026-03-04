@@ -14,6 +14,13 @@
   --color-burnt-copper: #FCA311;
   --color-copper-dark: #E3940F;
   --color-copper-light: #FDB838;
+  /* Nav scrolled — dark blue */
+  --nav-scrolled-bg: #14213D;
+  /* Blob cursor — shadow, hover */
+  --cursor-blob-fill: rgba(255, 176, 41, 0.88);
+  --cursor-blob-shadow: 0 2px 8px rgba(0,0,0,0.35), 0 4px 18px rgba(0,0,0,0.25);
+  --cursor-blob-shadow-hover: 0 4px 16px rgba(0,0,0,0.4), 0 8px 28px rgba(0,0,0,0.3);
+  --cursor-blob-inner: rgba(255, 255, 255, 0.92);
 }
 
 /* Button hover glow to match yellow accent */
@@ -25,17 +32,3 @@
   color: var(--color-copper-dark);
 }
 
-/* Cursor hover: accent glow + strong shadow for visibility */
-.cursor--ring.is-hover {
-  background: rgba(252, 163, 17, 0.1);
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.25),
-    0 0 0 4px rgba(252, 163, 17, 0.2),
-    0 6px 24px rgba(0, 0, 0, 0.3),
-    0 2px 8px rgba(0, 0, 0, 0.2);
-}
-.cursor--ring.is-down {
-  box-shadow:
-    0 0 0 2px rgba(252, 163, 17, 0.25),
-    0 2px 12px rgba(0, 0, 0, 0.35);
-}
