@@ -624,6 +624,7 @@ main {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 1.5rem 2.5rem;
   margin-top: 1.5rem;
   padding-top: 1rem;

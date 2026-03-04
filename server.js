@@ -59,6 +59,10 @@ import authRouter from "./routes/auth.routes.js";
 
 app.use("/api/auth", authRouter);
 
+app.get("/api/booking/rooms", (_req, res) => {
+  res.json({ success: true, rooms: ROOMS });
+});
+
 import { addInitalPrices } from "./config/addInitialRoom.js";
 addInitalPrices();
 
