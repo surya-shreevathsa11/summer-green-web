@@ -64,17 +64,68 @@
     el.addEventListener("click", closeAllModals);
   });
 
-  // --- Auth button ---
-  $("#authBtn").addEventListener("click", () => {
+  // --- Auth UI: Sign In (when logged out) / Profile dropdown (when logged in) ---
+  function updateAuthUI() {
+    const authBtn = $("#authBtn");
+    const navProfile = $("#navProfile");
+    const navProfileName = $("#navProfileName");
+    const navProfileDropdown = $("#navProfileDropdown");
+    if (!authBtn || !navProfile) return;
     if (currentUser) {
+      authBtn.style.display = "none";
+      navProfile.style.display = "block";
+      navProfile.setAttribute("aria-hidden", "false");
+      if (navProfileName) {
+        navProfileName.textContent = currentUser.name || currentUser.email || "Profile";
+      }
+      if (navProfileDropdown) navProfileDropdown.classList.remove("is-open");
+    } else {
+      authBtn.style.display = "";
+      navProfile.style.display = "none";
+      navProfile.setAttribute("aria-hidden", "true");
+      if (navProfileDropdown) navProfileDropdown.classList.remove("is-open");
+    }
+  }
+
+  $("#authBtn").addEventListener("click", () => {
+    openModal("#signInModal");
+  });
+
+  updateAuthUI();
+
+  // --- Profile dropdown ---
+  const navProfileTrigger = $("#navProfileTrigger");
+  const navProfileDropdown = $("#navProfileDropdown");
+  if (navProfileTrigger && navProfileDropdown) {
+    navProfileTrigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isOpen = navProfileDropdown.classList.toggle("is-open");
+      navProfileTrigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    });
+    navProfileDropdown.addEventListener("click", (e) => e.stopPropagation());
+    document.addEventListener("click", () => {
+      navProfileDropdown.classList.remove("is-open");
+      if (navProfileTrigger) navProfileTrigger.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  const navProfileLogout = $("#navProfileLogout");
+  if (navProfileLogout) {
+    navProfileLogout.addEventListener("click", () => {
       fetch("/api/auth/logout", { method: "POST" }).then(() => {
         currentUser = null;
         updateAuthUI();
       });
-    } else {
-      openModal("#signInModal");
-    }
-  });
+    });
+  }
+  const navProfileBookings = $("#navProfileBookings");
+  if (navProfileBookings) {
+    navProfileBookings.addEventListener("click", () => {
+      if (navProfileDropdown) navProfileDropdown.classList.remove("is-open");
+      const navLinks = $("#navLinks");
+      if (navLinks) navLinks.classList.remove("open");
+    });
+  }
 
   // --- Google Sign In ---
   $("#googleSignInBtn").addEventListener("click", () => {
@@ -84,28 +135,58 @@
   // --- Check auth on load (Google OAuth sets session server-side) ---
   async function checkAuth() {
     try {
-      const res = await fetch("/api/auth/status");
+      const res = await fetch("/api/auth/status", { credentials: "same-origin" });
       const data = await res.json();
       if (data.loggedIn) {
         currentUser = data.user;
         updateAuthUI();
+        try {
+          if (sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY) === "checkout" && bookingCart.length > 0) {
+            sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
+            closeAllModals();
+            const today = new Date().toISOString().slice(0, 10);
+            const checkInEl = $("#checkoutCheckIn");
+            const checkOutEl = $("#checkoutCheckOut");
+            if (checkInEl) checkInEl.min = today;
+            if (checkOutEl) checkOutEl.min = today;
+            openModal("#checkoutModal");
+          }
+        } catch (_) {}
       }
     } catch {
       /* silent */
     }
   }
 
-  // --- Booking cart (in-memory) ---
+  // --- Booking cart (persisted in sessionStorage so it survives OAuth redirect) ---
+  const CART_STORAGE_KEY = "summer-green-booking-cart";
+  const POST_LOGIN_REDIRECT_KEY = "summer-green-post-login";
+
   let bookingCart = [];
+  try {
+    const saved = sessionStorage.getItem(CART_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) bookingCart = parsed;
+    }
+  } catch (_) {}
+
+  function persistCart() {
+    try {
+      sessionStorage.setItem(CART_STORAGE_KEY, JSON.stringify(bookingCart));
+    } catch (_) {}
+  }
 
   function addToCart(room) {
     if (bookingCart.some((r) => r.id === room.id)) return;
     bookingCart.push(room);
+    persistCart();
     updateCartUI();
   }
 
   function removeFromCart(roomId) {
     bookingCart = bookingCart.filter((r) => r.id !== roomId);
+    persistCart();
     updateCartUI();
     updateRoomCartButtons();
   }
@@ -174,8 +255,14 @@
 
   $("#cartCheckoutBtn").addEventListener("click", () => {
     if (bookingCart.length === 0) return;
-    // TODO: Restore sign-in check when verification is set up — require currentUser before opening checkout:
-    // if (!currentUser) { closeAllModals(); openModal("#signInModal"); return; }
+    if (!currentUser) {
+      try {
+        sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, "checkout");
+      } catch (_) {}
+      closeAllModals();
+      openModal("#signInModal");
+      return;
+    }
     closeAllModals();
     const today = new Date().toISOString().slice(0, 10);
     $("#checkoutCheckIn").min = today;
@@ -205,6 +292,8 @@
         </div>
       `).join('');
       if (window.refreshScrollReveals) window.refreshScrollReveals();
+      updateCartUI();
+      updateRoomCartButtons();
 
       grid.addEventListener("click", (e) => {
         const btn = e.target.closest("[data-add-cart]");
@@ -277,6 +366,9 @@
     closeAllModals();
     alert("Razorpay payment gateway will be integrated once bank details and backend verification are confirmed. Your booking details have been recorded for testing.");
     bookingCart = [];
+    try {
+      sessionStorage.removeItem(CART_STORAGE_KEY);
+    } catch (_) {}
     updateCartUI();
     $("#checkoutForm").reset();
     $("#termsAccept").checked = false;

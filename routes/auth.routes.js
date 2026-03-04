@@ -14,7 +14,10 @@ router.get(
     failureRedirect: "/",
   }),
   (req, res) => {
-    res.redirect("/");
+    req.session.save((err) => {
+      if (err) return res.redirect("/");
+      res.redirect("/");
+    });
   },
 );
 
