@@ -43,4 +43,4 @@
 app.use(passport.session());
 ```
 
-passport.session() is essentially middleware that runs the entire verification flow on every single incoming request — you never have to call it manually.
+`passport.session()` is essentially middleware that runs the entire verification flow on every single incoming request — you never have to call it manually.
