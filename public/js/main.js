@@ -95,19 +95,93 @@
     }
   }
 
-  // --- Check auth status on load ---
-  async function checkAuth() {
-    try {
-      const res = await fetch("/api/auth/status");
-      const data = await res.json();
-      if (data.loggedIn) {
-        currentUser = data.user;
-        updateAuthUI();
-      }
-    } catch {
-      /* silent */
-    }
+  // --- Booking cart (in-memory) ---
+  let bookingCart = [];
+
+  function addToCart(room) {
+    if (bookingCart.some((r) => r.id === room.id)) return;
+    bookingCart.push(room);
+    updateCartUI();
   }
+
+  function removeFromCart(roomId) {
+    bookingCart = bookingCart.filter((r) => r.id !== roomId);
+    updateCartUI();
+    updateRoomCartButtons();
+  }
+
+  function updateRoomCartButtons() {
+    $$("[data-add-cart]").forEach((btn) => {
+      const id = Number(btn.dataset.addCart);
+      btn.textContent = bookingCart.some((r) => r.id === id) ? "Added" : "Add to cart";
+    });
+  }
+
+  function updateCartUI() {
+    const countEl = $("#navCartCount");
+    if (countEl) {
+      countEl.textContent = bookingCart.length;
+      countEl.setAttribute("data-count", bookingCart.length);
+    }
+    const listEl = $("#cartList");
+    const emptyEl = $("#cartEmpty");
+    const footerEl = $("#cartFooter");
+    const totalEl = $("#cartTotal");
+    if (!listEl) return;
+    listEl.innerHTML = "";
+    if (bookingCart.length === 0) {
+      if (emptyEl) emptyEl.style.display = "block";
+      if (footerEl) footerEl.style.display = "none";
+      updateRoomCartButtons();
+      return;
+    }
+    if (emptyEl) emptyEl.style.display = "none";
+    if (footerEl) footerEl.style.display = "block";
+    let total = 0;
+    bookingCart.forEach((room) => {
+      total += room.price;
+      const item = document.createElement("div");
+      item.className = "cart__item";
+      item.innerHTML = `
+        <div class="cart__item-info">
+          <div class="cart__item-name">${escapeHtml(room.name)}</div>
+          <div class="cart__item-price">&euro;${room.price} / night</div>
+        </div>
+        <button type="button" class="cart__item-remove" data-remove="${room.id}">Remove</button>
+      `;
+      listEl.appendChild(item);
+    });
+    listEl.querySelectorAll("[data-remove]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        removeFromCart(Number(btn.dataset.remove));
+      });
+    });
+    if (totalEl) totalEl.textContent = `€${total}`;
+    updateRoomCartButtons();
+  }
+
+  function escapeHtml(s) {
+    const div = document.createElement("div");
+    div.textContent = s;
+    return div.innerHTML;
+  }
+
+  $("#navCart").addEventListener("click", (e) => {
+    e.preventDefault();
+    openModal("#cartModal");
+    updateCartUI();
+  });
+
+  $("#cartCheckoutBtn").addEventListener("click", () => {
+    if (bookingCart.length === 0) return;
+    // TODO: Restore sign-in check when verification is set up — require currentUser before opening checkout:
+    // if (!currentUser) { closeAllModals(); openModal("#signInModal"); return; }
+    closeAllModals();
+    const today = new Date().toISOString().slice(0, 10);
+    $("#checkoutCheckIn").min = today;
+    $("#checkoutCheckOut").min = today;
+    openModal("#checkoutModal");
+  });
 
   // --- Render rooms ---
   async function renderRooms() {
@@ -121,58 +195,92 @@
           (room, idx) => `
         <div class="room-card" data-reveal="slide-down" data-reveal-delay="${Math.min(idx * 100, 400)}">
           <div class="room-card__media">
-            <img loading="lazy" alt="${room.name} cover" src="${roomCoverImages[idx % roomCoverImages.length]}">
+            <img loading="lazy" alt="${escapeHtml(room.name)} cover" src="${roomCoverImages[idx % roomCoverImages.length]}">
           </div>
           <span class="room-card__number">0${room.id}</span>
-          <h3 class="room-card__name">${room.name}</h3>
-          <p class="room-card__desc">${room.description}</p>
+          <h3 class="room-card__name">${escapeHtml(room.name)}</h3>
+          <p class="room-card__desc">${escapeHtml(room.description)}</p>
           <p class="room-card__price"><span>&euro;${room.price}</span> / night</p>
-          <button class="btn btn--outline btn--sm" data-book="${room.id}" data-name="${room.name}">Book Now</button>
+          <button type="button" class="btn btn--outline btn--sm" data-add-cart="${room.id}" data-name="${escapeHtml(room.name)}" data-price="${room.price}">Add to cart</button>
         </div>
       `).join('');
       if (window.refreshScrollReveals) window.refreshScrollReveals();
 
       grid.addEventListener("click", (e) => {
-        const bookBtn = e.target.closest("[data-book]");
-        if (!bookBtn) return;
-        if (!currentUser) {
-          openModal("#signInModal");
-          return;
-        }
-        $("#bookingRoomId").value = bookBtn.dataset.book;
-        $("#bookingRoomName").textContent = bookBtn.dataset.name;
-        openModal("#bookingModal");
+        const btn = e.target.closest("[data-add-cart]");
+        if (!btn) return;
+        const id = Number(btn.dataset.addCart);
+        const name = btn.dataset.name;
+        const price = Number(btn.dataset.price);
+        addToCart({ id, name, price });
+        updateRoomCartButtons();
+        openModal("#cartModal");
+        updateCartUI();
       });
     } catch {
       /* silent */
     }
   }
 
-  // --- Booking form ---
-  $("#bookingForm").addEventListener("submit", async (e) => {
+  $("#checkoutCheckIn").addEventListener("change", () => {
+    const checkIn = $("#checkoutCheckIn").value;
+    if (checkIn) $("#checkoutCheckOut").min = checkIn;
+  });
+
+  // --- Checkout form (details + dates + guests) ---
+  $("#checkoutForm").addEventListener("submit", (e) => {
     e.preventDefault();
-    const roomId = $("#bookingRoomId").value;
-    const checkIn = $("#bookingCheckIn").value;
-    const checkOut = $("#bookingCheckOut").value;
-    const guests = $("#bookingGuests").value;
-    try {
-      const res = await fetch("/api/booking/book", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ roomId, checkIn, checkOut, guests }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        $("#bookingSuccess").textContent = "Booking confirmed!";
-        $("#bookingError").textContent = "";
-        setTimeout(closeAllModals, 1500);
-        $("#bookingForm").reset();
-      } else {
-        $("#bookingError").textContent = data.message;
-      }
-    } catch {
-      $("#bookingError").textContent = "Connection error";
+    const name = $("#checkoutName").value.trim();
+    const email = $("#checkoutEmail").value.trim();
+    const phone = $("#checkoutPhone").value.trim();
+    const checkIn = $("#checkoutCheckIn").value;
+    const checkOut = $("#checkoutCheckOut").value;
+    const adults = parseInt($("#checkoutAdults").value, 10) || 1;
+    const children = parseInt($("#checkoutChildren").value, 10) || 0;
+    const errEl = $("#checkoutError");
+    errEl.textContent = "";
+    if (adults < 1) {
+      errEl.textContent = "At least 1 adult is required.";
+      return;
     }
+    if (checkIn && checkOut && new Date(checkOut) <= new Date(checkIn)) {
+      errEl.textContent = "Check-out must be after check-in.";
+      return;
+    }
+    closeAllModals();
+    openModal("#termsModal");
+  });
+
+  // --- Terms: scroll wheel only scrolls terms content, not background ---
+  (function () {
+    const termsScroll = document.getElementById("termsScroll");
+    if (termsScroll) {
+      termsScroll.addEventListener("wheel", function (e) {
+        e.stopPropagation();
+      }, { passive: true });
+    }
+  })();
+
+  // --- Terms: enable Proceed when checkbox checked ---
+  $("#termsAccept").addEventListener("change", () => {
+    $("#termsProceedBtn").disabled = !$("#termsAccept").checked;
+  });
+
+  $("#termsProceedBtn").addEventListener("click", () => {
+    if (!$("#termsAccept").checked) return;
+    closeAllModals();
+    openModal("#paymentModal");
+  });
+
+  // --- Payment: Razorpay redirect placeholder ---
+  $("#paymentRedirectBtn").addEventListener("click", () => {
+    closeAllModals();
+    alert("Razorpay payment gateway will be integrated once bank details and backend verification are confirmed. Your booking details have been recorded for testing.");
+    bookingCart = [];
+    updateCartUI();
+    $("#checkoutForm").reset();
+    $("#termsAccept").checked = false;
+    $("#termsProceedBtn").disabled = true;
   });
 
   // --- Gallery filter ---
@@ -260,7 +368,7 @@
 
     let x = 0, y = 0;
     let rx = 0, ry = 0;
-    const lerpRate = 0.22;
+    const lerpRate = 0.42;
     let visible = false;
     let hovering = false;
     let down = false;
@@ -327,7 +435,7 @@
       if (visible) {
         rx += (x - rx) * lerpRate;
         ry += (y - ry) * lerpRate;
-        var scale = down ? 0.9 : hovering ? 1.18 : 1;
+        var scale = down ? 0.9 : hovering ? 1.24 : 1;
         blob.style.transform = 'translate(' + rx + 'px,' + ry + 'px) translate(-50%,-50%) scale(' + scale + ')';
       }
       requestAnimationFrame(tick);

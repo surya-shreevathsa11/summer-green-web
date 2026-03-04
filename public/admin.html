@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Summer Green</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/theme-yankees.css">
+  <style>
+    .admin { min-height: 100vh; background: var(--color-cool-mist, #f5f5f5); padding: 2rem; }
+    .admin__header { background: var(--color-obsidian); color: var(--text-on-dark, #f8f8f8); padding: 1.25rem 2rem; margin: -2rem -2rem 2rem -2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+    .admin__header h1 { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-style: italic; margin: 0; }
+    .admin__back { color: rgba(248,248,248,0.9); text-decoration: none; font-size: 0.85rem; letter-spacing: 0.05em; }
+    .admin__back:hover { color: var(--color-burnt-copper); }
+    .admin__card { background: var(--color-urban-white); border-radius: 1rem; border: 1px solid var(--border-light); box-shadow: 0 4px 20px var(--shadow-soft); padding: 2rem; max-width: 720px; margin: 0 auto; }
+    .admin__login { text-align: center; padding: 3rem 2rem; }
+    .admin__login p { color: var(--text-secondary); margin-bottom: 1.5rem; }
+    .admin__login .btn { display: inline-flex; align-items: center; gap: 0.5rem; }
+    .admin__denied { text-align: center; padding: 3rem 2rem; color: var(--text-muted); }
+    .admin__section { margin-bottom: 2rem; }
+    .admin__section h2 { font-family: 'Cormorant Garamond', serif; font-size: 1.35rem; color: var(--text-primary); margin-bottom: 1rem; }
+    .admin__table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .admin__table th, .admin__table td { text-align: left; padding: 0.75rem; border-bottom: 1px solid var(--border-light); }
+    .admin__table th { color: var(--text-muted); font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; font-size: 0.75rem; }
+    .admin__table td { color: var(--text-primary); }
+    .admin__empty { text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.9rem; }
+  </style>
+</head>
+<body class="admin">
+  <header class="admin__header">
+    <h1>Summer Green — Admin</h1>
+    <a href="/" class="admin__back">← Back to site</a>
+  </header>
+  <main class="admin__card" id="adminCard">
+    <div id="adminLoading">Loading…</div>
+    <div id="adminLogin" style="display: none;">
+      <div class="admin__login">
+        <p>Sign in with Google to access the admin panel.</p>
+        <a href="/api/auth/google" class="btn btn--primary">Continue with Google</a>
+      </div>
+    </div>
+    <div id="adminDenied" style="display: none;">
+      <div class="admin__denied">Access denied. Your account is not an admin.</div>
+    </div>
+    <div id="adminDashboard" style="display: none;">
+      <div class="admin__section">
+        <h2>Bookings</h2>
+        <table class="admin__table" id="bookingsTable">
+          <thead>
+            <tr>
+              <th>Guest</th>
+              <th>Room</th>
+              <th>Check-in</th>
+              <th>Check-out</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="bookingsBody"></tbody>
+        </table>
+        <div class="admin__empty" id="bookingsEmpty" style="display: none;">No bookings yet.</div>
+      </div>
+    </div>
+  </main>
+  <script>
+    (function () {
+      const loading = document.getElementById("adminLoading");
+      const login = document.getElementById("adminLogin");
+      const denied = document.getElementById("adminDenied");
+      const dashboard = document.getElementById("adminDashboard");
+      const bookingsBody = document.getElementById("bookingsBody");
+      const bookingsEmpty = document.getElementById("bookingsEmpty");
+
+      fetch("/api/admin/me", { credentials: "include" })
+        .then((res) => {
+          if (res.ok) return res.json();
+          if (res.status === 403) return res.json();
+          throw new Error("Auth check failed");
+        })
+        .then((data) => {
+          loading.style.display = "none";
+          if (data.isAdmin) {
+            dashboard.style.display = "block";
+            loadBookings();
+          } else if (data.loggedIn) {
+            denied.style.display = "block";
+          } else {
+            login.style.display = "block";
+          }
+        })
+        .catch(() => {
+          loading.style.display = "none";
+          login.style.display = "block";
+        });
+
+      function loadBookings() {
+        fetch("/api/admin/bookings", { credentials: "include" })
+          .then((r) => r.json())
+          .then((data) => {
+            const list = data.bookings || [];
+            if (list.length === 0) {
+              bookingsEmpty.style.display = "block";
+              return;
+            }
+            bookingsEmpty.style.display = "none";
+            bookingsBody.innerHTML = list
+              .map(
+                (b) =>
+                  "<tr><td>" +
+                  (b.userName || "-") +
+                  "</td><td>" +
+                  (b.roomName || "-") +
+                  "</td><td>" +
+                  (b.checkIn || "-") +
+                  "</td><td>" +
+                  (b.checkOut || "-") +
+                  "</td><td>" +
+                  (b.status || "-") +
+                  "</td></tr>"
+              )
+              .join("");
+          })
+          .catch(() => {
+            bookingsEmpty.textContent = "Could not load bookings.";
+            bookingsEmpty.style.display = "block";
+          });
+      }
+    })();
+  </script>
+</body>
+</html>

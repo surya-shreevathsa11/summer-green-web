@@ -39,6 +39,12 @@
         <li><a href="#reviews">Reviews</a></li>
         <li><a href="#contact">Contact</a></li>
       </ul>
+      <a href="#" class="nav__cart" id="navCart" aria-label="Booking cart">
+        <span class="nav__cart-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        </span>
+        <span class="nav__cart-count" id="navCartCount" data-count="0">0</span>
+      </a>
       <button class="btn btn--outline nav__auth" id="authBtn">Sign In</button>
     </div>
   </nav>
@@ -267,31 +273,105 @@
   </div>
 </div>
 
-  <!-- Booking Modal -->
-  <div class="modal" id="bookingModal">
+  <!-- Cart Modal -->
+  <div class="modal" id="cartModal">
+    <div class="modal__overlay"></div>
+    <div class="modal__content modal__content--wide">
+      <button class="modal__close" data-close>&times;</button>
+      <h3>Your selection</h3>
+      <div class="divider"></div>
+      <div class="cart__list" id="cartList"></div>
+      <p class="cart__empty" id="cartEmpty">No rooms added yet. Add rooms from the Rooms section.</p>
+      <div class="cart__footer" id="cartFooter" style="display: none;">
+        <p class="cart__total">Total: <strong id="cartTotal">€0</strong> / night</p>
+        <button type="button" class="btn btn--primary btn--full" id="cartCheckoutBtn">Proceed to checkout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checkout Modal (guest details + dates + guests) -->
+  <div class="modal" id="checkoutModal">
+    <div class="modal__overlay"></div>
+    <div class="modal__content modal__content--wide">
+      <button class="modal__close" data-close>&times;</button>
+      <h3>Booking details</h3>
+      <div class="divider"></div>
+      <form id="checkoutForm">
+        <div class="form__row">
+          <div class="form__group">
+            <label for="checkoutName">Full name</label>
+            <input type="text" id="checkoutName" placeholder="Your name" required>
+          </div>
+          <div class="form__group">
+            <label for="checkoutEmail">Email</label>
+            <input type="email" id="checkoutEmail" placeholder="you@example.com" required>
+          </div>
+        </div>
+        <div class="form__group">
+          <label for="checkoutPhone">Phone number</label>
+          <input type="tel" id="checkoutPhone" placeholder="+39 123 456 7890" required>
+        </div>
+        <div class="form__row">
+          <div class="form__group">
+            <label for="checkoutCheckIn">Check-in date</label>
+            <input type="date" id="checkoutCheckIn" required>
+          </div>
+          <div class="form__group">
+            <label for="checkoutCheckOut">Check-out date</label>
+            <input type="date" id="checkoutCheckOut" required>
+          </div>
+        </div>
+        <div class="form__row">
+          <div class="form__group">
+            <label for="checkoutAdults">Number of adults</label>
+            <input type="number" id="checkoutAdults" min="1" max="20" value="1" required>
+          </div>
+          <div class="form__group">
+            <label for="checkoutChildren">Number of children</label>
+            <input type="number" id="checkoutChildren" min="0" max="20" value="0">
+          </div>
+        </div>
+        <p class="form__error" id="checkoutError"></p>
+        <button type="submit" class="btn btn--primary btn--full" id="checkoutSubmitBtn">Continue to payment</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Terms & Conditions Modal -->
+  <div class="modal" id="termsModal">
+    <div class="modal__overlay"></div>
+    <div class="modal__content modal__content--wide">
+      <button class="modal__close" data-close>&times;</button>
+      <h3>Terms &amp; conditions</h3>
+      <div class="divider"></div>
+      <div class="terms__scroll" id="termsScroll">
+        <p>By proceeding, you agree to the following:</p>
+        <ul>
+          <li>Check-in time is from 14:00; check-out by 11:00.</li>
+          <li>Cancellations made 7 days or more before check-in receive a full refund minus processing fee.</li>
+          <li>Cancellations within 7 days of check-in are subject to a 50% charge.</li>
+          <li>No-shows are charged the full stay amount.</li>
+          <li>Summer Green is not liable for loss or damage to personal belongings.</li>
+          <li>Guests are expected to respect the property and other guests; quiet hours 22:00–08:00.</li>
+        </ul>
+      </div>
+      <label class="terms__accept">
+        <input type="checkbox" id="termsAccept" required>
+        <span>I accept the terms and conditions</span>
+      </label>
+      <button type="button" class="btn btn--primary btn--full" id="termsProceedBtn" disabled>Proceed to payment</button>
+    </div>
+  </div>
+
+  <!-- Payment redirect placeholder (Razorpay integration later) -->
+  <div class="modal" id="paymentModal">
     <div class="modal__overlay"></div>
     <div class="modal__content">
       <button class="modal__close" data-close>&times;</button>
-      <h3>Book <span id="bookingRoomName"></span></h3>
+      <h3>Secure payment</h3>
       <div class="divider"></div>
-      <form id="bookingForm">
-        <input type="hidden" id="bookingRoomId">
-        <div class="form__group">
-          <label>Check In</label>
-          <input type="date" id="bookingCheckIn" required>
-        </div>
-        <div class="form__group">
-          <label>Check Out</label>
-          <input type="date" id="bookingCheckOut" required>
-        </div>
-        <div class="form__group">
-          <label>Guests</label>
-          <input type="number" id="bookingGuests" min="1" max="4" value="1" required>
-        </div>
-        <p class="form__error" id="bookingError"></p>
-        <p class="form__success" id="bookingSuccess"></p>
-        <button type="submit" class="btn btn--primary btn--full">Confirm Booking</button>
-      </form>
+      <p class="payment__text" id="paymentText">You will be redirected to Razorpay to complete payment. Database and verification will be enabled once bank details are confirmed.</p>
+      <button type="button" class="btn btn--primary btn--full" id="paymentRedirectBtn">Continue to Razorpay</button>
     </div>
   </div>
 
