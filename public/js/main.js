@@ -60,7 +60,7 @@
     $$(".form__success").forEach((e) => (e.textContent = ""));
   }
 
-  $$(".modal__overlay, .modal__close").forEach((el) => {
+  $$(".modal__overlay, .modal__close, [data-close]").forEach((el) => {
     el.addEventListener("click", closeAllModals);
   });
 
@@ -141,15 +141,9 @@
         currentUser = data.user;
         updateAuthUI();
         try {
-          if (sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY) === "checkout" && bookingCart.length > 0) {
-            sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
-            closeAllModals();
-            const today = new Date().toISOString().slice(0, 10);
-            const checkInEl = $("#checkoutCheckIn");
-            const checkOutEl = $("#checkoutCheckOut");
-            if (checkInEl) checkInEl.min = today;
-            if (checkOutEl) checkOutEl.min = today;
-            openModal("#checkoutModal");
+          if ((sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY) === "checkout" || sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY) === "cart") && bookingCart.length > 0) {
+            sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, "cart");
+            window.location.href = "/cart";
           }
         } catch (_) {}
       }
@@ -178,10 +172,11 @@
   }
 
   function addToCart(room) {
-    if (bookingCart.some((r) => r.id === room.id)) return;
+    if (bookingCart.some((r) => r.id === room.id)) return false;
     bookingCart.push(room);
     persistCart();
     updateCartUI();
+    return true;
   }
 
   function removeFromCart(roomId) {
@@ -247,29 +242,6 @@
     return div.innerHTML;
   }
 
-  $("#navCart").addEventListener("click", (e) => {
-    e.preventDefault();
-    openModal("#cartModal");
-    updateCartUI();
-  });
-
-  $("#cartCheckoutBtn").addEventListener("click", () => {
-    if (bookingCart.length === 0) return;
-    if (!currentUser) {
-      try {
-        sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, "checkout");
-      } catch (_) {}
-      closeAllModals();
-      openModal("#signInModal");
-      return;
-    }
-    closeAllModals();
-    const today = new Date().toISOString().slice(0, 10);
-    $("#checkoutCheckIn").min = today;
-    $("#checkoutCheckOut").min = today;
-    openModal("#checkoutModal");
-  });
-
   // --- Render rooms ---
   async function renderRooms() {
     try {
@@ -298,82 +270,24 @@
       grid.addEventListener("click", (e) => {
         const btn = e.target.closest("[data-add-cart]");
         if (!btn) return;
+        e.preventDefault();
         const id = Number(btn.dataset.addCart);
         const name = btn.dataset.name;
         const price = Number(btn.dataset.price);
-        addToCart({ id, name, price });
+        var added = addToCart({ id, name, price });
         updateRoomCartButtons();
-        openModal("#cartModal");
         updateCartUI();
+        if (added) {
+          var infoEl = $("#roomAddedInfo");
+          var modal = $("#roomAddedModal");
+          if (infoEl) infoEl.textContent = name + " — \u20AC" + price + " / night";
+          if (modal) openModal("#roomAddedModal");
+        }
       });
     } catch {
       /* silent */
     }
   }
-
-  $("#checkoutCheckIn").addEventListener("change", () => {
-    const checkIn = $("#checkoutCheckIn").value;
-    if (checkIn) $("#checkoutCheckOut").min = checkIn;
-  });
-
-  // --- Checkout form (details + dates + guests) ---
-  $("#checkoutForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const name = $("#checkoutName").value.trim();
-    const email = $("#checkoutEmail").value.trim();
-    const phone = $("#checkoutPhone").value.trim();
-    const checkIn = $("#checkoutCheckIn").value;
-    const checkOut = $("#checkoutCheckOut").value;
-    const adults = parseInt($("#checkoutAdults").value, 10) || 1;
-    const children = parseInt($("#checkoutChildren").value, 10) || 0;
-    const errEl = $("#checkoutError");
-    errEl.textContent = "";
-    if (adults < 1) {
-      errEl.textContent = "At least 1 adult is required.";
-      return;
-    }
-    if (checkIn && checkOut && new Date(checkOut) <= new Date(checkIn)) {
-      errEl.textContent = "Check-out must be after check-in.";
-      return;
-    }
-    closeAllModals();
-    openModal("#termsModal");
-  });
-
-  // --- Terms: scroll wheel only scrolls terms content, not background ---
-  (function () {
-    const termsScroll = document.getElementById("termsScroll");
-    if (termsScroll) {
-      termsScroll.addEventListener("wheel", function (e) {
-        e.stopPropagation();
-      }, { passive: true });
-    }
-  })();
-
-  // --- Terms: enable Proceed when checkbox checked ---
-  $("#termsAccept").addEventListener("change", () => {
-    $("#termsProceedBtn").disabled = !$("#termsAccept").checked;
-  });
-
-  $("#termsProceedBtn").addEventListener("click", () => {
-    if (!$("#termsAccept").checked) return;
-    closeAllModals();
-    openModal("#paymentModal");
-  });
-
-  // --- Payment: Razorpay redirect placeholder ---
-  $("#paymentRedirectBtn").addEventListener("click", () => {
-    closeAllModals();
-    alert("Razorpay payment gateway will be integrated once bank details and backend verification are confirmed. Your booking details have been recorded for testing.");
-    bookingCart = [];
-    try {
-      sessionStorage.removeItem(CART_STORAGE_KEY);
-    } catch (_) {}
-    updateCartUI();
-    $("#checkoutForm").reset();
-    $("#termsAccept").checked = false;
-    $("#termsProceedBtn").disabled = true;
-  });
 
   // --- Gallery filter ---
   $$(".gallery__filter").forEach((btn) => {
@@ -389,13 +303,6 @@
         }
       });
     });
-  });
-
-  // --- Contact form ---
-  $("#contactForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    alert("Message sent. We will get back to you soon.");
-    $("#contactForm").reset();
   });
 
   // --- Directions button (maps) ---
@@ -486,12 +393,16 @@
     window.addEventListener('mousedown', () => { down = true; updateClasses(); });
     window.addEventListener('mouseup', () => { down = false; updateClasses(); });
 
+    var textSelector = 'h1, h2, h3, h4, h5, h6, p, .hero__title, .hero__subtitle, .hero__desc, .section__title, .section__subtitle';
+    var hoverSelector = 'a, button, .btn, input, textarea, [role="button"], .room-card, .gallery__item';
     document.addEventListener("mouseover", (e) => {
       const target =
         e.target &&
         e.target.closest &&
-        e.target.closest('a, button, .btn, input, textarea, [role="button"]');
+        e.target.closest(hoverSelector);
+      const textEl = e.target && e.target.closest && e.target.closest(textSelector);
       hovering = Boolean(target);
+      container.classList.toggle('is-hover-text', Boolean(textEl));
       if (activeHoverEl && activeHoverEl !== target) {
         activeHoverEl.classList.remove("cursor-target");
       }
@@ -505,6 +416,7 @@
     document.addEventListener("mouseout", (e) => {
       if (!e.relatedTarget) {
         hovering = false;
+        container.classList.remove('is-hover-text');
         if (activeHoverEl) activeHoverEl.classList.remove("cursor-target");
         activeHoverEl = null;
         updateClasses();
@@ -512,10 +424,10 @@
       }
       const stillHover =
         e.relatedTarget.closest &&
-        e.relatedTarget.closest(
-          'a, button, .btn, input, textarea, [role="button"]',
-        );
+        e.relatedTarget.closest(hoverSelector);
+      const stillText = e.relatedTarget.closest && e.relatedTarget.closest(textSelector);
       hovering = Boolean(stillHover);
+      container.classList.toggle('is-hover-text', Boolean(stillText));
       if (!hovering && activeHoverEl) {
         activeHoverEl.classList.remove("cursor-target");
         activeHoverEl = null;

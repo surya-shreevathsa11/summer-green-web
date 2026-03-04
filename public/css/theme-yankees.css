@@ -16,11 +16,11 @@
   --color-copper-light: #FDB838;
   /* Nav scrolled — dark blue */
   --nav-scrolled-bg: #14213D;
-  /* Blob cursor — shadow, hover */
-  --cursor-blob-fill: rgba(255, 176, 41, 0.88);
-  --cursor-blob-shadow: 0 2px 8px rgba(0,0,0,0.35), 0 4px 18px rgba(0,0,0,0.25);
-  --cursor-blob-shadow-hover: 0 4px 16px rgba(0,0,0,0.4), 0 8px 28px rgba(0,0,0,0.3);
-  --cursor-blob-inner: rgba(255, 255, 255, 0.92);
+  /* Blob cursor — transparent, no yellow */
+  --cursor-blob-fill: rgba(255, 255, 255, 0.18);
+  --cursor-blob-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  --cursor-blob-shadow-hover: 0 4px 16px rgba(0,0,0,0.25);
+  --cursor-blob-inner: rgba(255, 255, 255, 0.4);
 }
 
 /* Button hover glow to match yellow accent */

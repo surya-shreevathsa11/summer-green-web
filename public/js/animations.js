@@ -7,6 +7,8 @@
   var scrubEntries = [];
   var lenisInstance = null;
 
+  /* Lenis: keep smooth scroll for desktop, mobile and iPad. Do not disable or override
+   * smoothTouch/touchMultiplier so mobile and tablet scroll stays consistent in future. */
   function initLenis() {
     if (typeof Lenis === "undefined") return null;
     try {
