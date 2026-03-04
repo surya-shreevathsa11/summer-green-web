@@ -58,27 +58,9 @@ app.use(passport.session());
 import authRouter from "./routes/auth.routes.js";
 
 app.use("/api/auth", authRouter);
-app.get("/api/booking/rooms", (_req, res) => {
-  res.json({ success: true, rooms: ROOMS });
-});
 
-const adminEmails = (process.env.ADMIN_EMAIL || "").split(",").map((e) => e.trim()).filter(Boolean);
-function isAdmin(req) {
-  return req.isAuthenticated() && req.user?.email && adminEmails.includes(req.user.email);
-}
-app.get("/admin", (_req, res) => {
-  res.sendFile(path.join(__dirname, "public", "admin.html"));
-});
-app.get("/api/admin/me", (req, res) => {
-  const loggedIn = req.isAuthenticated();
-  if (!loggedIn) return res.status(403).json({ isAdmin: false, loggedIn: false });
-  if (!isAdmin(req)) return res.status(403).json({ isAdmin: false, loggedIn: true });
-  res.json({ isAdmin: true, user: req.user });
-});
-app.get("/api/admin/bookings", (req, res) => {
-  if (!isAdmin(req)) return res.status(403).json({ error: "Admin only" });
-  res.json({ success: true, bookings: [] });
-});
+import { addInitalPrices } from "./config/addInitialRoom.js";
+addInitalPrices();
 
 connectDB().then(() => {
   const port = process.env.PORT;

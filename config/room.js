@@ -1,4 +1,4 @@
-const rooms = {
+export const rooms = {
   R1: {
     id: "01",
     name: "Sunflower",
