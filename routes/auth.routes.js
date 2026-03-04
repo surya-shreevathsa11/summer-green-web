@@ -7,13 +7,11 @@ router.get("/google", passport.authenticate("google"));
 
 router.get(
   "/google/callback",
-  (req, res, next) => {
-    next();
-  },
   passport.authenticate("google", {
     failureRedirect: "/",
   }),
   (req, res) => {
+    console.log(res);
     res.redirect("/");
   },
 );

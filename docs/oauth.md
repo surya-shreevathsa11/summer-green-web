@@ -18,3 +18,29 @@
 8. passport serializes the user, sets the session cookie
    ↓
 9. res.redirect("/") sends user to your app, now logged in
+
+---
+
+### On every subsequent request
+
+1. Browser sends cookie: connect.sid=s%3Axyz...
+   ↓
+2. express-session middleware reads the cookie
+   ↓
+3. Looks up that session ID in MongoDB
+   ↓
+4. If found → attaches session data (which contains user.id) to req
+   ↓
+5. passport.session() middleware sees user.id in session
+   ↓
+6. Calls deserializeUser(user.id) → fetches full user from MongoDB
+   ↓
+7. Attaches user to req.user
+   ↓
+8. req.isAuthenticated() returns true
+
+```js
+app.use(passport.session());
+```
+
+passport.session() is essentially middleware that runs the entire verification flow on every single incoming request — you never have to call it manually.
