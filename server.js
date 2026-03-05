@@ -17,7 +17,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 import { ROOMS } from "./constants.js";
-
 import connectDB from "./db.js";
 
 const app = express();
@@ -61,6 +60,10 @@ app.use("/api/auth", authRouter);
 
 app.get("/api/booking/rooms", (_req, res) => {
   res.json({ success: true, rooms: ROOMS });
+});
+
+app.get("/cart", (_req, res) => {
+  res.sendFile(path.join(__dirname, "public", "cart.html"));
 });
 
 import { addInitalPrices } from "./config/addInitialRoom.js";

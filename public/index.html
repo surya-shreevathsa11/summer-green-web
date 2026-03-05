@@ -34,7 +34,7 @@
       <ul class="nav__links" id="navLinks">
         <li><a href="#home">Home</a></li>
         <li><a href="#about">About</a></li>
-        <li><a href="#rooms">Rooms</a></li>
+        <li><a href="#rooms" id="navRoomsLink">Rooms</a></li>
         <li><a href="#gallery">Gallery</a></li>
         <li><a href="/reviews">Reviews</a></li>
         <li><a href="https://wa.me/919008188595" target="_blank" rel="noopener" aria-label="Contact on WhatsApp">Contact</a></li>
@@ -71,9 +71,9 @@
     </div>
     <div class="hero__content container">
       <p class="hero__subtitle" data-reveal="fade-up">Homestay Experience</p>
-      <h1 class="hero__title" data-reveal="clip">Benvenuti</h1>
+      <h1 class="hero__title" data-reveal="clip">Summer Green</h1>
       <div class="divider" data-reveal="flow" data-reveal-delay="60"></div>
-      <p class="hero__desc" data-reveal="fade-up" data-reveal-delay="120">An intimate Italian retreat nestled among olive groves and cypress hills.</p>
+      <p class="hero__desc" data-reveal="fade-up" data-reveal-delay="120">A comfortable and thoughtfully maintained homestay in Madikeri, Coorg. Surrounded by greenery and cool hill weather, Summer Green offers a calm place to relax while exploring the charm and landscapes of Madikeri.</p>
       <div class="hero__cta" data-reveal="fade-up" data-reveal-delay="220">
         <a href="#rooms" class="btn btn--primary">Explore Rooms</a>
         <a href="#directions" class="btn btn--outline">Get Direction</a>
@@ -86,16 +86,16 @@
   <section class="section" id="about">
     <div class="container">
       <p class="section__subtitle" data-reveal="fade-up">About Us</p>
-      <h2 class="section__title" data-reveal="clip">Chi Siamo</h2>
+      <h2 class="section__title" data-reveal="clip">The Summer Green Experience</h2>
       <div class="divider" data-reveal="flow" data-reveal-delay="80"></div>
       <div class="about__grid">
         <div class="about__text">
-          <p data-reveal="fade-up" data-reveal-delay="120">Summer Green is a family-owned homestay offering authentic Italian hospitality. Each room is thoughtfully curated to reflect the landscape and traditions of the region.</p>
-          <p data-reveal="fade-up" data-reveal-delay="220">From sunrise over the vineyards to evenings under the pergola, every moment here is designed for tranquility.</p>
+          <p data-reveal="fade-up" data-reveal-delay="120">Summer Green Homestay is a family-run stay located in the quiet surroundings of Madikeri, Coorg. Designed for travelers who appreciate comfort and simplicity, the homestay offers a calm space to relax while exploring the natural beauty of the region.</p>
+          <p data-reveal="fade-up" data-reveal-delay="220">With thoughtfully maintained rooms and warm hospitality, Summer Green Homestay provides a welcoming environment for families, couples, and groups visiting Madikeri. Its convenient location allows guests to enjoy both peaceful surroundings and easy access to the town’s popular attractions.</p>
           <div class="about__stats">
             <div class="stat" data-reveal="slide-down" data-reveal-delay="180"><span class="stat__num">8</span><span class="stat__label">Rooms</span></div>
-            <div class="stat" data-reveal="slide-down" data-reveal-delay="260"><span class="stat__num">27</span><span class="stat__label">Years</span></div>
-            <div class="stat" data-reveal="slide-down" data-reveal-delay="340"><span class="stat__num">3.5k</span><span class="stat__label">Guests</span></div>
+            <div class="stat" data-reveal="slide-down" data-reveal-delay="260"><span class="stat__num">25+</span><span class="stat__label">Years</span></div>
+            <div class="stat" data-reveal="slide-down" data-reveal-delay="340"><span class="stat__num">3.5k+</span><span class="stat__label">Guests</span></div>
           </div>
         </div>
       </div>
@@ -105,8 +105,8 @@
   <!-- Rooms -->
   <section class="section section--alt" id="rooms">
     <div class="container">
-      <p class="section__subtitle" data-reveal="fade-up">Our Rooms</p>
-      <h2 class="section__title" data-reveal="clip">Le Camere</h2>
+      <p class="section__subtitle" data-reveal="fade-up">Stay with us</p>
+      <h2 class="section__title" data-reveal="clip">Our Rooms</h2>
       <div class="divider" data-reveal="flow" data-reveal-delay="80"></div>
       <div class="rooms__grid" id="roomsGrid"></div>
     </div>
@@ -116,7 +116,7 @@
   <section class="section" id="gallery">
     <div class="container">
       <p class="section__subtitle" data-reveal="fade-up">Visual Journey</p>
-      <h2 class="section__title" data-reveal="clip">La Galleria</h2>
+      <h2 class="section__title" data-reveal="clip">Gallery</h2>
       <div class="divider" data-reveal="flow" data-reveal-delay="80"></div>
       <div class="gallery__filters" data-reveal="flow" data-reveal-delay="120">
         <button class="gallery__filter active" data-filter="all">All</button>
@@ -220,19 +220,22 @@
   </section>
   </main>
 
-  <!-- Footer: pushed right, brand left, contact at right bottom -->
+  <!-- Footer: VARA left, Summer Green + copyright centered, Contact right -->
   <footer class="footer">
     <div class="footer__wrap">
-      <div class="footer__brand">
-        <span class="footer__logo-name">Summer Green</span>
-        <span class="footer__logo-tagline"><span class="footerline"></span><span class="footerline"></span></span>
+      <a href="https://www.instagram.com/vara_.2026?igsh=OHJkNWVxZjUzdDRq&utm_source=qr" target="_blank" rel="noopener" class="footer__vara" aria-label="VARA on Instagram">
+        <img src="/img/Vara%20footer%20logo.jpeg" alt="VARA" class="footer__vara-img" width="80" height="48">
+      </a>
+      <div class="footer__center">
+        <div class="footer__brand">
+          <span class="footer__logo-name">Summer Green</span>
+          <span class="footer__logo-tagline"><span class="footer__line"></span><span class="footer__line"></span></span>
+        </div>
+        <p class="footer__copyright">&copy; 2026 Summer Green. All rights reserved.</p>
       </div>
       <div class="footer__contact">
         <h3 class="footer__contact-title">Contact</h3>
         <p class="footer__contact-item"><a href="tel:+919008188595">+91 90081 88595</a></p>
-      </div>
-      <div class="footer__bottom">
-        <p>&copy; 2026 Summer Green. All rights reserved.</p>
       </div>
     </div>
   </footer>
@@ -241,6 +244,26 @@
   <a class="whatsapp-float" href="https://wa.me/919008188595" target="_blank" rel="noopener" aria-label="Contact us on WhatsApp">
     <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
   </a>
+
+  <!-- Rooms full-screen popup -->
+  <div class="modal modal--fullscreen" id="roomsModal" aria-modal="true" aria-label="Our Rooms">
+    <div class="modal__overlay" data-close></div>
+    <div class="modal__content modal__content--fullscreen">
+      <button class="modal__close" data-close aria-label="Close">&times;</button>
+      <h2 class="rooms-modal__title">Our Rooms</h2>
+      <div class="divider"></div>
+      <div class="rooms__grid rooms-modal__grid" id="roomsModalGrid"></div>
+    </div>
+  </div>
+
+  <!-- Gallery image full-screen popup -->
+  <div class="modal modal--fullscreen" id="galleryLightbox" aria-modal="true" aria-label="Gallery image">
+    <div class="modal__overlay" data-close></div>
+    <div class="modal__content modal__content--fullscreen modal__content--gallery">
+      <button class="modal__close" data-close aria-label="Close">&times;</button>
+      <img id="galleryLightboxImg" src="" alt="" class="gallery-lightbox__img">
+    </div>
+  </div>
 
   <!-- Room added to cart dialog -->
   <div class="modal" id="roomAddedModal">

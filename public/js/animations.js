@@ -122,64 +122,6 @@
         });
         if (heroAnim && heroAnim.scrollTrigger) scrubTriggers.push(heroAnim.scrollTrigger);
       }
-      gsap.utils.toArray(".gallery__item").forEach(function (item) {
-        var img = item.querySelector(".gallery__img");
-        if (img) {
-          var anim = gsap.to(img, {
-            y: -20,
-            ease: "none",
-            force3D: true,
-            scrollTrigger: {
-              trigger: item,
-              start: "top 90%",
-              end: "bottom 10%",
-              scrub: 1.2,
-            },
-          });
-          if (anim && anim.scrollTrigger) {
-            scrubTriggers.push(anim.scrollTrigger);
-            var handleEnter = function () {
-              anim.scrollTrigger.disable();
-              gsap.to(img, { y: 0, duration: 0.25, overwrite: true, force3D: true });
-            };
-            var handleLeave = function () {
-              anim.scrollTrigger.enable();
-            };
-            item.addEventListener("mouseenter", handleEnter);
-            item.addEventListener("mouseleave", handleLeave);
-            scrubEntries.push({ container: item, img: img, scrollTrigger: anim.scrollTrigger, handleEnter: handleEnter, handleLeave: handleLeave });
-          }
-        }
-      });
-      gsap.utils.toArray(".room-card").forEach(function (card) {
-        var img = card.querySelector(".room-card__media img");
-        if (img) {
-          var anim = gsap.to(img, {
-            y: -12,
-            ease: "none",
-            force3D: true,
-            scrollTrigger: {
-              trigger: card,
-              start: "top 88%",
-              end: "bottom 12%",
-              scrub: 1,
-            },
-          });
-          if (anim && anim.scrollTrigger) {
-            scrubTriggers.push(anim.scrollTrigger);
-            var handleEnter = function () {
-              anim.scrollTrigger.disable();
-              gsap.to(img, { y: 0, duration: 0.25, overwrite: true, force3D: true });
-            };
-            var handleLeave = function () {
-              anim.scrollTrigger.enable();
-            };
-            card.addEventListener("mouseenter", handleEnter);
-            card.addEventListener("mouseleave", handleLeave);
-            scrubEntries.push({ container: card, img: img, scrollTrigger: anim.scrollTrigger, handleEnter: handleEnter, handleLeave: handleLeave });
-          }
-        }
-      });
     }
 
     var hero = document.querySelector(".hero");
@@ -201,6 +143,7 @@
             ease: "power3.out",
             force3D: true,
             overwrite: true,
+            clearProps: "transform",
           });
         },
         once: true,

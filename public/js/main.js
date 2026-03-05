@@ -33,11 +33,23 @@
     });
   }
 
-  // --- Smooth scroll for nav links ---
+  // --- Smooth scroll for nav links (except Rooms which opens full-screen modal) ---
   $$(
     ".nav__links a, .hero .btn, .footer__links a, .section__actions a",
   ).forEach((link) => {
     link.addEventListener("click", (e) => {
+      if (link.id === "navRoomsLink" || (link.getAttribute("href") === "#rooms" && link.closest(".nav__links"))) {
+        e.preventDefault();
+        var modalGrid = $("#roomsModalGrid");
+        var mainGrid = $("#roomsGrid");
+        if (modalGrid && mainGrid && mainGrid.innerHTML) {
+          modalGrid.innerHTML = mainGrid.innerHTML;
+          updateRoomCartButtons();
+        }
+        openModal("#roomsModal");
+        $("#navLinks").classList.remove("open");
+        return;
+      }
       const href = link.getAttribute("href");
       if (href && href.startsWith("#")) {
         e.preventDefault();
@@ -46,6 +58,27 @@
         $("#navLinks").classList.remove("open");
       }
     });
+  });
+
+  // --- Rooms modal: add-to-cart from modal grid ---
+  document.addEventListener("click", function (e) {
+    var modal = $("#roomsModal");
+    if (!modal || !modal.classList.contains("active")) return;
+    var btn = e.target.closest("#roomsModalGrid [data-add-cart]");
+    if (!btn) return;
+    e.preventDefault();
+    var id = Number(btn.dataset.addCart);
+    var name = btn.dataset.name;
+    var price = Number(btn.dataset.price);
+    var added = addToCart({ id, name, price });
+    updateRoomCartButtons();
+    updateCartUI();
+    if (added) {
+      var infoEl = $("#roomAddedInfo");
+      var roomAddedModal = $("#roomAddedModal");
+      if (infoEl) infoEl.textContent = name + " — €" + price + " / night";
+      if (roomAddedModal) openModal("#roomAddedModal");
+    }
   });
 
   // --- Modal logic ---
@@ -200,10 +233,10 @@
       countEl.setAttribute("data-count", bookingCart.length);
     }
     const listEl = $("#cartList");
+    if (!listEl) return;
     const emptyEl = $("#cartEmpty");
     const footerEl = $("#cartFooter");
     const totalEl = $("#cartTotal");
-    if (!listEl) return;
     listEl.innerHTML = "";
     if (bookingCart.length === 0) {
       if (emptyEl) emptyEl.style.display = "block";
@@ -260,7 +293,9 @@
           <h3 class="room-card__name">${escapeHtml(room.name)}</h3>
           <p class="room-card__desc">${escapeHtml(room.description)}</p>
           <p class="room-card__price"><span>&euro;${room.price}</span> / night</p>
-          <button type="button" class="btn btn--outline btn--sm" data-add-cart="${room.id}" data-name="${escapeHtml(room.name)}" data-price="${room.price}">Add to cart</button>
+          <div class="room-card__actions">
+            <button type="button" class="btn btn--outline btn--sm" data-add-cart="${room.id}" data-name="${escapeHtml(room.name)}" data-price="${room.price}">Add to cart</button>
+          </div>
         </div>
       `).join('');
       if (window.refreshScrollReveals) window.refreshScrollReveals();
@@ -304,6 +339,25 @@
       });
     });
   });
+
+  // --- Gallery image click: full-screen popup ---
+  var galleryGrid = $("#galleryGrid");
+  if (galleryGrid) {
+    galleryGrid.addEventListener("click", function (e) {
+      var item = e.target.closest(".gallery__item");
+      if (!item || item.classList.contains("hidden")) return;
+      var img = item.querySelector(".gallery__img");
+      if (!img) return;
+      e.preventDefault();
+      var lbImg = $("#galleryLightboxImg");
+      var lb = $("#galleryLightbox");
+      if (lbImg && lb) {
+        lbImg.src = img.src || img.currentSrc;
+        lbImg.alt = img.alt || "";
+        openModal("#galleryLightbox");
+      }
+    });
+  }
 
   // --- Directions button (maps) ---
   function setupDirections() {

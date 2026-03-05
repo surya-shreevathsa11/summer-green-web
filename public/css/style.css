@@ -103,6 +103,10 @@ body {
   left: 50%;
   transform: translate(-50%, -50%);
 }
+.blob-cursor.is-hover-text .blob-cursor__inner {
+  background: rgba(255, 255, 255, 0.95);
+  mix-blend-mode: difference;
+}
 
 @media (pointer: coarse) {
   .blob-cursor { display: none; }
@@ -656,6 +660,8 @@ main {
   margin-top: 2rem;
 }
 .room-card {
+  display: flex;
+  flex-direction: column;
   background: var(--color-urban-white);
   padding: 1.1rem 1.1rem 1.5rem;
   text-align: left;
@@ -667,9 +673,17 @@ main {
     box-shadow 0.3s,
     border-color 0.3s;
 }
+.room-card__actions {
+  margin-top: auto;
+  padding-top: 1rem;
+  text-align: center;
+}
+.room-card__actions .btn {
+  display: inline-block;
+}
 .room-card:hover {
-  transform: translateY(-4px) scale(1.05);
-  box-shadow: 0 20px 40px var(--shadow-soft);
+  transform: translateY(-4px) scale(1.04);
+  box-shadow: 0 20px 50px var(--shadow-soft);
   border-color: var(--color-burnt-copper);
 }
 .room-card__media {
@@ -686,13 +700,12 @@ main {
   height: 100%;
   object-fit: cover;
   transform: scale(1.02);
-  transition:
-    transform 0.6s ease,
-    filter 0.6s ease;
+  transform-origin: center center;
+  transition: transform 0.5s ease, filter 0.5s ease;
   filter: saturate(0.95) contrast(1.05);
 }
 .room-card:hover .room-card__media img {
-  transform: scale(1.12);
+  transform: scale(1.06);
   filter: saturate(1.02) contrast(1.08);
 }
 .room-card__number {
@@ -717,7 +730,7 @@ main {
   font-size: 0.75rem;
   color: var(--color-burnt-copper);
   letter-spacing: 0.08em;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
 }
 .room-card__price span {
   font-family: "Cormorant Garamond", serif;
@@ -760,14 +773,14 @@ main {
   border-radius: 0.75rem;
   border: 1px solid var(--border-light);
   overflow: hidden;
-  transition:
-    opacity 0.3s,
-    transform 0.3s;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s;
   box-shadow: 0 2px 12px var(--shadow-soft);
   position: relative;
+  cursor: pointer;
 }
 .gallery__item:hover {
-  transform: scale(1.05);
+  transform: translateY(-4px) scale(1.04);
+  box-shadow: 0 20px 50px var(--shadow-soft);
 }
 .gallery__item.hidden {
   display: none;
@@ -777,13 +790,12 @@ main {
   height: 100%;
   object-fit: cover;
   transform: scale(1.03);
-  transition:
-    transform 0.7s ease,
-    filter 0.7s ease;
+  transform-origin: center center;
+  transition: transform 0.5s ease, filter 0.5s ease;
   filter: saturate(0.95) contrast(1.06);
 }
 .gallery__item:hover .gallery__img {
-  transform: scale(1.12);
+  transform: scale(1.06);
   filter: saturate(1.02) contrast(1.08);
 }
 .gallery__label {
@@ -994,35 +1006,111 @@ main {
   background: rgba(0,0,0,0.4);
   padding: 0.4rem 0.85rem;
   border-radius: 999px;
-  align-self: flex-start;
+  align-self: center;
   color: #fff;
 }
 
-/* ========== FOOTER (pushed right, brand left, contact at right bottom) ========== */
+/* ========== ROOMS FULL-SCREEN MODAL ========== */
+.modal--fullscreen .modal__content {
+  max-width: none;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  border-radius: 0;
+  padding: 2rem;
+  padding-top: max(3rem, env(safe-area-inset-top));
+  overflow-y: auto;
+}
+.modal--fullscreen .modal__close {
+  position: fixed;
+  top: max(1rem, env(safe-area-inset-top));
+  right: max(1rem, env(safe-area-inset-right));
+  z-index: 10;
+}
+.rooms-modal__title {
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+.rooms-modal__grid {
+  margin-top: 1.5rem;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Gallery full-screen lightbox */
+.modal__content--gallery {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.92);
+  padding: 2rem;
+}
+.gallery-lightbox__img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+/* ========== FOOTER (VARA left, Summer Green + copyright centered, contact right) ========== */
 .footer {
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   padding: 1.5rem 0 0.75rem;
-  padding-right: 5rem;
+  padding-left: max(0.75rem, env(safe-area-inset-left));
+  padding-right: max(5rem, env(safe-area-inset-right));
   background: var(--color-obsidian);
   color: var(--text-on-dark);
 }
 .footer__wrap {
-  max-width: 50%;
+  max-width: 1200px;
   margin-left: auto;
-  margin-right: 1.5rem;
+  margin-right: auto;
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem 2rem;
   text-align: left;
 }
+.footer__vara {
+  display: block;
+  margin-left: 0;
+  margin-right: 0;
+  flex-shrink: 0;
+  align-self: center;
+}
+.footer__vara-img {
+  display: block;
+  height: 2.5rem;
+  width: auto;
+  object-fit: contain;
+}
+.footer__center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-width: 200px;
+}
 .footer__brand {
   margin-bottom: 0;
 }
+.footer__copyright {
+  font-size: 0.75rem;
+  color: rgba(248, 248, 248, 0.6);
+  margin: 0.25rem 0 0;
+  text-align: center;
+}
 .footer__contact {
   margin-bottom: 0;
-  align-self: flex-end;
+  align-self: center;
   text-align: right;
 }
 .footer__logo-name {
@@ -1049,12 +1137,6 @@ main {
   height: 1px;
   background: var(--color-burnt-copper);
 }
-.footer__bottom {
-  width: 100%;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  padding-top: 0.6rem;
-  margin-top: 0.5rem;
-}
 .footer__contact-title {
   font-size: 0.75rem;
   letter-spacing: 0.12em;
@@ -1074,10 +1156,6 @@ main {
   text-decoration: none;
 }
 .footer__contact-item a:hover { text-decoration: underline; }
-.footer__bottom p {
-  font-size: 0.75rem;
-  color: rgba(248, 248, 248, 0.6);
-}
 
 /* ========== FLOATING WHATSAPP ========== */
 .whatsapp-float {
@@ -1501,10 +1579,26 @@ main {
     margin-right: max(1.5rem, env(safe-area-inset-right));
   }
   .footer {
+    padding-left: max(1rem, env(safe-area-inset-left));
     padding-right: max(1.5rem, env(safe-area-inset-right));
+  }
+  .footer__center {
+    order: 3;
+    width: 100%;
+    min-width: 0;
+  }
+  .footer__vara-img {
+    height: 2rem;
   }
   .footer__contact {
     padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+  .modal--fullscreen .modal__content {
+    padding: 1rem;
+    padding-top: max(2.5rem, env(safe-area-inset-top));
+  }
+  .rooms-modal__grid {
+    margin-top: 1rem;
   }
   .modal__content--room-added .modal__ok {
     margin-top: auto;
