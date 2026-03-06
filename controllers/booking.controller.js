@@ -242,3 +242,18 @@ export const addToCart = async (req, res) => {
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
+
+export const listCart = async (req, res) => {
+  try {
+    const cart = await Cart.find({
+      userId: req.user?._id,
+    });
+
+    console.log(cart);
+
+    return res.status(200).json({ message: cart[0].roomInfo });
+  } catch (error) {
+    console.error("error listing cart", error);
+    return res.status(500).json({ message: "something went wrong" });
+  }
+};
