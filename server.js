@@ -16,7 +16,6 @@ import { dirname } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-import { ROOMS } from "./constants.js";
 import connectDB from "./db.js";
 
 const app = express();
@@ -55,12 +54,10 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 import authRouter from "./routes/auth.routes.js";
+import bookingRouter from "./routes/booking.route.js";
 
 app.use("/api/auth", authRouter);
-
-app.get("/api/booking/rooms", (_req, res) => {
-  res.json({ success: true, rooms: ROOMS });
-});
+app.use("/api/booking", bookingRouter);
 
 app.get("/cart", (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "cart.html"));

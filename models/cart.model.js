@@ -1,37 +1,43 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
+import { priceBreakdownSchema } from "./booking.model.js";
 
 const roomIds = ["R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8"];
 
-const roomInfoSchema = new Schema({
-  roomId: {
-    type: String,
-    enum: roomIds,
-    required: true,
+const roomInfoSchema = new Schema(
+  {
+    roomId: {
+      type: String,
+      enum: roomIds,
+      required: true,
+    },
+    price: {
+      type: Number,
+      required: true,
+    },
+    priceBreakdown: {
+      type: [priceBreakdownSchema],
+      required: true,
+    },
+    children: {
+      adults: {
+        type: Number,
+        required: true,
+      },
+      type: Number,
+      required: true,
+    },
+    checkIn: {
+      type: Date,
+      required: true,
+    },
+    checkOut: {
+      type: Date,
+      required: true,
+    },
   },
-  price: {
-    type: Number,
-    required: true,
-  },
-  adults: {
-    type: Number,
-    required: true,
-  },
-  kids: {
-    type: Number,
-    required: true,
-  },
-  checkIn: {
-    type: Date,
-    required: true,
-  },
-  checkOut: {
-    type: Date,
-    required: true,
-  },
-});
-
-const RoomInfo = mongoose.model("RoomInfo", roomInfoSchema);
+  { _id: false },
+);
 
 const cartSchema = new Schema(
   {
@@ -40,15 +46,12 @@ const cartSchema = new Schema(
       ref: "User",
       required: true,
     },
-    roomInfo: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "RoomInfo",
-      },
-    ],
+    roomInfo: {
+      type: [roomInfoSchema],
+      default: [],
+    },
   },
   { timestamps: true },
 );
 
 export const Cart = mongoose.model("Cart", cartSchema);
-export { RoomInfo };
