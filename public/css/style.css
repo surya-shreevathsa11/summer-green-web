@@ -367,6 +367,9 @@ h4 {
   display: flex;
   align-items: center;
 }
+body[data-auth-disabled] [data-auth-ui] {
+  display: none !important;
+}
 .nav__profile {
   display: none;
   position: relative;
@@ -1298,6 +1301,18 @@ main {
   min-height: 1.25rem;
   margin-bottom: 0.5rem;
 }
+
+.form__availability {
+  font-size: 0.9rem;
+  min-height: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+.form__availability--ok {
+  color: var(--color-forest, #2d5a27);
+}
+.form__availability--error {
+  color: var(--color-burnt-copper);
+}
 .form__success {
   color: var(--color-steel-gray);
   font-size: 0.8rem;
@@ -1323,6 +1338,11 @@ main {
 }
 .modal__title {
   margin-bottom: 0.5rem;
+}
+.modal__room-name {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
 }
 .modal__room-info {
   font-size: 0.95rem;
@@ -1358,6 +1378,7 @@ main {
 .cart__item:last-child { border-bottom: none; }
 .cart__item-info { flex: 1; min-width: 0; }
 .cart__item-name { font-weight: 500; color: var(--text-primary); margin-bottom: 0.2rem; }
+.cart__item-meta { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.2rem; }
 .cart__item-price { font-size: 0.85rem; color: var(--text-muted); }
 .cart__item-remove {
   flex-shrink: 0;
@@ -1384,14 +1405,59 @@ main {
 .cart__total { margin-bottom: 1rem; font-size: 1rem; color: var(--text-primary); }
 .cart__total strong { color: var(--color-burnt-copper); }
 
-/* Cart page (dedicated booking flow) */
-.page-cart .nav__toggle { display: none; }
-.cart-page { padding: 4rem 0 3rem; min-height: 60vh; }
-.cart-page .container { max-width: 520px; }
-.cart-page__title { font-family: "Cormorant Garamond", serif; font-size: 1.85rem; color: var(--text-primary); margin-bottom: 0.5rem; }
+/* Cart page (dedicated booking flow) — dark blue theme + immersive card */
+body.page-cart {
+  background: var(--color-obsidian);
+}
+.cart-page {
+  padding: 4rem 0 3rem;
+  min-height: 60vh;
+  background: linear-gradient(180deg, var(--color-obsidian) 0%, var(--color-steel-gray) 50%, var(--color-obsidian) 100%);
+  position: relative;
+}
+.cart-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(252, 163, 17, 0.06) 0%, transparent 55%);
+  pointer-events: none;
+}
+.cart-page .container {
+  max-width: 520px;
+  min-height: 72vh;
+  background: var(--color-urban-white);
+  padding: 3rem clamp(1.25rem, 4vw, 2.5rem) 3.5rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+  position: relative;
+  z-index: 1;
+}
+.cart-page .container:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(252, 163, 17, 0.2);
+  border-color: rgba(252, 163, 17, 0.35);
+}
+.cart-page__title {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 1.85rem;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+.page-cart .cart-page .divider {
+  margin-left: auto;
+  margin-right: auto;
+}
 .cart-step { margin-top: 2rem; }
 .cart-step--hidden { display: none !important; }
-.cart-step__heading { font-size: 1.1rem; color: var(--text-primary); margin-bottom: 1rem; font-family: "Montserrat", sans-serif; font-weight: 500; }
+.cart-step__heading {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 500;
+}
 .terms__scroll--page { max-height: 280px; }
 
 .terms__scroll {
@@ -1554,6 +1620,12 @@ main {
   }
   .nav__toggle {
     display: flex;
+  }
+  .cart-page {
+    padding: 3rem 0 2.5rem;
+  }
+  .cart-page .container {
+    padding: 1.75rem clamp(1.25rem, 4vw, 2rem);
   }
   .about__grid {
     grid-template-columns: 1fr;
@@ -1740,6 +1812,20 @@ main {
   }
   .modal__content--wide {
     max-width: 100%;
+  }
+  .cart-page {
+    padding: 2rem 0 2.5rem;
+  }
+  .cart-page .container {
+    padding: 1.5rem 1.25rem;
+  }
+  .cart__item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .cart__item-remove {
+    align-self: flex-end;
   }
   .cart__list {
     max-height: 220px;

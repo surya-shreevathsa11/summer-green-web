@@ -29,6 +29,11 @@
   </style>
 </head>
 <body class="admin">
+  <div class="blob-cursor" id="blobCursor" aria-hidden="true">
+    <div class="blob-cursor__main">
+      <div class="blob-cursor__blob"><span class="blob-cursor__inner"></span></div>
+    </div>
+  </div>
   <header class="admin__header">
     <h1>Summer Green — Admin</h1>
     <a href="/" class="admin__back">← Back to site</a>
@@ -128,5 +133,6 @@
       }
     })();
   </script>
+  <script src="/js/blob-cursor.js"></script>
 </body>
 </html>

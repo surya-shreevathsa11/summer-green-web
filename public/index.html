@@ -16,7 +16,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script>if ("scrollRestoration" in history) history.scrollRestoration = "manual";</script>
 </head>
-<body>
+<body data-auth-disabled>
   <!-- Blob cursor (desktop only) -->
   <div class="blob-cursor" id="blobCursor" aria-hidden="true">
     <div class="blob-cursor__main">
@@ -45,7 +45,7 @@
         </span>
         <span class="nav__cart-count" id="navCartCount" data-count="0">0</span>
       </a>
-      <div class="nav__auth-wrap">
+      <div class="nav__auth-wrap" data-auth-ui aria-hidden="true">
         <button class="btn btn--outline nav__auth" id="authBtn">Sign In</button>
         <div class="nav__profile" id="navProfile" aria-hidden="true">
           <button type="button" class="btn btn--outline nav__auth nav__profile-trigger cursor-target" id="navProfileTrigger" aria-expanded="false" aria-haspopup="true" aria-label="Profile menu">
@@ -264,6 +264,41 @@
     </div>
   </div>
 
+  <!-- Add to cart / Book room modal (adults, children, check-in, check-out) -->
+  <div class="modal" id="bookRoomModal" aria-modal="true" aria-labelledby="bookRoomModalTitle">
+    <div class="modal__overlay" data-close></div>
+    <div class="modal__content modal__content--sm">
+      <button class="modal__close" data-close aria-label="Close">&times;</button>
+      <h3 class="modal__title" id="bookRoomModalTitle">Book room</h3>
+      <p class="modal__room-name" id="bookRoomName"></p>
+      <form id="bookRoomForm" class="form form--stacked">
+        <div class="form__row">
+          <div class="form__group">
+            <label for="bookRoomAdults">Number of adults</label>
+            <input type="number" id="bookRoomAdults" min="1" max="20" value="1" required>
+          </div>
+          <div class="form__group">
+            <label for="bookRoomChildren">Number of children</label>
+            <input type="number" id="bookRoomChildren" min="0" max="20" value="0">
+          </div>
+        </div>
+        <div class="form__row">
+          <div class="form__group">
+            <label for="bookRoomCheckIn">Check-in</label>
+            <input type="date" id="bookRoomCheckIn" required>
+          </div>
+          <div class="form__group">
+            <label for="bookRoomCheckOut">Check-out</label>
+            <input type="date" id="bookRoomCheckOut" required>
+          </div>
+        </div>
+        <p class="form__availability" id="bookRoomAvailability" aria-live="polite"></p>
+        <p class="form__error" id="bookRoomError"></p>
+        <button type="submit" class="btn btn--primary btn--full" id="bookRoomSubmitBtn">Add to cart</button>
+      </form>
+    </div>
+  </div>
+
   <!-- Room added to cart dialog -->
   <div class="modal" id="roomAddedModal">
     <div class="modal__overlay" data-close></div>
@@ -276,8 +311,8 @@
     </div>
   </div>
 
-  <!-- Sign In Modal -->
-<div class="modal" id="signInModal">
+  <!-- Sign In Modal (hidden while auth disabled) -->
+<div class="modal" id="signInModal" data-auth-ui aria-hidden="true" hidden>
   <div class="modal__overlay"></div>
   <div class="modal__content">
     <button class="modal__close" data-close>&times;</button>

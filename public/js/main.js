@@ -60,26 +60,122 @@
     });
   });
 
-  // --- Rooms modal: add-to-cart from modal grid ---
+  // --- Add to cart: open book popup (adults, children, dates), validate, POST cart (Google sign-in disabled for now) ---
+  function onAddToCartClick(id, name, price) {
+    openBookRoomModal(Number(id), name, Number(price));
+  }
+
   document.addEventListener("click", function (e) {
-    var modal = $("#roomsModal");
-    if (!modal || !modal.classList.contains("active")) return;
-    var btn = e.target.closest("#roomsModalGrid [data-add-cart]");
+    var btn = e.target.closest("[data-add-cart]");
     if (!btn) return;
-    e.preventDefault();
-    var id = Number(btn.dataset.addCart);
-    var name = btn.dataset.name;
-    var price = Number(btn.dataset.price);
-    var added = addToCart({ id, name, price });
-    updateRoomCartButtons();
-    updateCartUI();
-    if (added) {
-      var infoEl = $("#roomAddedInfo");
-      var roomAddedModal = $("#roomAddedModal");
-      if (infoEl) infoEl.textContent = name + " — €" + price + " / night";
-      if (roomAddedModal) openModal("#roomAddedModal");
+    var modal = $("#roomsModal");
+    if (modal && modal.classList.contains("active")) {
+      e.preventDefault();
+      onAddToCartClick(btn.dataset.addCart, btn.dataset.name, btn.dataset.price);
+      return;
+    }
+    var grid = $("#roomsGrid");
+    if (grid && grid.contains(btn)) {
+      e.preventDefault();
+      onAddToCartClick(btn.dataset.addCart, btn.dataset.name, btn.dataset.price);
     }
   });
+
+  function checkDatesAvailability() {
+    var checkIn = $("#bookRoomCheckIn") && $("#bookRoomCheckIn").value;
+    var checkOut = $("#bookRoomCheckOut") && $("#bookRoomCheckOut").value;
+    var availEl = $("#bookRoomAvailability");
+    if (!availEl || !pendingBookRoom || !checkIn || !checkOut) {
+      if (availEl) availEl.textContent = "";
+      return;
+    }
+    var roomId = "R" + pendingBookRoom.id;
+    availEl.textContent = "Checking availability…";
+    availEl.classList.remove("form__availability--ok", "form__availability--error");
+    fetch("/api/booking/checkAvailability", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ roomId: roomId, checkIn: checkIn, checkOut: checkOut }),
+    })
+      .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+      .then(function (result) {
+        if (result.ok) {
+          availEl.textContent = "Rooms are available.";
+          availEl.classList.add("form__availability--ok");
+          availEl.classList.remove("form__availability--error");
+        } else {
+          availEl.textContent = result.data && result.data.message ? result.data.message : "Dates not available.";
+          availEl.classList.add("form__availability--error");
+          availEl.classList.remove("form__availability--ok");
+        }
+      })
+      .catch(function () {
+        availEl.textContent = "";
+        availEl.classList.remove("form__availability--ok", "form__availability--error");
+      });
+  }
+
+  var bookRoomCheckIn = $("#bookRoomCheckIn");
+  if (bookRoomCheckIn) {
+    bookRoomCheckIn.addEventListener("change", function () {
+      var co = $("#bookRoomCheckOut");
+      if (co && bookRoomCheckIn.value) co.min = bookRoomCheckIn.value;
+      checkDatesAvailability();
+    });
+  }
+  var bookRoomCheckOut = $("#bookRoomCheckOut");
+  if (bookRoomCheckOut) {
+    bookRoomCheckOut.addEventListener("change", checkDatesAvailability);
+  }
+
+  var bookRoomForm = $("#bookRoomForm");
+  if (bookRoomForm) {
+    bookRoomForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      if (!pendingBookRoom) return;
+      var errEl = $("#bookRoomError");
+      var submitBtn = $("#bookRoomSubmitBtn");
+      var roomId = "R" + pendingBookRoom.id;
+      var checkIn = $("#bookRoomCheckIn").value;
+      var checkOut = $("#bookRoomCheckOut").value;
+      var adults = parseInt($("#bookRoomAdults").value, 10) || 1;
+      var children = parseInt($("#bookRoomChildren").value, 10) || 0;
+      errEl.textContent = "";
+      if (submitBtn) submitBtn.disabled = true;
+      try {
+        var availRes = await fetch("/api/booking/checkAvailability", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ roomId: roomId, checkIn: checkIn, checkOut: checkOut }),
+        });
+        if (!availRes.ok) {
+          var availData = await availRes.json().catch(function () { return {}; });
+          errEl.textContent = availData.message || "Selected dates are not available.";
+          return;
+        }
+        var cartRes = await fetch("/api/booking/cart", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ roomId: roomId, checkIn: checkIn, checkOut: checkOut, adults: adults, children: children }),
+        });
+        if (!cartRes.ok) {
+          var cartData = await cartRes.json().catch(function () { return {}; });
+          errEl.textContent = cartData.message || "Could not add to cart.";
+          return;
+        }
+        closeAllModals();
+        var infoEl = $("#roomAddedInfo");
+        var roomAddedModal = $("#roomAddedModal");
+        if (infoEl) infoEl.textContent = pendingBookRoom.name + " — €" + pendingBookRoom.price + " / night";
+        if (roomAddedModal) openModal("#roomAddedModal");
+        pendingBookRoom = null;
+        fetchCartCount();
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    });
+  }
 
   // --- Modal logic ---
   function openModal(id) {
@@ -91,6 +187,10 @@
     $$(".modal").forEach((m) => m.classList.remove("active"));
     $$(".form__error").forEach((e) => (e.textContent = ""));
     $$(".form__success").forEach((e) => (e.textContent = ""));
+    $$(".form__availability").forEach((e) => {
+      e.textContent = "";
+      e.classList.remove("form__availability--ok", "form__availability--error");
+    });
   }
 
   $$(".modal__overlay, .modal__close, [data-close]").forEach((el) => {
@@ -165,108 +265,69 @@
     window.location.href = "/api/auth/google";
   });
 
-  // --- Check auth on load (Google OAuth sets session server-side) ---
-  async function checkAuth() {
+  // --- Auth check (Google sign-in disabled for now; cart/checkout may require auth when re-enabled) ---
+  async function checkAuth(cb) {
     try {
       const res = await fetch("/api/auth/status", { credentials: "same-origin" });
       const data = await res.json();
       if (data.loggedIn) {
         currentUser = data.user;
         updateAuthUI();
-        try {
-          if ((sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY) === "checkout" || sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY) === "cart") && bookingCart.length > 0) {
-            sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, "cart");
-            window.location.href = "/cart";
-          }
-        } catch (_) {}
+        fetchCartCount();
+      } else {
+        currentUser = null;
+        updateAuthUI();
+        const countEl = $("#navCartCount");
+        if (countEl) { countEl.textContent = "0"; countEl.setAttribute("data-count", "0"); }
       }
+      if (cb) cb(data.loggedIn ? data.user : null);
     } catch {
-      /* silent */
+      if (cb) cb(null);
     }
   }
 
-  // --- Booking cart (persisted in sessionStorage so it survives OAuth redirect) ---
-  const CART_STORAGE_KEY = "summer-green-booking-cart";
-  const POST_LOGIN_REDIRECT_KEY = "summer-green-post-login";
-
-  let bookingCart = [];
-  try {
-    const saved = sessionStorage.getItem(CART_STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) bookingCart = parsed;
-    }
-  } catch (_) {}
-
-  function persistCart() {
+  async function fetchCartCount() {
     try {
-      sessionStorage.setItem(CART_STORAGE_KEY, JSON.stringify(bookingCart));
+      const res = await fetch("/api/booking/cart", { credentials: "same-origin" });
+      if (!res.ok) return;
+      const data = await res.json();
+      const count = Array.isArray(data.message) ? data.message.length : 0;
+      const countEl = $("#navCartCount");
+      if (countEl) {
+        countEl.textContent = count;
+        countEl.setAttribute("data-count", count);
+      }
     } catch (_) {}
   }
 
-  function addToCart(room) {
-    if (bookingCart.some((r) => r.id === room.id)) return false;
-    bookingCart.push(room);
-    persistCart();
-    updateCartUI();
-    return true;
-  }
+  let pendingBookRoom = null;
 
-  function removeFromCart(roomId) {
-    bookingCart = bookingCart.filter((r) => r.id !== roomId);
-    persistCart();
-    updateCartUI();
-    updateRoomCartButtons();
+  function openBookRoomModal(roomId, roomName, roomPrice) {
+    pendingBookRoom = { id: roomId, name: roomName, price: roomPrice };
+    const nameEl = $("#bookRoomName");
+    if (nameEl) nameEl.textContent = roomName;
+    const errEl = $("#bookRoomError");
+    if (errEl) errEl.textContent = "";
+    const today = new Date().toISOString().slice(0, 10);
+    const checkIn = $("#bookRoomCheckIn");
+    const checkOut = $("#bookRoomCheckOut");
+    if (checkIn) { checkIn.value = ""; checkIn.min = today; }
+    if (checkOut) { checkOut.value = ""; checkOut.min = today; }
+    const adults = $("#bookRoomAdults");
+    const children = $("#bookRoomChildren");
+    if (adults) adults.value = 1;
+    if (children) children.value = 0;
+    openModal("#bookRoomModal");
   }
 
   function updateRoomCartButtons() {
     $$("[data-add-cart]").forEach((btn) => {
-      const id = Number(btn.dataset.addCart);
-      btn.textContent = bookingCart.some((r) => r.id === id) ? "Added" : "Add to cart";
+      if (btn) btn.textContent = "Add to cart";
     });
   }
 
   function updateCartUI() {
-    const countEl = $("#navCartCount");
-    if (countEl) {
-      countEl.textContent = bookingCart.length;
-      countEl.setAttribute("data-count", bookingCart.length);
-    }
-    const listEl = $("#cartList");
-    if (!listEl) return;
-    const emptyEl = $("#cartEmpty");
-    const footerEl = $("#cartFooter");
-    const totalEl = $("#cartTotal");
-    listEl.innerHTML = "";
-    if (bookingCart.length === 0) {
-      if (emptyEl) emptyEl.style.display = "block";
-      if (footerEl) footerEl.style.display = "none";
-      updateRoomCartButtons();
-      return;
-    }
-    if (emptyEl) emptyEl.style.display = "none";
-    if (footerEl) footerEl.style.display = "block";
-    let total = 0;
-    bookingCart.forEach((room) => {
-      total += room.price;
-      const item = document.createElement("div");
-      item.className = "cart__item";
-      item.innerHTML = `
-        <div class="cart__item-info">
-          <div class="cart__item-name">${escapeHtml(room.name)}</div>
-          <div class="cart__item-price">&euro;${room.price} / night</div>
-        </div>
-        <button type="button" class="cart__item-remove" data-remove="${room.id}">Remove</button>
-      `;
-      listEl.appendChild(item);
-    });
-    listEl.querySelectorAll("[data-remove]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        removeFromCart(Number(btn.dataset.remove));
-      });
-    });
-    if (totalEl) totalEl.textContent = `€${total}`;
-    updateRoomCartButtons();
+    fetchCartCount();
   }
 
   function escapeHtml(s) {
@@ -301,24 +362,6 @@
       if (window.refreshScrollReveals) window.refreshScrollReveals();
       updateCartUI();
       updateRoomCartButtons();
-
-      grid.addEventListener("click", (e) => {
-        const btn = e.target.closest("[data-add-cart]");
-        if (!btn) return;
-        e.preventDefault();
-        const id = Number(btn.dataset.addCart);
-        const name = btn.dataset.name;
-        const price = Number(btn.dataset.price);
-        var added = addToCart({ id, name, price });
-        updateRoomCartButtons();
-        updateCartUI();
-        if (added) {
-          var infoEl = $("#roomAddedInfo");
-          var modal = $("#roomAddedModal");
-          if (infoEl) infoEl.textContent = name + " — \u20AC" + price + " / night";
-          if (modal) openModal("#roomAddedModal");
-        }
-      });
     } catch {
       /* silent */
     }

@@ -44,7 +44,11 @@ const cartSchema = new Schema(
     userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
+    },
+    sessionId: {
+      type: String,
+      required: false,
     },
     roomInfo: {
       type: [roomInfoSchema],
@@ -53,5 +57,7 @@ const cartSchema = new Schema(
   },
   { timestamps: true },
 );
+cartSchema.index({ userId: 1 });
+cartSchema.index({ sessionId: 1 });
 
 export const Cart = mongoose.model("Cart", cartSchema);

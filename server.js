@@ -30,6 +30,10 @@ app.use(
 app.use(express.json({ limit: "128kb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
+app.get("/cart", (_req, res) => {
+  res.sendFile(path.join(__dirname, "public", "cart.html"));
+});
+
 app.use(cookieParser());
 
 app.use(

@@ -2,6 +2,18 @@ import { Booking } from "../models/booking.model.js";
 import { Room, VariablePrice } from "../models/pricing.model.js";
 import { Cart } from "../models/cart.model.js";
 
+function getCartOwner(req) {
+  if (req.user && req.user._id) {
+    return { filter: { userId: req.user._id }, createPayload: { userId: req.user._id } };
+  }
+  const sessionId = req.sessionID || req.session?.id;
+  if (sessionId) {
+    if (req.session) req.session.guestCart = true;
+    return { filter: { sessionId }, createPayload: { sessionId } };
+  }
+  return null;
+}
+
 function parseDateOnly(str) {
   // Parse as YYYY-MM-DD and create at UTC midnight
   const [y, m, d] = str.split("-").map(Number);
@@ -139,12 +151,12 @@ export const availabilityAndPrice = async (req, res) => {
       checkOut: req.body.checkOut,
     };
 
-    const isRoomAvailable = checkAvailability(booking);
-    if (Number(Object.keys(isRoomAvailable)[0])) {
+    const isRoomAvailable = await checkAvailability(booking);
+    if (!Number(Object.keys(isRoomAvailable)[0])) {
       return res.status(400).json({ message: isRoomAvailable[0] });
     }
 
-    const pricing = calculateBookingPrice(
+    const pricing = await calculateBookingPrice(
       req.body.roomId,
       req.body.checkIn,
       req.body.checkOut,
@@ -167,6 +179,10 @@ export const availabilityAndPrice = async (req, res) => {
 
 export const addToCart = async (req, res) => {
   try {
+    const owner = getCartOwner(req);
+    if (!owner) {
+      return res.status(400).json({ message: "Session required" });
+    }
     const { roomId, checkIn, checkOut, adults, children } = req.body;
 
     const booking = { roomId, checkIn, checkOut };
@@ -199,7 +215,7 @@ export const addToCart = async (req, res) => {
       children: Number(children),
     };
 
-    const userCart = await Cart.findOne({ userId: req.user._id });
+    const userCart = await Cart.findOne(owner.filter);
 
     if (userCart) {
       const overlap = userCart.roomInfo.find((room) => {
@@ -223,7 +239,7 @@ export const addToCart = async (req, res) => {
 
     if (!userCart) {
       const cart = await Cart.create({
-        userId: req.user._id,
+        ...owner.createPayload,
         roomInfo: [bookingDetails],
       });
 
@@ -231,7 +247,7 @@ export const addToCart = async (req, res) => {
     }
 
     const updatedCart = await Cart.findOneAndUpdate(
-      { userId: req.user._id },
+      owner.filter,
       { $push: { roomInfo: bookingDetails } },
       { returnDocument: "after" },
     );
@@ -245,13 +261,13 @@ export const addToCart = async (req, res) => {
 
 export const listCart = async (req, res) => {
   try {
-    const cart = await Cart.find({
-      userId: req.user?._id,
-    });
-
-    console.log(cart);
-
-    return res.status(200).json({ message: cart[0].roomInfo });
+    const owner = getCartOwner(req);
+    if (!owner) {
+      return res.status(200).json({ message: [] });
+    }
+    const cart = await Cart.findOne(owner.filter);
+    const roomInfo = cart && cart.roomInfo ? cart.roomInfo : [];
+    return res.status(200).json({ message: roomInfo });
   } catch (error) {
     console.error("error listing cart", error);
     return res.status(500).json({ message: "something went wrong" });
@@ -278,6 +294,10 @@ export const listRooms = async (_req, res) => {
 
 export const deleteRoomFromCart = async (req, res) => {
   try {
+    const owner = getCartOwner(req);
+    if (!owner) {
+      return res.status(400).json({ message: "Session required" });
+    }
     let { roomId, checkIn, checkOut } = req.body;
 
     if (!roomId || !checkIn || !checkOut) {
@@ -289,7 +309,7 @@ export const deleteRoomFromCart = async (req, res) => {
     checkIn = parseDateOnly(checkIn);
     checkOut = parseDateOnly(checkOut);
 
-    const userCart = await Cart.findOne({ userId: req.user._id });
+    const userCart = await Cart.findOne(owner.filter);
 
     if (!userCart) {
       return res.status(404).json({ message: "Cart not found" });
@@ -309,7 +329,7 @@ export const deleteRoomFromCart = async (req, res) => {
     }
 
     const updatedCart = await Cart.findOneAndUpdate(
-      { userId: req.user._id },
+      owner.filter,
       {
         $pull: {
           roomInfo: {
@@ -322,9 +342,8 @@ export const deleteRoomFromCart = async (req, res) => {
       { returnDocument: "after" },
     );
 
-    //If cart becomes empty → delete cart
     if (updatedCart.roomInfo.length === 0) {
-      await Cart.deleteOne({ userId: req.user._id });
+      await Cart.deleteOne(owner.filter);
       return res.status(200).json({
         message: "Room removed and cart deleted (cart was empty)",
       });
@@ -338,6 +357,37 @@ export const deleteRoomFromCart = async (req, res) => {
     console.error("error deleting room from cart:", error.message);
     return res.status(500).json({
       message: "Something went wrong",
+    });
+  }
+};
+
+export const createCheckoutOrder = async (req, res) => {
+  try {
+    const owner = getCartOwner(req);
+    if (!owner) {
+      return res.status(400).json({ message: "Session required" });
+    }
+    const { name, email, phone } = req.body || {};
+    if (!name || !email || !phone) {
+      return res.status(400).json({ message: "Name, email and phone are required" });
+    }
+    const cart = await Cart.findOne(owner.filter);
+    if (!cart || !cart.roomInfo || cart.roomInfo.length === 0) {
+      return res.status(400).json({ message: "Cart is empty" });
+    }
+    const amount = cart.roomInfo.reduce((sum, r) => sum + (r.price || 0), 0);
+    if (amount <= 0) {
+      return res.status(400).json({ message: "Invalid cart total" });
+    }
+    return res.status(501).json({
+      success: false,
+      message: "Razorpay checkout will be integrated here. Add razorpay package and RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET to create orders.",
+    });
+  } catch (err) {
+    console.error("createCheckoutOrder error:", err);
+    return res.status(500).json({
+      success: false,
+      message: err.message || "Could not create payment order",
     });
   }
 };
