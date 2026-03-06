@@ -242,7 +242,6 @@ export const addToCart = async (req, res) => {
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
-<<<<<<< HEAD
 
 export const listCart = async (req, res) => {
   try {
@@ -258,5 +257,3 @@ export const listCart = async (req, res) => {
     return res.status(500).json({ message: "something went wrong" });
   }
 };
-=======
->>>>>>> 1399671 (serverjs merge conflict resolved)
