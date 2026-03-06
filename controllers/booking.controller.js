@@ -270,6 +270,74 @@ export const listRooms = async (_req, res) => {
     return res.status(200).json({ success: true, rooms: list });
   } catch (error) {
     console.error("error listing rooms", error);
-    return res.status(500).json({ success: false, message: "Something went wrong" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Something went wrong" });
+  }
+};
+
+export const deleteRoomFromCart = async (req, res) => {
+  try {
+    let { roomId, checkIn, checkOut } = req.body;
+
+    if (!roomId || !checkIn || !checkOut) {
+      return res
+        .status(400)
+        .json({ message: "roomId, checkIn and checkOut are required" });
+    }
+
+    checkIn = parseDateOnly(checkIn);
+    checkOut = parseDateOnly(checkOut);
+
+    const userCart = await Cart.findOne({ userId: req.user._id });
+
+    if (!userCart) {
+      return res.status(404).json({ message: "Cart not found" });
+    }
+
+    const roomExists = userCart.roomInfo.find(
+      (room) =>
+        room.roomId === roomId &&
+        new Date(room.checkIn).getTime() === new Date(checkIn).getTime() &&
+        new Date(room.checkOut).getTime() === new Date(checkOut).getTime(),
+    );
+
+    if (!roomExists) {
+      return res.status(404).json({
+        message: "Room booking not found in cart",
+      });
+    }
+
+    const updatedCart = await Cart.findOneAndUpdate(
+      { userId: req.user._id },
+      {
+        $pull: {
+          roomInfo: {
+            roomId,
+            checkIn,
+            checkOut,
+          },
+        },
+      },
+      { returnDocument: "after" },
+    );
+
+    //If cart becomes empty → delete cart
+    if (updatedCart.roomInfo.length === 0) {
+      await Cart.deleteOne({ userId: req.user._id });
+      return res.status(200).json({
+        message: "Room removed and cart deleted (cart was empty)",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Room removed from cart",
+      cart: updatedCart,
+    });
+  } catch (error) {
+    console.error("error deleting room from cart:", error.message);
+    return res.status(500).json({
+      message: "Something went wrong",
+    });
   }
 };

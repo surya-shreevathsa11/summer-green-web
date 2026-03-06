@@ -59,10 +59,6 @@ import bookingRouter from "./routes/booking.route.js";
 app.use("/api/auth", authRouter);
 app.use("/api/booking", bookingRouter);
 
-app.get("/cart", (_req, res) => {
-  res.sendFile(path.join(__dirname, "public", "cart.html"));
-});
-
 import { addInitalPrices } from "./config/addInitialRoom.js";
 addInitalPrices();
 
