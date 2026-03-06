@@ -56,12 +56,10 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 import authRouter from "./routes/auth.routes.js";
+import bookingRouter from "./routes/booking.route.js";
 
 app.use("/api/auth", authRouter);
-
-app.get("/api/booking/rooms", (_req, res) => {
-  res.json({ success: true, rooms: ROOMS });
-});
+app.use("/api/booking", bookingRouter);
 
 import { addInitalPrices } from "./config/addInitialRoom.js";
 addInitalPrices();
@@ -72,3 +70,4 @@ connectDB().then(() => {
     console.log("Server running at port", port);
   });
 });
+

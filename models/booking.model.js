@@ -3,28 +3,47 @@ const { Schema } = mongoose;
 
 const roomIds = ["R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8"];
 
+export const priceBreakdownSchema = new Schema(
+  {
+    date: Date,
+    price: Number,
+    reason: String,
+  },
+  { _id: false },
+);
+
 const bookingRoomSchema = new Schema({
   roomId: {
     type: String,
     enum: roomIds,
     required: true,
   },
+
   price: {
     type: Number,
     required: true,
   },
+
+  priceBreakdown: {
+    type: [priceBreakdownSchema],
+    required: true,
+  },
+
   adults: {
     type: Number,
     required: true,
   },
+
   kids: {
     type: Number,
     required: true,
   },
+
   checkIn: {
     type: Date,
     required: true,
   },
+
   checkOut: {
     type: Date,
     required: true,
