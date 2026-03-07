@@ -58,9 +58,18 @@ app.use(passport.session());
 
 import authRouter from "./routes/auth.routes.js";
 import bookingRouter from "./routes/booking.route.js";
+import razorpayRouter from "./routes/razorpay.route.js";
 
 app.use("/api/auth", authRouter);
 app.use("/api/booking", bookingRouter);
+
+//rzp and payment
+app.use("/api/payment", razorpayRouter);
+//need to set to raw for webhooks to work
+app.use(
+  "/api/payment/razorpay-webhook",
+  express.raw({ type: "application/json" }),
+);
 
 import { addInitalPrices } from "./config/addInitialRoom.js";
 addInitalPrices();
