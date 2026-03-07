@@ -17,19 +17,19 @@
   const $$ = (sel) => document.querySelectorAll(sel);
 
   // --- Nav scroll ---
-  var navEl = $('#nav');
+  var navEl = $("#nav");
   if (navEl) {
-    window.addEventListener('scroll', () => {
-      navEl.classList.toggle('scrolled', window.scrollY > 60);
+    window.addEventListener("scroll", () => {
+      navEl.classList.toggle("scrolled", window.scrollY > 60);
     });
   }
 
   // --- Mobile nav toggle ---
-  var navToggle = $('#navToggle');
+  var navToggle = $("#navToggle");
   if (navToggle) {
-    navToggle.addEventListener('click', () => {
-      var links = $('#navLinks');
-      if (links) links.classList.toggle('open');
+    navToggle.addEventListener("click", () => {
+      var links = $("#navLinks");
+      if (links) links.classList.toggle("open");
     });
   }
 
@@ -38,7 +38,10 @@
     ".nav__links a, .hero .btn, .footer__links a, .section__actions a",
   ).forEach((link) => {
     link.addEventListener("click", (e) => {
-      if (link.id === "navRoomsLink" || (link.getAttribute("href") === "#rooms" && link.closest(".nav__links"))) {
+      if (
+        link.id === "navRoomsLink" ||
+        (link.getAttribute("href") === "#rooms" && link.closest(".nav__links"))
+      ) {
         e.preventDefault();
         var modalGrid = $("#roomsModalGrid");
         var mainGrid = $("#roomsGrid");
@@ -71,13 +74,21 @@
     var modal = $("#roomsModal");
     if (modal && modal.classList.contains("active")) {
       e.preventDefault();
-      onAddToCartClick(btn.dataset.addCart, btn.dataset.name, btn.dataset.price);
+      onAddToCartClick(
+        btn.dataset.addCart,
+        btn.dataset.name,
+        btn.dataset.price,
+      );
       return;
     }
     var grid = $("#roomsGrid");
     if (grid && grid.contains(btn)) {
       e.preventDefault();
-      onAddToCartClick(btn.dataset.addCart, btn.dataset.name, btn.dataset.price);
+      onAddToCartClick(
+        btn.dataset.addCart,
+        btn.dataset.name,
+        btn.dataset.price,
+      );
     }
   });
 
@@ -91,27 +102,44 @@
     }
     var roomId = "R" + pendingBookRoom.id;
     availEl.textContent = "Checking availability…";
-    availEl.classList.remove("form__availability--ok", "form__availability--error");
+    availEl.classList.remove(
+      "form__availability--ok",
+      "form__availability--error",
+    );
     fetch("/api/booking/checkAvailability", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ roomId: roomId, checkIn: checkIn, checkOut: checkOut }),
+      body: JSON.stringify({
+        roomId: roomId,
+        checkIn: checkIn,
+        checkOut: checkOut,
+      }),
     })
-      .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+      .then(function (res) {
+        return res.json().then(function (data) {
+          return { ok: res.ok, data: data };
+        });
+      })
       .then(function (result) {
         if (result.ok) {
           availEl.textContent = "Rooms are available.";
           availEl.classList.add("form__availability--ok");
           availEl.classList.remove("form__availability--error");
         } else {
-          availEl.textContent = result.data && result.data.message ? result.data.message : "Dates not available.";
+          availEl.textContent =
+            result.data && result.data.message
+              ? result.data.message
+              : "Dates not available.";
           availEl.classList.add("form__availability--error");
           availEl.classList.remove("form__availability--ok");
         }
       })
       .catch(function () {
         availEl.textContent = "";
-        availEl.classList.remove("form__availability--ok", "form__availability--error");
+        availEl.classList.remove(
+          "form__availability--ok",
+          "form__availability--error",
+        );
       });
   }
 
@@ -146,28 +174,45 @@
         var availRes = await fetch("/api/booking/checkAvailability", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ roomId: roomId, checkIn: checkIn, checkOut: checkOut }),
+          body: JSON.stringify({
+            roomId: roomId,
+            checkIn: checkIn,
+            checkOut: checkOut,
+          }),
         });
         if (!availRes.ok) {
-          var availData = await availRes.json().catch(function () { return {}; });
-          errEl.textContent = availData.message || "Selected dates are not available.";
+          var availData = await availRes.json().catch(function () {
+            return {};
+          });
+          errEl.textContent =
+            availData.message || "Selected dates are not available.";
           return;
         }
         var cartRes = await fetch("/api/booking/cart", {
           method: "POST",
           credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ roomId: roomId, checkIn: checkIn, checkOut: checkOut, adults: adults, children: children }),
+          body: JSON.stringify({
+            roomId: roomId,
+            checkIn: checkIn,
+            checkOut: checkOut,
+            adults: adults,
+            children: children,
+          }),
         });
         if (!cartRes.ok) {
-          var cartData = await cartRes.json().catch(function () { return {}; });
+          var cartData = await cartRes.json().catch(function () {
+            return {};
+          });
           errEl.textContent = cartData.message || "Could not add to cart.";
           return;
         }
         closeAllModals();
         var infoEl = $("#roomAddedInfo");
         var roomAddedModal = $("#roomAddedModal");
-        if (infoEl) infoEl.textContent = pendingBookRoom.name + " — €" + pendingBookRoom.price + " / night";
+        if (infoEl)
+          infoEl.textContent =
+            pendingBookRoom.name + " — €" + pendingBookRoom.price + " / night";
         if (roomAddedModal) openModal("#roomAddedModal");
         pendingBookRoom = null;
         fetchCartCount();
@@ -209,7 +254,8 @@
       navProfile.style.display = "block";
       navProfile.setAttribute("aria-hidden", "false");
       if (navProfileName) {
-        navProfileName.textContent = currentUser.name || currentUser.email || "Profile";
+        navProfileName.textContent =
+          currentUser.name || currentUser.email || "Profile";
       }
       if (navProfileDropdown) navProfileDropdown.classList.remove("is-open");
     } else {
@@ -233,12 +279,16 @@
     navProfileTrigger.addEventListener("click", (e) => {
       e.stopPropagation();
       const isOpen = navProfileDropdown.classList.toggle("is-open");
-      navProfileTrigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      navProfileTrigger.setAttribute(
+        "aria-expanded",
+        isOpen ? "true" : "false",
+      );
     });
     navProfileDropdown.addEventListener("click", (e) => e.stopPropagation());
     document.addEventListener("click", () => {
       navProfileDropdown.classList.remove("is-open");
-      if (navProfileTrigger) navProfileTrigger.setAttribute("aria-expanded", "false");
+      if (navProfileTrigger)
+        navProfileTrigger.setAttribute("aria-expanded", "false");
     });
   }
 
@@ -268,7 +318,9 @@
   // --- Auth check (Google sign-in disabled for now; cart/checkout may require auth when re-enabled) ---
   async function checkAuth(cb) {
     try {
-      const res = await fetch("/api/auth/status", { credentials: "same-origin" });
+      const res = await fetch("/api/auth/status", {
+        credentials: "same-origin",
+      });
       const data = await res.json();
       if (data.loggedIn) {
         currentUser = data.user;
@@ -278,7 +330,10 @@
         currentUser = null;
         updateAuthUI();
         const countEl = $("#navCartCount");
-        if (countEl) { countEl.textContent = "0"; countEl.setAttribute("data-count", "0"); }
+        if (countEl) {
+          countEl.textContent = "0";
+          countEl.setAttribute("data-count", "0");
+        }
       }
       if (cb) cb(data.loggedIn ? data.user : null);
     } catch {
@@ -288,7 +343,9 @@
 
   async function fetchCartCount() {
     try {
-      const res = await fetch("/api/booking/cart", { credentials: "same-origin" });
+      const res = await fetch("/api/booking/cart", {
+        credentials: "same-origin",
+      });
       if (!res.ok) return;
       const data = await res.json();
       const count = Array.isArray(data.message) ? data.message.length : 0;
@@ -311,8 +368,14 @@
     const today = new Date().toISOString().slice(0, 10);
     const checkIn = $("#bookRoomCheckIn");
     const checkOut = $("#bookRoomCheckOut");
-    if (checkIn) { checkIn.value = ""; checkIn.min = today; }
-    if (checkOut) { checkOut.value = ""; checkOut.min = today; }
+    if (checkIn) {
+      checkIn.value = "";
+      checkIn.min = today;
+    }
+    if (checkOut) {
+      checkOut.value = "";
+      checkOut.min = today;
+    }
     const adults = $("#bookRoomAdults");
     const children = $("#bookRoomChildren");
     if (adults) adults.value = 1;
@@ -358,7 +421,9 @@
             <button type="button" class="btn btn--outline btn--sm" data-add-cart="${room.id}" data-name="${escapeHtml(room.name)}" data-price="${room.price}">Add to cart</button>
           </div>
         </div>
-      `).join('');
+      `,
+        )
+        .join("");
       if (window.refreshScrollReveals) window.refreshScrollReveals();
       updateCartUI();
       updateRoomCartButtons();
@@ -451,8 +516,10 @@
 
   // --- Blob cursor (site-wide) — single blob, small, transparent ---
   function setupBlobCursor() {
-    const container = $('#blobCursor');
-    const blob = container ? container.querySelector('.blob-cursor__blob') : null;
+    const container = $("#blobCursor");
+    const blob = container
+      ? container.querySelector(".blob-cursor__blob")
+      : null;
     if (!container || !blob) return;
 
     const isCoarse =
@@ -462,8 +529,10 @@
     document.documentElement.classList.add("custom-cursor-active");
     document.body.classList.add("custom-cursor-active");
 
-    let x = 0, y = 0;
-    let rx = 0, ry = 0;
+    let x = 0,
+      y = 0;
+    let rx = 0,
+      ry = 0;
     const lerpRate = 0.42;
     let visible = false;
     let hovering = false;
@@ -472,34 +541,45 @@
 
     function setVisible(v) {
       visible = v;
-      container.classList.toggle('is-visible', v);
+      container.classList.toggle("is-visible", v);
     }
 
     function updateClasses() {
-      container.classList.toggle('is-hover', hovering);
-      container.classList.toggle('is-down', down);
+      container.classList.toggle("is-hover", hovering);
+      container.classList.toggle("is-down", down);
     }
 
-    window.addEventListener('mousemove', (e) => {
-      x = e.clientX;
-      y = e.clientY;
-      setVisible(true);
-    }, { passive: true });
+    window.addEventListener(
+      "mousemove",
+      (e) => {
+        x = e.clientX;
+        y = e.clientY;
+        setVisible(true);
+      },
+      { passive: true },
+    );
 
-    window.addEventListener('mouseleave', () => setVisible(false));
-    window.addEventListener('mousedown', () => { down = true; updateClasses(); });
-    window.addEventListener('mouseup', () => { down = false; updateClasses(); });
+    window.addEventListener("mouseleave", () => setVisible(false));
+    window.addEventListener("mousedown", () => {
+      down = true;
+      updateClasses();
+    });
+    window.addEventListener("mouseup", () => {
+      down = false;
+      updateClasses();
+    });
 
-    var textSelector = 'h1, h2, h3, h4, h5, h6, p, .hero__title, .hero__subtitle, .hero__desc, .section__title, .section__subtitle';
-    var hoverSelector = 'a, button, .btn, input, textarea, [role="button"], .room-card, .gallery__item';
+    var textSelector =
+      "h1, h2, h3, h4, h5, h6, p, .hero__title, .hero__subtitle, .hero__desc, .section__title, .section__subtitle";
+    var hoverSelector =
+      'a, button, .btn, input, textarea, [role="button"], .room-card, .gallery__item';
     document.addEventListener("mouseover", (e) => {
       const target =
-        e.target &&
-        e.target.closest &&
-        e.target.closest(hoverSelector);
-      const textEl = e.target && e.target.closest && e.target.closest(textSelector);
+        e.target && e.target.closest && e.target.closest(hoverSelector);
+      const textEl =
+        e.target && e.target.closest && e.target.closest(textSelector);
       hovering = Boolean(target);
-      container.classList.toggle('is-hover-text', Boolean(textEl));
+      container.classList.toggle("is-hover-text", Boolean(textEl));
       if (activeHoverEl && activeHoverEl !== target) {
         activeHoverEl.classList.remove("cursor-target");
       }
@@ -513,18 +593,18 @@
     document.addEventListener("mouseout", (e) => {
       if (!e.relatedTarget) {
         hovering = false;
-        container.classList.remove('is-hover-text');
+        container.classList.remove("is-hover-text");
         if (activeHoverEl) activeHoverEl.classList.remove("cursor-target");
         activeHoverEl = null;
         updateClasses();
         return;
       }
       const stillHover =
-        e.relatedTarget.closest &&
-        e.relatedTarget.closest(hoverSelector);
-      const stillText = e.relatedTarget.closest && e.relatedTarget.closest(textSelector);
+        e.relatedTarget.closest && e.relatedTarget.closest(hoverSelector);
+      const stillText =
+        e.relatedTarget.closest && e.relatedTarget.closest(textSelector);
       hovering = Boolean(stillHover);
-      container.classList.toggle('is-hover-text', Boolean(stillText));
+      container.classList.toggle("is-hover-text", Boolean(stillText));
       if (!hovering && activeHoverEl) {
         activeHoverEl.classList.remove("cursor-target");
         activeHoverEl = null;
@@ -537,7 +617,14 @@
         rx += (x - rx) * lerpRate;
         ry += (y - ry) * lerpRate;
         var scale = down ? 0.9 : hovering ? 1.24 : 1;
-        blob.style.transform = 'translate(' + rx + 'px,' + ry + 'px) translate(-50%,-50%) scale(' + scale + ')';
+        blob.style.transform =
+          "translate(" +
+          rx +
+          "px," +
+          ry +
+          "px) translate(-50%,-50%) scale(" +
+          scale +
+          ")";
       }
       requestAnimationFrame(tick);
     }
