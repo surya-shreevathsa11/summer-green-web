@@ -147,7 +147,7 @@ export const availabilityAndPrice = async (req, res) => {
     const pricing = calculateBookingPrice(
       req.body.roomId,
       req.body.checkIn,
-      req.body.checkOut,
+      req.body.checkOut
     );
 
     const bookingDetails = {
@@ -233,7 +233,7 @@ export const addToCart = async (req, res) => {
     const updatedCart = await Cart.findOneAndUpdate(
       { userId: req.user._id },
       { $push: { roomInfo: bookingDetails } },
-      { returnDocument: "after" },
+      { returnDocument: "after" }
     );
 
     return res.status(200).json(updatedCart);
@@ -297,7 +297,7 @@ export const deleteRoomFromCart = async (req, res) => {
       (room) =>
         room.roomId === roomId &&
         new Date(room.checkIn).getTime() === new Date(checkIn).getTime() &&
-        new Date(room.checkOut).getTime() === new Date(checkOut).getTime(),
+        new Date(room.checkOut).getTime() === new Date(checkOut).getTime()
     );
 
     if (!roomExists) {
@@ -317,7 +317,7 @@ export const deleteRoomFromCart = async (req, res) => {
           },
         },
       },
-      { returnDocument: "after" },
+      { returnDocument: "after" }
     );
 
     //If cart becomes empty → delete cart
@@ -379,7 +379,7 @@ export const bookRooms = async (req, res) => {
       const { totalPrice, breakdown } = await calculateBookingPrice(
         roomId,
         checkIn.toISOString().split("T")[0],
-        checkOut.toISOString().split("T")[0],
+        checkOut.toISOString().split("T")[0]
       );
 
       //the total price for the whole cart
@@ -443,6 +443,7 @@ export const bookRooms = async (req, res) => {
         amountPaid: booking.amountPaid,
         razorpayOrderId: booking.razorpayOrderId,
         status: booking.status,
+        key: process.env.RAZORPAY_KEY_ID,
       },
     });
   } catch (error) {

@@ -2,8 +2,12 @@
   "use strict";
   var POST_LOGIN_REDIRECT_KEY = "summer-green-post-login";
 
-  var $ = function (sel) { return document.querySelector(sel); };
-  var $$ = function (sel) { return document.querySelectorAll(sel); };
+  var $ = function (sel) {
+    return document.querySelector(sel);
+  };
+  var $$ = function (sel) {
+    return document.querySelectorAll(sel);
+  };
 
   var serverCart = [];
   var currentUser = null;
@@ -31,12 +35,16 @@
 
   function checkAuth(cb) {
     fetch("/api/auth/status", { credentials: "same-origin" })
-      .then(function (res) { return res.json(); })
+      .then(function (res) {
+        return res.json();
+      })
       .then(function (data) {
         currentUser = data.loggedIn ? data.user : null;
         if (cb) cb(currentUser);
       })
-      .catch(function () { if (cb) cb(null); });
+      .catch(function () {
+        if (cb) cb(null);
+      });
   }
 
   function updateNavCartCount(count) {
@@ -60,7 +68,10 @@
           return { ok: res.ok, unauthorized: res.status === 401 };
         });
       })
-      .catch(function () { serverCart = []; return { ok: false }; });
+      .catch(function () {
+        serverCart = [];
+        return { ok: false };
+      });
   }
 
   function renderCartList() {
@@ -84,18 +95,48 @@
       total += price;
       var checkIn = formatDate(room.checkIn);
       var checkOut = formatDate(room.checkOut);
-      var adults = room.adults != null ? room.adults : (room.children && room.children.adults != null ? room.children.adults : 1);
-      var children = room.children != null && typeof room.children === "number" ? room.children : (room.children && room.children.children != null ? room.children.children : 0);
+      var adults =
+        room.adults != null
+          ? room.adults
+          : room.children && room.children.adults != null
+            ? room.children.adults
+            : 1;
+      var children =
+        room.children != null && typeof room.children === "number"
+          ? room.children
+          : room.children && room.children.children != null
+            ? room.children.children
+            : 0;
       var roomName = room.roomId || "Room";
       var item = document.createElement("div");
       item.className = "cart__item";
       item.innerHTML =
         '<div class="cart__item-info">' +
-          '<div class="cart__item-name">' + escapeHtml(roomName) + '</div>' +
-          '<div class="cart__item-meta">' + checkIn + ' – ' + checkOut + (adults || children ? ' · ' + adults + ' adult(s)' + (children ? ', ' + children + ' child(ren)' : '') : '') + '</div>' +
-          '<div class="cart__item-price">€' + price + ' total</div>' +
-        '</div>' +
-        '<button type="button" class="cart__item-remove cursor-target" data-remove data-room-id="' + escapeHtml(room.roomId) + '" data-check-in="' + escapeHtml(checkIn) + '" data-check-out="' + escapeHtml(checkOut) + '">Remove</button>';
+        '<div class="cart__item-name">' +
+        escapeHtml(roomName) +
+        "</div>" +
+        '<div class="cart__item-meta">' +
+        checkIn +
+        " – " +
+        checkOut +
+        (adults || children
+          ? " · " +
+            adults +
+            " adult(s)" +
+            (children ? ", " + children + " child(ren)" : "")
+          : "") +
+        "</div>" +
+        '<div class="cart__item-price">€' +
+        price +
+        " total</div>" +
+        "</div>" +
+        '<button type="button" class="cart__item-remove cursor-target" data-remove data-room-id="' +
+        escapeHtml(room.roomId) +
+        '" data-check-in="' +
+        escapeHtml(checkIn) +
+        '" data-check-out="' +
+        escapeHtml(checkOut) +
+        '">Remove</button>';
       listEl.appendChild(item);
     });
     listEl.querySelectorAll("[data-remove]").forEach(function (btn) {
@@ -115,15 +156,23 @@
       method: "DELETE",
       credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ roomId: roomId, checkIn: checkIn, checkOut: checkOut }),
+      body: JSON.stringify({
+        roomId: roomId,
+        checkIn: checkIn,
+        checkOut: checkOut,
+      }),
     })
-      .then(function (res) { return res.json(); })
+      .then(function (res) {
+        return res.json();
+      })
       .then(function () {
         return fetchCart().then(function () {
           renderCartList();
         });
       })
-      .catch(function () { fetchCart().then(renderCartList); });
+      .catch(function () {
+        fetchCart().then(renderCartList);
+      });
   }
 
   function onProceedToCheckout() {
@@ -153,12 +202,14 @@
     if (emptyEl) {
       emptyEl.style.display = "block";
       emptyEl.innerHTML =
-        'Please sign in to view your cart and proceed with booking.<br>' +
+        "Please sign in to view your cart and proceed with booking.<br>" +
         '<button type="button" class="btn btn--primary cart__sign-in-btn cursor-target" id="cartSignInBtn" style="margin-top: 0.75rem;">Sign In</button>';
       var btn = document.getElementById("cartSignInBtn");
       if (btn) {
         btn.addEventListener("click", function () {
-          try { sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, "cart"); } catch (_) {}
+          try {
+            sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, "cart");
+          } catch (_) {}
           window.location.href = "/api/auth/google";
         });
       }
@@ -222,13 +273,17 @@
         termsProceedBtn.disabled = !termsAccept.checked;
       });
     }
+
     if (termsProceedBtn) {
       termsProceedBtn.addEventListener("click", function () {
         if (!termsAccept || !termsAccept.checked) return;
+
         var name = $("#checkoutName").value.trim();
         var email = $("#checkoutEmail").value.trim();
         var phone = $("#checkoutPhone").value.trim();
+
         termsProceedBtn.disabled = true;
+
         var rooms = serverCart.map(function (r) {
           return {
             roomId: r.roomId,
@@ -238,38 +293,124 @@
             children: r.children != null ? r.children : 0,
           };
         });
+
         fetch("/api/booking/checkout", {
           method: "POST",
           credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: name, email: email, phone: phone, rooms: rooms }),
+          body: JSON.stringify({
+            name: name,
+            email: email,
+            phone: phone,
+            rooms: rooms,
+          }),
         })
-          .then(function (res) { return res.json().then(function (data) { return { status: res.status, data: data }; }); })
+          .then(function (res) {
+            return res.json().then(function (data) {
+              return { status: res.status, data: data };
+            });
+          })
           .then(function (result) {
-            if (result.status === 201 && result.data && result.data.razorpayOrderId && result.data.key) {
+            if (
+              result.status === 201 &&
+              result.data &&
+              result.data.data &&
+              result.data.data.razorpayOrderId &&
+              result.data.data.key
+            ) {
               closeTermsModal();
-              if (window.Razorpay) {
-                var options = {
-                  key: result.data.key,
-                  order_id: result.data.razorpayOrderId,
-                  name: "Summer Green",
-                  description: "Booking",
-                  handler: function () { window.location.href = "/?payment=success"; },
-                };
-                var rzp = new window.Razorpay(options);
-                rzp.open();
-              } else {
-                alert("Razorpay checkout script not loaded. Redirecting to payment page.");
-                window.location.href = "/";
+
+              if (!window.Razorpay) {
+                alert(
+                  "Razorpay checkout script not loaded. Please refresh the page and try again."
+                );
+                termsProceedBtn.disabled = false;
+                return;
               }
+
+              var bookingData = result.data.data;
+
+              var options = {
+                key: bookingData.key,
+                amount: bookingData.totalAmount * 100, // paise
+                currency: "INR",
+                order_id: bookingData.razorpayOrderId,
+                name: "Summer Green",
+                description: "Room Booking",
+                prefill: {
+                  name: name,
+                  email: email,
+                  contact: phone,
+                },
+
+                // ✅ Called by Razorpay on successful payment
+                handler: function (response) {
+                  // Verify payment signature on backend before redirecting
+                  fetch("/api/payment/verify", {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      razorpay_order_id: response.razorpay_order_id,
+                      razorpay_payment_id: response.razorpay_payment_id,
+                      razorpay_signature: response.razorpay_signature,
+                    }),
+                  })
+                    .then(function (res) {
+                      return res.json();
+                    })
+                    .then(function (data) {
+                      if (data.success) {
+                        // Clear cart then redirect to success page
+                        window.location.href = "/?payment=success";
+                      } else {
+                        alert(
+                          "Payment verification failed. Please contact support with your payment ID: " +
+                            response.razorpay_payment_id
+                        );
+                        termsProceedBtn.disabled = false;
+                      }
+                    })
+                    .catch(function () {
+                      alert(
+                        "Could not verify payment. Please contact support with your payment ID: " +
+                          response.razorpay_payment_id
+                      );
+                      termsProceedBtn.disabled = false;
+                    });
+                },
+
+                modal: {
+                  // User closed modal without paying — re-enable button
+                  ondismiss: function () {
+                    termsProceedBtn.disabled = false;
+                  },
+                },
+              };
+
+              var rzp = new window.Razorpay(options);
+
+              // Handle payment failure inside the modal (e.g. wrong card)
+              rzp.on("payment.failed", function (response) {
+                console.error("Payment failed:", response.error);
+                alert(
+                  "Payment failed: " +
+                    (response.error.description || "Please try again.")
+                );
+                termsProceedBtn.disabled = false;
+              });
+
+              rzp.open();
             } else {
-              alert(result.data.message || "Could not create payment order. Please try again.");
+              alert(
+                result.data.message ||
+                  "Could not create payment order. Please try again."
+              );
+              termsProceedBtn.disabled = false;
             }
           })
           .catch(function () {
             alert("Something went wrong. Please try again.");
-          })
-          .finally(function () {
             termsProceedBtn.disabled = false;
           });
       });

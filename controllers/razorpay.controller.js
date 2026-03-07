@@ -5,7 +5,7 @@ import {
   sendConfirmationMailToGuest,
   sendPaymentFailedMailToGuest,
 } from "../utils/resend.util.js";
-
+import { Cart } from "../models/cart.model.js";
 /*
  * Razorpay sends webhooks for:
  * - payment.captured → Payment successful
@@ -90,12 +90,15 @@ async function handlePaymentCaptured(payload) {
     const totalPrice = booking.totalAmount || 0;
 
     // Update booking with payment details
-    booking.status = "paid";
+    booking.status = "confirmed";
     booking.razorpayPaymentId = paymentId;
 
     booking.amountPaid = amountPaid;
 
     await booking.save();
+
+    //delete cart after confirmation
+    await Cart.deleteOne({ userId: booking.userId });
 
     // console.log("=== BOOKING PAYMENT UPDATE ===");
     // console.log("Booking ID:", booking._id);
@@ -134,7 +137,7 @@ async function handlePaymentFailed(payload) {
     // Keep status as 'pending' - user can retry payment
     console.log("Payment failed for booking:", booking._id);
 
-    await sendPaymentFailedEmail(booking);
+    await sendPaymentFailedMailToGuest(booking);
   } catch (error) {
     console.error("Error handling payment failed:", error);
   }
@@ -155,8 +158,8 @@ async function handleOrderPaid(payload) {
       return;
     }
 
-    if (booking.status !== "paid") {
-      booking.status = "paid";
+    if (booking.status !== "confirmed") {
+      booking.status = "confirmed";
       await booking.save();
       console.log("Booking confirmed via order.paid:", booking._id);
     }
@@ -204,7 +207,7 @@ export const verifyPayment = async (req, res) => {
     }
 
     // Update booking
-    booking.status = "paid";
+    booking.status = "confirmed";
     booking.razorpayPaymentId = razorpay_payment_id;
     await booking.save();
 
