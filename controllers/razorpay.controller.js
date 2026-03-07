@@ -3,7 +3,7 @@ import { Booking } from "../models/booking.model.js";
 import {
   sendConfirmationMailToAdmin,
   sendConfirmationMailToGuest,
-  sendPaymentFailedEmail,
+  sendPaymentFailedMailToGuest,
 } from "../utils/resend.util.js";
 
 /*

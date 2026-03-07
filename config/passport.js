@@ -13,6 +13,7 @@ passport.use(
     },
     async function verify(issuer, profile, done) {
       try {
+        console.log(profile);
         const googleId = profile.id;
         const email = profile.emails?.[0]?.value;
 
