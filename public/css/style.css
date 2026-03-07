@@ -1441,26 +1441,36 @@ main {
 .cart__total { margin-bottom: 1rem; font-size: 1rem; color: var(--text-primary); }
 .cart__total strong { color: var(--color-burnt-copper); }
 
-/* Cart page (dedicated booking flow) — dark blue theme + immersive card */
+/* Cart page — full-screen background image, no blue footer, card centered */
 body.page-cart {
-  background: var(--color-obsidian);
+  min-height: 100vh;
+  background-image: url("/img/designarena_image_ix01sftz.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+body.page-cart .footer {
+  display: none;
 }
 .cart-page {
-  padding: 4rem 0 3rem;
-  min-height: 60vh;
-  background: linear-gradient(180deg, var(--color-obsidian) 0%, var(--color-steel-gray) 50%, var(--color-obsidian) 100%);
+  min-height: 100vh;
+  padding: 6rem 1.5rem 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
 }
 .cart-page::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(252, 163, 17, 0.06) 0%, transparent 55%);
+  background: rgba(20, 33, 61, 0.35);
   pointer-events: none;
 }
 .cart-page .container {
   max-width: 520px;
-  min-height: 72vh;
+  width: 100%;
+  min-height: 0;
   background: var(--color-urban-white);
   padding: 3rem clamp(1.25rem, 4vw, 2.5rem) 3.5rem;
   border-radius: 1rem;
