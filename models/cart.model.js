@@ -19,11 +19,11 @@ const roomInfoSchema = new Schema(
       type: [priceBreakdownSchema],
       required: true,
     },
-    adults: {
-      type: Number,
-      required: true,
-    },
     children: {
+      adults: {
+        type: Number,
+        required: true,
+      },
       type: Number,
       required: true,
     },
@@ -44,11 +44,7 @@ const cartSchema = new Schema(
     userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      required: false,
-    },
-    sessionId: {
-      type: String,
-      required: false,
+      required: true,
     },
     roomInfo: {
       type: [roomInfoSchema],
@@ -57,7 +53,5 @@ const cartSchema = new Schema(
   },
   { timestamps: true },
 );
-cartSchema.index({ userId: 1 });
-cartSchema.index({ sessionId: 1 });
 
 export const Cart = mongoose.model("Cart", cartSchema);
