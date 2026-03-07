@@ -78,7 +78,7 @@ export const rooms = {
 
   R8: {
     id: "08",
-    name: "Gardenia",
+    name: "Zinnia",
     description: "West-facing sunset panorama",
     price: 160,
     capacity: {

@@ -289,8 +289,10 @@ h4 {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
 }
 .nav__logo {
+  flex-shrink: 0;
   color: var(--text-on-dark);
   transition: color 0.35s ease;
   text-decoration: none;
@@ -299,6 +301,25 @@ h4 {
   display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
+}
+.nav__links {
+  flex: 1;
+  justify-content: center;
+  margin: 0 auto;
+}
+/* Cart sits between Contact (last link) and login: order links, cart, then auth */
+.nav__cart {
+  flex-shrink: 0;
+  order: 2;
+}
+.nav__right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+  padding-left: 1.5rem;
+  flex-shrink: 0;
+  order: 3;
 }
 .nav__logo-name {
   font-family: "Great Vibes", cursive;
@@ -317,7 +338,7 @@ h4 {
 }
 .nav.scrolled .nav__logo { color: var(--text-on-dark); }
 .nav.scrolled .nav__logo-tagline { color: rgba(255, 255, 255, 0.75); }
-.nav__links { display: flex; gap: 2rem; }
+.nav__links { display: flex; gap: 2rem; margin: 0; }
 .nav__links a {
   font-size: 0.8rem;
   letter-spacing: 0.12em;
@@ -366,14 +387,14 @@ h4 {
 .nav__auth-wrap {
   display: flex;
   align-items: center;
-  margin-left: auto;
 }
-body[data-auth-disabled] [data-auth-ui] {
-  display: none !important;
-}
-.nav__profile {
-  display: none;
-  position: relative;
+.nav__profile-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  flex-shrink: 0;
 }
 .nav__profile-trigger {
   display: inline-flex;
@@ -381,6 +402,20 @@ body[data-auth-disabled] [data-auth-ui] {
   gap: 0.35rem;
   cursor: pointer;
   font-family: inherit;
+  padding: 0.2rem;
+  background: transparent;
+  border: none;
+  color: inherit;
+}
+.nav__profile-trigger:hover {
+  opacity: 0.9;
+}
+body[data-auth-disabled] [data-auth-ui] {
+  display: none !important;
+}
+.nav__profile {
+  display: none;
+  position: relative;
 }
 .nav__profile-chevron {
   transition: transform 0.2s ease;

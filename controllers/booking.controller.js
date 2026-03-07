@@ -353,6 +353,7 @@ export const bookRooms = async (req, res) => {
     }
 
     const rooms = await Cart.findOne({ userId: req.user._id });
+    console.log(rooms);
     if (!rooms) {
       return res.status(400).json({ message: "Cart is empty" });
     }

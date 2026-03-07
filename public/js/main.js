@@ -243,25 +243,32 @@
   });
 
   // --- Auth UI: Sign In (when logged out) / Profile dropdown (when logged in) ---
+  const DEFAULT_AVATAR_URL = "/img/default-avatar.svg";
   function updateAuthUI() {
     const authBtn = $("#authBtn");
     const navProfile = $("#navProfile");
-    const navProfileName = $("#navProfileName");
+    const navProfileAvatar = $("#navProfileAvatar");
     const navProfileDropdown = $("#navProfileDropdown");
     if (!authBtn || !navProfile) return;
     if (currentUser) {
       authBtn.style.display = "none";
       navProfile.style.display = "block";
       navProfile.setAttribute("aria-hidden", "false");
-      if (navProfileName) {
-        navProfileName.textContent =
-          currentUser.name || currentUser.email || "Profile";
+      if (navProfileAvatar) {
+        navProfileAvatar.src =
+          currentUser.avatar && currentUser.avatar.trim()
+            ? currentUser.avatar
+            : DEFAULT_AVATAR_URL;
+        navProfileAvatar.alt = currentUser.name
+          ? String(currentUser.name)
+          : "Profile";
       }
       if (navProfileDropdown) navProfileDropdown.classList.remove("is-open");
     } else {
       authBtn.style.display = "";
       navProfile.style.display = "none";
       navProfile.setAttribute("aria-hidden", "true");
+      if (navProfileAvatar) navProfileAvatar.src = DEFAULT_AVATAR_URL;
       if (navProfileDropdown) navProfileDropdown.classList.remove("is-open");
     }
   }

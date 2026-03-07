@@ -86,33 +86,41 @@
             >0</span
           >
         </a>
-        <div class="nav__auth-wrap" data-auth-ui>
-          <button class="btn btn--outline nav__auth" id="authBtn">
-            Sign In
-          </button>
-          <div class="nav__profile" id="navProfile" aria-hidden="true">
-            <button
-              type="button"
-              class="btn btn--outline nav__auth nav__profile-trigger cursor-target"
-              id="navProfileTrigger"
-              aria-expanded="false"
-              aria-haspopup="true"
-              aria-label="Profile menu"
-            >
-              <span id="navProfileName">Profile</span>
-              <svg
-                class="nav__profile-chevron"
-                width="12"
-                height="12"
-                viewBox="0 0 12 12"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                aria-hidden="true"
-              >
-                <path d="M2 4l4 4 4-4" />
-              </svg>
+        <div class="nav__right">
+          <div class="nav__auth-wrap" data-auth-ui>
+            <button class="btn btn--outline nav__auth" id="authBtn">
+              Sign In
             </button>
+            <div class="nav__profile" id="navProfile" aria-hidden="true">
+              <button
+                type="button"
+                class="nav__profile-trigger cursor-target"
+                id="navProfileTrigger"
+                aria-expanded="false"
+                aria-haspopup="true"
+                aria-label="Profile menu"
+              >
+                <img
+                  id="navProfileAvatar"
+                  class="nav__profile-avatar"
+                  src="/img/default-avatar.svg"
+                  alt=""
+                  width="36"
+                  height="36"
+                />
+                <svg
+                  class="nav__profile-chevron"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  aria-hidden="true"
+                >
+                  <path d="M2 4l4 4 4-4" />
+                </svg>
+              </button>
             <div class="nav__profile-dropdown" id="navProfileDropdown">
               <a
                 href="#rooms"
@@ -364,7 +372,7 @@
             <div
               class="location-card__img"
               style="
-                background-image: url(&quot;/img/designarena_image_ntalslgi.png&quot;);
+                background-image: url(&quot;/img/designarena_image_1eyd2uq8.png&quot;);
               "
             ></div>
             <div class="location-card__overlay">

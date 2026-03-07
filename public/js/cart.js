@@ -229,21 +229,29 @@
         var email = $("#checkoutEmail").value.trim();
         var phone = $("#checkoutPhone").value.trim();
         termsProceedBtn.disabled = true;
+        var rooms = serverCart.map(function (r) {
+          return {
+            roomId: r.roomId,
+            checkIn: formatDate(r.checkIn),
+            checkOut: formatDate(r.checkOut),
+            adults: r.adults != null ? r.adults : 1,
+            children: r.children != null ? r.children : 0,
+          };
+        });
         fetch("/api/booking/checkout", {
           method: "POST",
           credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: name, email: email, phone: phone }),
+          body: JSON.stringify({ name: name, email: email, phone: phone, rooms: rooms }),
         })
           .then(function (res) { return res.json().then(function (data) { return { status: res.status, data: data }; }); })
           .then(function (result) {
-            if (result.status === 200 && result.data.success && result.data.orderId && result.data.key) {
+            if (result.status === 201 && result.data && result.data.razorpayOrderId && result.data.key) {
               closeTermsModal();
               if (window.Razorpay) {
                 var options = {
                   key: result.data.key,
-                  amount: result.data.amount,
-                  order_id: result.data.orderId,
+                  order_id: result.data.razorpayOrderId,
                   name: "Summer Green",
                   description: "Booking",
                   handler: function () { window.location.href = "/?payment=success"; },
