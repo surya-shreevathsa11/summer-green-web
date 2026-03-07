@@ -366,6 +366,7 @@ h4 {
 .nav__auth-wrap {
   display: flex;
   align-items: center;
+  margin-left: auto;
 }
 body[data-auth-disabled] [data-auth-ui] {
   display: none !important;

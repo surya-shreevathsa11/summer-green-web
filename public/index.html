@@ -24,7 +24,7 @@
       if ("scrollRestoration" in history) history.scrollRestoration = "manual";
     </script>
   </head>
-  <body data-auth-disabled>
+  <body>
     <!-- Blob cursor (desktop only) -->
     <div class="blob-cursor" id="blobCursor" aria-hidden="true">
       <div class="blob-cursor__main">
@@ -86,7 +86,7 @@
             >0</span
           >
         </a>
-        <div class="nav__auth-wrap" data-auth-ui aria-hidden="true">
+        <div class="nav__auth-wrap" data-auth-ui>
           <button class="btn btn--outline nav__auth" id="authBtn">
             Sign In
           </button>
@@ -656,8 +656,8 @@
       </div>
     </div>
 
-    <!-- Sign In Modal (hidden while auth disabled) -->
-    <div class="modal" id="signInModal" data-auth-ui aria-hidden="true">
+    <!-- Sign In Modal -->
+    <div class="modal" id="signInModal" data-auth-ui>
       <div class="modal__overlay"></div>
       <div class="modal__content">
         <button class="modal__close" data-close>&times;</button>

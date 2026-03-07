@@ -144,6 +144,28 @@
     if (modal) modal.classList.remove("active");
   }
 
+  function showSignInRequired() {
+    var listEl = $("#cartList");
+    var emptyEl = $("#cartEmpty");
+    var footerEl = $("#cartFooter");
+    if (listEl) listEl.innerHTML = "";
+    if (footerEl) footerEl.style.display = "none";
+    if (emptyEl) {
+      emptyEl.style.display = "block";
+      emptyEl.innerHTML =
+        'Please sign in to view your cart and proceed with booking.<br>' +
+        '<button type="button" class="btn btn--primary cart__sign-in-btn cursor-target" id="cartSignInBtn" style="margin-top: 0.75rem;">Sign In</button>';
+      var btn = document.getElementById("cartSignInBtn");
+      if (btn) {
+        btn.addEventListener("click", function () {
+          try { sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, "cart"); } catch (_) {}
+          window.location.href = "/api/auth/google";
+        });
+      }
+    }
+    updateNavCartCount(0);
+  }
+
   function init() {
     var navToggle = document.getElementById("navToggle");
     var navLinks = document.getElementById("navLinks");
@@ -156,7 +178,7 @@
     fetchCart().then(function (result) {
       if (result.unauthorized) {
         serverCart = [];
-        renderCartList();
+        showSignInRequired();
         return;
       }
       renderCartList();

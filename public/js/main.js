@@ -63,7 +63,7 @@
     });
   });
 
-  // --- Add to cart: open book popup (adults, children, dates), validate, POST cart (Google sign-in disabled for now) ---
+  // --- Add to cart: open book popup; backend validates session and returns message if not signed in ---
   function onAddToCartClick(id, name, price) {
     openBookRoomModal(Number(id), name, Number(price));
   }
@@ -315,7 +315,7 @@
     window.location.href = "/api/auth/google";
   });
 
-  // --- Auth check (Google sign-in disabled for now; cart/checkout may require auth when re-enabled) ---
+  // --- Auth check: used before booking and for redirect after sign-in ---
   async function checkAuth(cb) {
     try {
       const res = await fetch("/api/auth/status", {
@@ -635,6 +635,15 @@
   setupDirections();
   setupHeroSlider();
   setupBlobCursor();
-  checkAuth();
+  checkAuth(function (user) {
+    if (user) {
+      try {
+        if (sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY) === "cart") {
+          sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
+          window.location.href = "/cart";
+        }
+      } catch (_) {}
+    }
+  });
   renderRooms();
 })();
