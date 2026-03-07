@@ -4,7 +4,10 @@ import { Cart } from "../models/cart.model.js";
 
 function getCartOwner(req) {
   if (req.user && req.user._id) {
-    return { filter: { userId: req.user._id }, createPayload: { userId: req.user._id } };
+    return {
+      filter: { userId: req.user._id },
+      createPayload: { userId: req.user._id },
+    };
   }
   const sessionId = req.sessionID || req.session?.id;
   if (sessionId) {
@@ -185,6 +188,15 @@ export const addToCart = async (req, res) => {
     }
     const { roomId, checkIn, checkOut, adults, children } = req.body;
 
+    if (
+      !roomId ||
+      !checkIn ||
+      !checkOut ||
+      adults === undefined ||
+      children === undefined
+    ) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
     const booking = { roomId, checkIn, checkOut };
 
     const isRoomAvailable = await checkAvailability(booking);
@@ -369,7 +381,9 @@ export const createCheckoutOrder = async (req, res) => {
     }
     const { name, email, phone } = req.body || {};
     if (!name || !email || !phone) {
-      return res.status(400).json({ message: "Name, email and phone are required" });
+      return res
+        .status(400)
+        .json({ message: "Name, email and phone are required" });
     }
     const cart = await Cart.findOne(owner.filter);
     if (!cart || !cart.roomInfo || cart.roomInfo.length === 0) {
@@ -381,7 +395,8 @@ export const createCheckoutOrder = async (req, res) => {
     }
     return res.status(501).json({
       success: false,
-      message: "Razorpay checkout will be integrated here. Add razorpay package and RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET to create orders.",
+      message:
+        "Razorpay checkout will be integrated here. Add razorpay package and RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET to create orders.",
     });
   } catch (err) {
     console.error("createCheckoutOrder error:", err);
@@ -389,5 +404,17 @@ export const createCheckoutOrder = async (req, res) => {
       success: false,
       message: err.message || "Could not create payment order",
     });
+  }
+};
+export const bookRooms = async (req, res) => {
+  try {
+    const rooms = req.body;
+    for (const room of rooms) {
+      if (!room?.roomId || !room?.checkIn || !room?.adults) {
+      }
+    }
+  } catch (error) {
+    console.error("error booking rooms", error);
+    return res.status(500).json({ message: "Something went wrong" });
   }
 };

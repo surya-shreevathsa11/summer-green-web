@@ -19,11 +19,11 @@ const roomInfoSchema = new Schema(
       type: [priceBreakdownSchema],
       required: true,
     },
+    adults: {
+      type: Number,
+      required: true,
+    },
     children: {
-      adults: {
-        type: Number,
-        required: true,
-      },
       type: Number,
       required: true,
     },

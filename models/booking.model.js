@@ -34,7 +34,7 @@ const bookingRoomSchema = new Schema({
     required: true,
   },
 
-  kids: {
+  children: {
     type: Number,
     required: true,
   },
