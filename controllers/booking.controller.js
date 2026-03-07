@@ -249,9 +249,7 @@ export const listCart = async (req, res) => {
       userId: req.user?._id,
     });
 
-    console.log(cart);
-
-    return res.status(200).json({ message: cart[0].roomInfo });
+    return res.status(200).json({ message: cart[0]?.roomInfo });
   } catch (error) {
     console.error("error listing cart", error);
     return res.status(500).json({ message: "something went wrong" });
@@ -354,42 +352,33 @@ export const bookRooms = async (req, res) => {
         .json({ message: "Mandatory fields must not be empty" });
     }
 
-    const rooms = req.body.rooms;
-    let totalBookingPrice = null;
+    const rooms = await Cart.findOne({ userId: req.user._id });
+    if (!rooms) {
+      return res.status(400).json({ message: "Cart is empty" });
+    }
+    let totalBookingPrice = 0;
     const totalBreakDown = [];
 
-    for (const room of rooms) {
+    for (const room of rooms.roomInfo) {
       let { roomId, checkIn, checkOut, children, adults } = room;
-      if (!roomId || !checkIn || !checkOut || !children || !adults) {
-        return res.status(400).json({ message: "Invalid cart items" });
-      }
 
       const booking = {
         roomId: roomId,
-        checkIn: checkIn,
-        checkOut: checkOut,
+        checkIn: checkIn.toISOString().split("T")[0],
+        checkOut: checkOut.toISOString().split("T")[0],
       };
 
-      const isRoomAvailable = await isRoomAvailable(booking);
+      const isRoomAvailable = await checkAvailability(booking);
       if (!Number(Object.keys(isRoomAvailable)[0])) {
         return res.status(400).json({ message: isRoomAvailable[0] });
       }
 
-      const guestInfo = {
-        roomId,
-        adults,
-        children,
-      };
-
-      const guestsAllowed = await validateGuests(guestInfo);
-      if (!Number(Object.keys(guestsAllowed)[0])) {
-        return res.status(400).json({ message: guestsAllowed[0] });
-      }
+      //guest validations and stuff not doing cos already done in cart
 
       const { totalPrice, breakdown } = await calculateBookingPrice(
         roomId,
-        checkIn,
-        checkOut,
+        checkIn.toISOString().split("T")[0],
+        checkOut.toISOString().split("T")[0],
       );
 
       //the total price for the whole cart
@@ -399,7 +388,7 @@ export const bookRooms = async (req, res) => {
       const bookingInfo = {
         roomId: roomId,
         price: totalPrice,
-        priceBreakdown: priceBreakdown,
+        priceBreakdown: breakdown,
         adults: Number(adults),
         children: Number(children),
         checkIn: checkIn,
@@ -418,10 +407,10 @@ export const bookRooms = async (req, res) => {
 
     const receiptId = crypto.randomBytes(6).toString("hex");
 
-    const order = razorpay.orders.create({
+    const order = await razorpay.orders.create({
       amount: totalBookingPrice * 100,
       currency: "INR",
-      recipt: `booking_${receiptId}`,
+      receipt: `booking_${receiptId}`,
     });
 
     const booking = await Booking.create({
@@ -435,7 +424,7 @@ export const bookRooms = async (req, res) => {
       totalAmount: totalBookingPrice,
       amountPaid: 0,
       razorpayOrderId: order.id,
-      status: pending,
+      status: "pending",
     });
 
     return res.status(201).json({
@@ -456,7 +445,7 @@ export const bookRooms = async (req, res) => {
       },
     });
   } catch (error) {
-    console.log("error booking room", error);
+    console.error("error booking room", error);
     res.status(500).json({ message: "Something went wrong" });
   }
 };
