@@ -1,0 +1,543 @@
+/* ── Admin Layout ─────────────────────────────────────────────────────────── */
+.admin-body {
+  min-height: 100vh;
+  background: #f5f2ee;
+  padding: 0;
+  margin: 0;
+}
+
+.admin__header {
+  background: #1a1408;
+  color: #f5f0e8;
+  padding: 1.25rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.admin__header-title {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 1.5rem;
+  font-style: italic;
+  margin: 0;
+  color: #f5f0e8;
+  font-weight: 400;
+}
+
+.admin__header-title span {
+  color: #c8973a;
+}
+
+.admin__back {
+  color: rgba(248, 248, 248, 0.75);
+  text-decoration: none;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  transition: color 0.2s;
+}
+
+.admin__back:hover {
+  color: #c8973a;
+}
+
+.admin__wrap {
+  padding: 2rem 1.5rem;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.admin__card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e8e0d0;
+  box-shadow: 0 4px 24px rgba(44, 36, 22, 0.08);
+  padding: 2.5rem;
+}
+
+/* ── Views ────────────────────────────────────────────────────────────────── */
+.admin__view {
+  display: block;
+}
+
+/* ── Login / OTP ──────────────────────────────────────────────────────────── */
+.admin__login,
+.admin__otp {
+  max-width: 360px;
+  margin: 0 auto;
+  padding: 1rem 0 2rem;
+}
+
+.admin__login h2,
+.admin__otp h2 {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 1.6rem;
+  color: #2c2416;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.admin__otp p {
+  color: #8a7a5a;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.form__group {
+  margin-bottom: 1.1rem;
+}
+
+.form__group label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #8a7a5a;
+  margin-bottom: 0.35rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.form__group input[type="text"],
+.form__group input[type="password"],
+.form__group input[type="number"],
+.form__group input[type="date"],
+.form__group select {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid #e0d8cc;
+  border-radius: 6px;
+  font-size: 0.92rem;
+  font-family: inherit;
+  background: #faf8f4;
+  color: #2c2416;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.form__group input:focus,
+.form__group select:focus {
+  outline: none;
+  border-color: #c8973a;
+  background: #fff;
+}
+
+.btn--full {
+  width: 100%;
+}
+
+/* Password toggle */
+.admin__password-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.admin__password-wrap input {
+  padding-right: 2.75rem;
+}
+
+.admin__password-toggle {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0.3rem;
+  cursor: pointer;
+  color: #a89878;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.admin__password-toggle:hover {
+  color: #c8973a;
+}
+.admin__password-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ── Access Denied ────────────────────────────────────────────────────────── */
+.admin__denied {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #8a7a5a;
+}
+
+.admin__denied p {
+  margin-bottom: 1.25rem;
+  font-size: 1rem;
+}
+
+/* ── Dashboard sections ───────────────────────────────────────────────────── */
+.admin__section {
+  margin-bottom: 2.75rem;
+  padding-bottom: 2.75rem;
+  border-bottom: 1px solid #f0e8da;
+}
+
+.admin__section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.admin__section h2 {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 1.35rem;
+  color: #2c2416;
+  margin-bottom: 1.25rem;
+  font-weight: 600;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.admin__section-sub {
+  font-family: "Montserrat", sans-serif;
+  font-size: 0.75rem;
+  color: #a89878;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* ── Base price grid ──────────────────────────────────────────────────────── */
+.admin__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.admin__price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #faf8f4;
+  border: 1px solid #e8e0d0;
+  border-radius: 6px;
+  padding: 0.6rem 0.85rem;
+  gap: 0.75rem;
+}
+
+.admin__price-row label {
+  font-size: 0.85rem;
+  color: #2c2416;
+  font-weight: 500;
+  white-space: nowrap;
+  text-transform: none;
+  letter-spacing: 0;
+  margin: 0;
+}
+
+.admin__room-id {
+  color: #a89878;
+  font-size: 0.78rem;
+}
+
+.admin__price-row input {
+  width: 80px;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #e0d8cc;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  text-align: right;
+  background: #fff;
+}
+
+/* ── Seasonal pricing form ────────────────────────────────────────────────── */
+.admin__season-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1.5fr auto;
+  gap: 0.75rem;
+  align-items: end;
+  margin-bottom: 0.5rem;
+}
+
+.form__group--action {
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 0;
+}
+
+.admin__season-list {
+  margin-top: 1rem;
+}
+
+.admin__season-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #f0e8da;
+  font-size: 0.85rem;
+  color: #4a3f2a;
+  gap: 0.75rem;
+}
+
+.admin__season-item em {
+  color: #a89878;
+  font-style: italic;
+}
+
+/* ── Bookings table ───────────────────────────────────────────────────────── */
+.admin__table-wrap {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e8e0d0;
+}
+
+.admin__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.admin__table th {
+  text-align: left;
+  padding: 0.7rem 1rem;
+  background: #faf8f4;
+  color: #a89878;
+  font-weight: 500;
+  font-size: 0.72rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e8e0d0;
+}
+
+.admin__table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f0e8da;
+  color: #2c2416;
+  vertical-align: top;
+  line-height: 1.5;
+}
+
+.admin__table tr:last-child td {
+  border-bottom: none;
+}
+.admin__table tr:hover td {
+  background: #fdf9f4;
+}
+
+.admin__table small {
+  color: #a89878;
+  font-size: 0.78rem;
+}
+.admin__paid {
+  color: #6a8a5a !important;
+}
+
+/* Status badges */
+.admin__badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 99px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: #f0e8da;
+  color: #8a7a5a;
+}
+
+.admin__badge--confirmed {
+  background: #eaf5e8;
+  color: #3a7a3a;
+}
+.admin__badge--pending {
+  background: #fef9ec;
+  color: #a07a20;
+}
+.admin__badge--cancelled {
+  background: #fdecea;
+  color: #a03a2a;
+}
+.admin__badge--blocked {
+  background: #eeeef5;
+  color: #5a5a8a;
+}
+
+.admin__empty {
+  text-align: center;
+  padding: 2rem;
+  color: #a89878;
+  font-size: 0.9rem;
+}
+
+/* ── Events form ──────────────────────────────────────────────────────────── */
+.admin__event-form {
+  display: grid;
+  grid-template-columns: 2fr 1fr auto;
+  gap: 0.75rem;
+  align-items: end;
+  margin-bottom: 0.5rem;
+}
+
+.admin__event-list {
+  margin-top: 1rem;
+}
+
+.admin__event-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #f0e8da;
+  font-size: 0.875rem;
+  color: #4a3f2a;
+  gap: 0.75rem;
+}
+
+/* ── Messages ─────────────────────────────────────────────────────────────── */
+.admin__msg {
+  font-size: 0.85rem;
+  padding: 0.5rem 0;
+  display: none;
+}
+
+.admin__msg--error {
+  color: #b03020;
+}
+.admin__msg--success {
+  color: #3a7a3a;
+}
+
+/* ── Filter bar ───────────────────────────────────────────────────────────── */
+.admin__filter-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.25rem;
+  background: #faf8f4;
+  border: 1px solid #e8e0d0;
+  border-radius: 8px;
+}
+
+.admin__filter-bar .form__group {
+  margin-bottom: 0;
+  min-width: 140px;
+}
+
+.btn--ghost {
+  background: transparent;
+  border: 1px solid #e0d8cc;
+  color: #8a7a5a;
+  padding: 0.4rem 0.9rem;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    color 0.2s;
+}
+
+.btn--ghost:hover {
+  border-color: #c8973a;
+  color: #c8973a;
+}
+
+/* ── Edit column ──────────────────────────────────────────────────────────── */
+.admin__edit-cell {
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.admin__status-cell {
+  vertical-align: middle;
+}
+
+.admin__edit-btn {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+
+.admin__edit-panel {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: nowrap;
+  margin-top: 0.25rem;
+}
+
+.admin__status-select {
+  padding: 0.3rem 0.5rem;
+  border: 1px solid #e0d8cc;
+  border-radius: 5px;
+  font-size: 0.78rem;
+  font-family: inherit;
+  background: #faf8f4;
+  color: #2c2416;
+  cursor: pointer;
+  min-width: 100px;
+}
+
+.admin__status-select:focus {
+  outline: none;
+  border-color: #c8973a;
+}
+
+.admin__edit-cancel {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  color: #a89878;
+  border-color: transparent;
+}
+
+.admin__inline-msg {
+  font-size: 0.75rem;
+  min-width: 48px;
+  color: #a89878;
+}
+
+.admin__inline-msg--ok {
+  color: #3a7a3a;
+  font-weight: 500;
+}
+.admin__inline-msg--err {
+  color: #b03020;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 720px) {
+  .admin__card {
+    padding: 1.5rem;
+  }
+  .admin__season-form {
+    grid-template-columns: 1fr 1fr;
+  }
+  .admin__event-form {
+    grid-template-columns: 1fr;
+  }
+  .admin__status-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .admin__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin__wrap {
+    padding: 1rem;
+  }
+  .admin__card {
+    padding: 1.25rem;
+    border-radius: 8px;
+  }
+  .admin__season-form {
+    grid-template-columns: 1fr;
+  }
+  .admin__grid {
+    grid-template-columns: 1fr;
+  }
+}

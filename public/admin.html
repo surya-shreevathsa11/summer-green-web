@@ -1,573 +1,336 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin — Summer Green</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="/css/theme-yankees.css">
-  <style>
-    .admin { min-height: 100vh; background: var(--color-cool-mist, #f5f5f5); padding: 2rem; }
-    .admin__header { background: var(--color-obsidian); color: var(--text-on-dark, #f8f8f8); padding: 1.25rem 2rem; margin: -2rem -2rem 2rem -2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
-    .admin__header h1 { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-style: italic; margin: 0; }
-    .admin__back { color: rgba(248,248,248,0.9); text-decoration: none; font-size: 0.85rem; letter-spacing: 0.05em; }
-    .admin__back:hover { color: var(--color-burnt-copper); }
-    .admin__card { background: var(--color-urban-white); border-radius: 1rem; border: 1px solid var(--border-light); box-shadow: 0 4px 20px var(--shadow-soft); padding: 2rem; max-width: 900px; margin: 0 auto; }
-    .admin__login { max-width: 360px; margin: 0 auto; padding: 2rem 0; }
-    .admin__login h2 { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; color: var(--text-primary); margin-bottom: 1.5rem; text-align: center; }
-    .admin__login .form__group { margin-bottom: 1.25rem; }
-    .admin__login label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 0.35rem; letter-spacing: 0.04em; }
-    .admin__login input[type="text"],
-    .admin__login input[type="password"],
-    .admin__login input[type="number"] { width: 100%; padding: 0.65rem 0.9rem; border: 1px solid var(--border-light); border-radius: 6px; font-size: 0.95rem; font-family: inherit; box-sizing: border-box; }
-    .admin__login input:focus { outline: none; border-color: var(--color-burnt-copper); }
-    .admin__password-wrap { position: relative; display: flex; align-items: center; }
-    .admin__password-wrap input { padding-right: 2.75rem; }
-    .admin__password-toggle { position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 0.35rem; cursor: pointer; color: var(--text-muted); border-radius: 4px; display: flex; align-items: center; justify-content: center; }
-    .admin__password-toggle:hover { color: var(--color-burnt-copper); }
-    .admin__password-toggle svg { width: 20px; height: 20px; }
-    .admin__login .btn { width: 100%; margin-top: 0.5rem; }
-    .admin__otp { max-width: 320px; margin: 0 auto; padding: 2rem 0; text-align: center; }
-    .admin__otp h2 { font-family: 'Cormorant Garamond', serif; font-size: 1.35rem; color: var(--text-primary); margin-bottom: 0.5rem; }
-    .admin__otp p { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem; }
-    .admin__otp input { text-align: center; letter-spacing: 0.25em; font-size: 1.1rem; }
-    .admin__denied { text-align: center; padding: 3rem 2rem; color: var(--text-muted); }
-    .admin__section { margin-bottom: 2.5rem; }
-    .admin__section h2 { font-family: 'Cormorant Garamond', serif; font-size: 1.35rem; color: var(--text-primary); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-light); }
-    .admin__table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-    .admin__table th, .admin__table td { text-align: left; padding: 0.75rem; border-bottom: 1px solid var(--border-light); }
-    .admin__table th { color: var(--text-muted); font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; font-size: 0.75rem; }
-    .admin__table td { color: var(--text-primary); }
-    .admin__empty { text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.9rem; }
-    .admin__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; }
-    .admin__price-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0; }
-    .admin__price-row label { min-width: 100px; font-size: 0.85rem; color: var(--text-secondary); }
-    .admin__price-row input { width: 100px; padding: 0.4rem 0.5rem; border: 1px solid var(--border-light); border-radius: 4px; font-size: 0.9rem; }
-    .admin__season-form { display: grid; grid-template-columns: 1fr 1fr 1fr auto auto; gap: 0.75rem; align-items: end; margin-bottom: 1rem; flex-wrap: wrap; }
-    .admin__season-form .form__group { margin-bottom: 0; }
-    .admin__season-form label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem; }
-    .admin__season-form input, .admin__season-form select { width: 100%; padding: 0.5rem; border: 1px solid var(--border-light); border-radius: 4px; font-size: 0.85rem; box-sizing: border-box; }
-    .admin__season-list { margin-top: 1rem; font-size: 0.85rem; }
-    .admin__season-item { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border-light); gap: 0.5rem; }
-    .admin__event-form { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem; align-items: end; margin-bottom: 1rem; flex-wrap: wrap; }
-    .admin__event-form .form__group { margin-bottom: 0; }
-    .admin__event-form label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem; }
-    .admin__event-form input { width: 100%; padding: 0.5rem; border: 1px solid var(--border-light); border-radius: 4px; font-size: 0.85rem; box-sizing: border-box; }
-    .admin__event-list { margin-top: 1rem; font-size: 0.85rem; }
-    .admin__event-item { padding: 0.5rem 0; border-bottom: 1px solid var(--border-light); }
-    .admin__status-form { display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 1rem; }
-    .admin__status-form select { padding: 0.5rem 0.75rem; border: 1px solid var(--border-light); border-radius: 4px; font-size: 0.9rem; min-width: 160px; }
-    .admin__msg { padding: 0.5rem 0; font-size: 0.85rem; }
-    .admin__msg--error { color: #c0392b; }
-    .admin__msg--success { color: var(--color-copper-dark, #0a0); }
-    @media (max-width: 640px) {
-      .admin__season-form { grid-template-columns: 1fr 1fr; }
-      .admin__event-form { grid-template-columns: 1fr; }
-    }
-  </style>
-</head>
-<body class="admin">
-  <div class="blob-cursor" id="blobCursor" aria-hidden="true">
-    <div class="blob-cursor__main">
-      <div class="blob-cursor__blob"><span class="blob-cursor__inner"></span></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin — Summer Green</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/theme-yankees.css" />
+    <link rel="stylesheet" href="/css/admin.css" />
+  </head>
+  <body class="admin-body">
+    <div class="blob-cursor" id="blobCursor" aria-hidden="true">
+      <div class="blob-cursor__main">
+        <div class="blob-cursor__blob">
+          <span class="blob-cursor__inner"></span>
+        </div>
+      </div>
     </div>
-  </div>
-  <header class="admin__header">
-    <h1>Summer Green — Admin</h1>
-    <a href="/" class="admin__back">← Back to site</a>
-  </header>
-  <main class="admin__card" id="adminCard">
-    <div id="adminLoading" style="display: none;">Loading…</div>
 
-    <!-- Step 1: Login (username + password) -->
-    <div id="adminLogin">
-      <div class="admin__login">
-        <h2>Admin sign in</h2>
-        <p id="adminLoginError" class="admin__msg admin__msg--error" style="display: none;"></p>
-        <form id="adminLoginForm" onsubmit="return false;">
-          <div class="form__group">
-            <label for="adminUsername">Username</label>
-            <input type="text" id="adminUsername" name="username" placeholder="Admin username" required autocomplete="username">
-          </div>
-          <div class="form__group">
-            <label for="adminPassword">Password</label>
-            <div class="admin__password-wrap">
-              <input type="password" id="adminPassword" name="password" placeholder="••••••••" required autocomplete="current-password">
-              <button type="button" class="admin__password-toggle" id="adminPasswordToggle" aria-label="Show password">
-                <svg class="admin__eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                  <circle cx="12" cy="12" r="3"/>
-                </svg>
-                <svg class="admin__eye-off-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display: none;">
-                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                  <line x1="1" y1="1" x2="23" y2="23"/>
-                </svg>
+    <header class="admin__header">
+      <h1 class="admin__header-title">Summer Green <span>Admin</span></h1>
+      <a href="/" class="admin__back">← Back to site</a>
+    </header>
+
+    <main class="admin__wrap">
+      <div class="admin__card" id="adminCard">
+        <!-- Step 1: Login -->
+        <div id="adminLogin" class="admin__view">
+          <div class="admin__login">
+            <h2>Admin Sign In</h2>
+            <p
+              id="adminLoginError"
+              class="admin__msg admin__msg--error"
+              style="display: none"
+            ></p>
+            <form id="adminLoginForm" onsubmit="return false;" novalidate>
+              <div class="form__group">
+                <label for="adminUsername">Username</label>
+                <input
+                  type="text"
+                  id="adminUsername"
+                  name="username"
+                  placeholder="Admin username"
+                  required
+                  autocomplete="username"
+                />
+              </div>
+              <div class="form__group">
+                <label for="adminPassword">Password</label>
+                <div class="admin__password-wrap">
+                  <input
+                    type="password"
+                    id="adminPassword"
+                    name="password"
+                    placeholder="••••••••"
+                    required
+                    autocomplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    class="admin__password-toggle"
+                    id="adminPasswordToggle"
+                    aria-label="Show password"
+                  >
+                    <svg
+                      class="admin__eye-icon"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    >
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                    <svg
+                      class="admin__eye-off-icon"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      style="display: none"
+                    >
+                      <path
+                        d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                      />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <button
+                type="submit"
+                class="btn btn--primary btn--full"
+                id="adminLoginBtn"
+              >
+                Sign In
               </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Step 2: OTP -->
+        <div id="adminOtp" class="admin__view" style="display: none">
+          <div class="admin__otp">
+            <h2>Check your email</h2>
+            <p>
+              We've sent a one-time password to your admin email. Enter it
+              below.
+            </p>
+            <p
+              id="adminOtpError"
+              class="admin__msg admin__msg--error"
+              style="display: none"
+            ></p>
+            <form id="adminOtpForm" onsubmit="return false;" novalidate>
+              <div class="form__group">
+                <label for="adminOtpInput">One-Time Password</label>
+                <input
+                  type="text"
+                  id="adminOtpInput"
+                  name="otp"
+                  placeholder="000000"
+                  maxlength="8"
+                  pattern="[0-9]*"
+                  inputmode="numeric"
+                  autocomplete="one-time-code"
+                />
+              </div>
+              <button
+                type="submit"
+                class="btn btn--primary btn--full"
+                id="adminOtpVerifyBtn"
+              >
+                Verify & Access Panel
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Access Denied -->
+        <div id="adminDenied" class="admin__view" style="display: none">
+          <div class="admin__denied">
+            <p>Access denied. Invalid credentials or OTP.</p>
+            <button type="button" class="btn btn--outline" id="adminRetryBtn">
+              Try Again
+            </button>
+          </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="adminDashboard" class="admin__view" style="display: none">
+          <!-- Base Prices -->
+          <section class="admin__section">
+            <h2>
+              Base Prices <span class="admin__section-sub">per night (₹)</span>
+            </h2>
+            <p class="admin__msg" id="basePriceMsg" style="display: none"></p>
+            <div class="admin__grid" id="basePriceGrid"></div>
+            <button
+              type="button"
+              class="btn btn--primary btn--sm"
+              id="saveBasePriceBtn"
+              style="margin-top: 1.25rem"
+            >
+              Save Base Prices
+            </button>
+          </section>
+
+          <!-- Seasonal Pricing -->
+          <section class="admin__section">
+            <h2>Seasonal Pricing</h2>
+            <p class="admin__msg" id="seasonalMsg" style="display: none"></p>
+            <div class="admin__season-form">
+              <div class="form__group">
+                <label for="seasonRoom">Room</label>
+                <select id="seasonRoom">
+                  <option value="R1">R1 — Sunflower</option>
+                  <option value="R2">R2 — Lily</option>
+                  <option value="R3">R3 — Marigold</option>
+                  <option value="R4">R4 — Lavender</option>
+                  <option value="R5">R5 — Dahlia</option>
+                  <option value="R6">R6 — Gardenia</option>
+                  <option value="R7">R7 — Petunia</option>
+                  <option value="R8">R8 — Zinnia</option>
+                </select>
+              </div>
+              <div class="form__group">
+                <label for="seasonFrom">From</label>
+                <input type="date" id="seasonFrom" />
+              </div>
+              <div class="form__group">
+                <label for="seasonTo">To</label>
+                <input type="date" id="seasonTo" />
+              </div>
+              <div class="form__group">
+                <label for="seasonPrice">Price / night (₹)</label>
+                <input
+                  type="number"
+                  id="seasonPrice"
+                  min="0"
+                  step="1"
+                  placeholder="0"
+                />
+              </div>
+              <div class="form__group">
+                <label for="seasonReason">Reason</label>
+                <input
+                  type="text"
+                  id="seasonReason"
+                  placeholder="e.g. Peak season"
+                />
+              </div>
+              <div class="form__group form__group--action">
+                <button
+                  type="button"
+                  class="btn btn--outline btn--sm"
+                  id="addSeasonalBtn"
+                >
+                  Add
+                </button>
+              </div>
             </div>
-          </div>
-          <button type="button" class="btn btn--primary" id="adminLoginBtn" onclick="if(window.adminDoLogin)window.adminDoLogin();">Sign in</button>
-        </form>
-      </div>
-    </div>
+            <div class="admin__season-list" id="seasonalList"></div>
+          </section>
 
-    <!-- Step 2: OTP verification -->
-    <div id="adminOtp" style="display: none;">
-      <div class="admin__otp">
-        <h2>Check your email</h2>
-        <p>We've sent a one-time password to your admin email. Enter it below.</p>
-        <p id="adminOtpError" class="admin__msg admin__msg--error" style="display: none;"></p>
-        <form id="adminOtpForm" onsubmit="return false;">
-          <div class="form__group">
-            <label for="adminOtpInput">OTP</label>
-            <input type="text" id="adminOtpInput" name="otp" placeholder="000000" maxlength="8" pattern="[0-9]*" inputmode="numeric" autocomplete="one-time-code">
-          </div>
-          <button type="button" class="btn btn--primary" id="adminOtpVerifyBtn" onclick="if(window.adminDoVerifyOtp)window.adminDoVerifyOtp();">Verify & access panel</button>
-        </form>
-      </div>
-    </div>
+          <!-- Bookings -->
+          <section class="admin__section">
+            <h2>Bookings</h2>
 
-    <div id="adminDenied" style="display: none;">
-      <div class="admin__denied">Access denied. Invalid credentials or OTP.</div>
-    </div>
+            <!-- Filter bar -->
+            <div class="admin__filter-bar">
+              <div class="form__group">
+                <label for="filterStatus">Status</label>
+                <select id="filterStatus">
+                  <option value="">All statuses</option>
+                  <option value="pending">Pending</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="blocked">Blocked</option>
+                </select>
+              </div>
+              <div class="form__group">
+                <label for="filterUpcoming">Show</label>
+                <select id="filterUpcoming">
+                  <option value="">All bookings</option>
+                  <option value="true">Upcoming only</option>
+                </select>
+              </div>
+              <div class="form__group form__group--action">
+                <button
+                  type="button"
+                  class="btn btn--outline btn--sm"
+                  id="applyFilterBtn"
+                >
+                  Apply
+                </button>
+              </div>
+              <div class="form__group form__group--action">
+                <button
+                  type="button"
+                  class="btn btn--ghost btn--sm"
+                  id="clearFilterBtn"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
 
-    <!-- Dashboard (after OTP verified) -->
-    <div id="adminDashboard" style="display: none;">
-      <!-- Base price -->
-      <div class="admin__section">
-        <h2>Base price</h2>
-        <p class="admin__msg" id="basePriceMsg"></p>
-        <div class="admin__grid" id="basePriceGrid"></div>
-        <button type="button" class="btn btn--primary btn--sm" id="saveBasePriceBtn" style="margin-top: 1rem;">Save base prices</button>
-      </div>
+            <div class="admin__table-wrap">
+              <table class="admin__table" id="bookingsTable">
+                <thead>
+                  <tr>
+                    <th>Guest</th>
+                    <th>Phone</th>
+                    <th>Rooms</th>
+                    <th>Check-in</th>
+                    <th>Check-out</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="bookingsBody"></tbody>
+              </table>
+            </div>
+            <div class="admin__empty" id="bookingsEmpty" style="display: none">
+              No bookings found.
+            </div>
+          </section>
 
-      <!-- Seasonal pricing -->
-      <div class="admin__section">
-        <h2>Seasonal pricing</h2>
-        <p class="admin__msg" id="seasonalMsg"></p>
-        <div class="admin__season-form">
-          <div class="form__group">
-            <label for="seasonRoom">Room</label>
-            <select id="seasonRoom">
-              <option value="R1">R1 — Sunflower</option>
-              <option value="R2">R2 — Lily</option>
-              <option value="R3">R3 — Marigold</option>
-              <option value="R4">R4 — Lavender</option>
-              <option value="R5">R5 — Dahlia</option>
-              <option value="R6">R6 — Gardenia</option>
-              <option value="R7">R7 — Petunia</option>
-              <option value="R8">R8 — Zinnia</option>
-            </select>
-          </div>
-          <div class="form__group">
-            <label for="seasonFrom">From date</label>
-            <input type="date" id="seasonFrom" required>
-          </div>
-          <div class="form__group">
-            <label for="seasonTo">To date</label>
-            <input type="date" id="seasonTo" required>
-          </div>
-          <div class="form__group">
-            <label for="seasonPrice">Price / night (₹)</label>
-            <input type="number" id="seasonPrice" min="0" step="1" placeholder="0" required>
-          </div>
-          <div class="form__group">
-            <label for="seasonReason">Reason</label>
-            <input type="text" id="seasonReason" placeholder="e.g. Peak season" required>
-          </div>
-          <button type="button" class="btn btn--outline btn--sm" id="addSeasonalBtn">Add</button>
+          <!-- Events -->
+          <section class="admin__section">
+            <h2>Events</h2>
+            <p class="admin__msg" id="eventsMsg" style="display: none"></p>
+            <div class="admin__event-form">
+              <div class="form__group">
+                <label for="eventName">Event Name</label>
+                <input
+                  type="text"
+                  id="eventName"
+                  placeholder="e.g. New Year Special"
+                />
+              </div>
+              <div class="form__group">
+                <label for="eventDate">Date</label>
+                <input type="date" id="eventDate" />
+              </div>
+              <div class="form__group form__group--action">
+                <button
+                  type="button"
+                  class="btn btn--outline btn--sm"
+                  id="addEventBtn"
+                >
+                  Add Event
+                </button>
+              </div>
+            </div>
+            <div class="admin__event-list" id="eventList"></div>
+          </section>
         </div>
-        <div class="admin__season-list" id="seasonalList"></div>
+        <!-- /adminDashboard -->
       </div>
+      <!-- /adminCard -->
+    </main>
 
-      <!-- Booking listing -->
-      <div class="admin__section">
-        <h2>Booking listing</h2>
-        <table class="admin__table" id="bookingsTable">
-          <thead>
-            <tr>
-              <th>Guest</th>
-              <th>Room</th>
-              <th>Check-in</th>
-              <th>Check-out</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="bookingsBody"></tbody>
-        </table>
-        <div class="admin__empty" id="bookingsEmpty" style="display: none;">No bookings yet.</div>
-      </div>
-
-      <!-- Booking updates -->
-      <div class="admin__section">
-        <h2>Booking updates</h2>
-        <p class="admin__msg" id="bookingUpdateMsg"></p>
-        <div class="admin__status-form">
-          <div class="form__group">
-            <label for="updateBookingSelect">Select booking</label>
-            <select id="updateBookingSelect">
-              <option value="">— Select booking —</option>
-            </select>
-          </div>
-          <div class="form__group">
-            <label for="updateStatusSelect">New status</label>
-            <select id="updateStatusSelect">
-              <option value="pending">Pending</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="cancelled">Cancelled</option>
-              <option value="blocked">Blocked</option>
-            </select>
-          </div>
-          <button type="button" class="btn btn--primary btn--sm" id="updateBookingBtn">Update status</button>
-        </div>
-      </div>
-
-      <!-- Add events -->
-      <div class="admin__section">
-        <h2>Add events</h2>
-        <p class="admin__msg" id="eventsMsg"></p>
-        <div class="admin__event-form">
-          <div class="form__group">
-            <label for="eventName">Event name</label>
-            <input type="text" id="eventName" placeholder="e.g. New Year special">
-          </div>
-          <div class="form__group">
-            <label for="eventDate">Date</label>
-            <input type="date" id="eventDate">
-          </div>
-          <button type="button" class="btn btn--outline btn--sm" id="addEventBtn">Add event</button>
-        </div>
-        <div class="admin__event-list" id="eventList"></div>
-      </div>
-    </div>
-  </main>
-  <script>
-    (function () {
-      var loading = document.getElementById("adminLoading");
-      var login = document.getElementById("adminLogin");
-      var otpBlock = document.getElementById("adminOtp");
-      var denied = document.getElementById("adminDenied");
-      var dashboard = document.getElementById("adminDashboard");
-      var loginForm = document.getElementById("adminLoginForm");
-      var adminUsername = document.getElementById("adminUsername");
-      var adminPassword = document.getElementById("adminPassword");
-      var adminPasswordToggle = document.getElementById("adminPasswordToggle");
-      var adminLoginError = document.getElementById("adminLoginError");
-      var otpForm = document.getElementById("adminOtpForm");
-      var adminOtpInput = document.getElementById("adminOtpInput");
-      var adminOtpError = document.getElementById("adminOtpError");
-      var bookingsBody = document.getElementById("bookingsBody");
-      var bookingsEmpty = document.getElementById("bookingsEmpty");
-      var basePriceGrid = document.getElementById("basePriceGrid");
-      var saveBasePriceBtn = document.getElementById("saveBasePriceBtn");
-      var basePriceMsg = document.getElementById("basePriceMsg");
-      var addSeasonalBtn = document.getElementById("addSeasonalBtn");
-      var seasonalList = document.getElementById("seasonalList");
-      var seasonalMsg = document.getElementById("seasonalMsg");
-      var updateBookingSelect = document.getElementById("updateBookingSelect");
-      var updateStatusSelect = document.getElementById("updateStatusSelect");
-      var updateBookingBtn = document.getElementById("updateBookingBtn");
-      var bookingUpdateMsg = document.getElementById("bookingUpdateMsg");
-      var eventName = document.getElementById("eventName");
-      var eventDate = document.getElementById("eventDate");
-      var addEventBtn = document.getElementById("addEventBtn");
-      var eventList = document.getElementById("eventList");
-      var eventsMsg = document.getElementById("eventsMsg");
-
-      var loggedInUsername = "";
-
-      function showView(viewId) {
-        if (loading) loading.style.display = "none";
-        [login, otpBlock, denied, dashboard].forEach(function (el) {
-          if (el) el.style.display = el.id === viewId ? "block" : "none";
-        });
-      }
-
-      function setMsg(el, text, isError) {
-        if (!el) return;
-        el.textContent = text || "";
-        el.className = "admin__msg" + (isError ? " admin__msg--error" : " admin__msg--success");
-        el.style.display = text ? "block" : "none";
-      }
-
-      window.adminDoLogin = function () {
-        if (!adminLoginError) return;
-        adminLoginError.style.display = "none";
-        var username = (adminUsername && adminUsername.value) || "";
-        var password = (adminPassword && adminPassword.value) || "";
-        if (!username || !password) {
-          setMsg(adminLoginError, "Please enter username and password.", true);
-          adminLoginError.style.display = "block";
-          return;
-        }
-        fetch("/api/admin/login", {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: username, password: password })
-        })
-          .then(function (res) { return res.text().then(function (text) { var d = {}; try { d = text ? JSON.parse(text) : {}; } catch (e) {} return { ok: res.ok, data: d }; }); })
-          .catch(function () { return { ok: false, data: { message: "Network error" }; }; })
-          .then(function (r) {
-            if (r.ok) {
-              loggedInUsername = username;
-              showView("adminOtp");
-              if (adminOtpInput) { adminOtpInput.value = ""; adminOtpInput.focus(); }
-            } else {
-              setMsg(adminLoginError, (r.data && r.data.message) || "Login failed.", true);
-              adminLoginError.style.display = "block";
-            }
-          });
-      };
-
-      window.adminDoVerifyOtp = function () {
-        if (!adminOtpError) return;
-        adminOtpError.style.display = "none";
-        var otp = (adminOtpInput && adminOtpInput.value) || "";
-        if (!otp.trim()) {
-          setMsg(adminOtpError, "Please enter the OTP.", true);
-          adminOtpError.style.display = "block";
-          return;
-        }
-        if (!loggedInUsername) {
-          setMsg(adminOtpError, "Session expired. Please sign in again.", true);
-          adminOtpError.style.display = "block";
-          return;
-        }
-        fetch("/api/admin/verify-otp", {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: loggedInUsername, otp: otp.trim() })
-        })
-          .then(function (res) { return res.text().then(function (text) { var d = {}; try { d = text ? JSON.parse(text) : {}; } catch (e) {} return { ok: res.ok, data: d }; }); })
-          .catch(function () { return { ok: false, data: { message: "Network error" }; }; })
-          .then(function (r) {
-            if (r.ok) {
-              showView("adminDashboard");
-              if (typeof renderBasePrices === "function") renderBasePrices();
-              if (typeof renderSeasonal === "function") renderSeasonal();
-              if (typeof loadBookings === "function") loadBookings();
-              if (typeof renderEvents === "function") renderEvents();
-            } else {
-              setMsg(adminOtpError, (r.data && r.data.message) || "Invalid OTP.", true);
-              adminOtpError.style.display = "block";
-            }
-          });
-      };
-
-      var eyeIcon = document.querySelector(".admin__eye-icon");
-      var eyeOffIcon = document.querySelector(".admin__eye-off-icon");
-
-      // Password visibility toggle
-      if (adminPasswordToggle && adminPassword) {
-        adminPasswordToggle.addEventListener("click", function () {
-          var type = adminPassword.getAttribute("type");
-          if (type === "password") {
-            adminPassword.setAttribute("type", "text");
-            if (eyeIcon) eyeIcon.style.display = "none";
-            if (eyeOffIcon) eyeOffIcon.style.display = "block";
-            adminPasswordToggle.setAttribute("aria-label", "Hide password");
-          } else {
-            adminPassword.setAttribute("type", "password");
-            if (eyeIcon) eyeIcon.style.display = "block";
-            if (eyeOffIcon) eyeOffIcon.style.display = "none";
-            adminPasswordToggle.setAttribute("aria-label", "Show password");
-          }
-        });
-      }
-
-      // Room list for base price (R1–R8 with names)
-      var roomList = [
-        { id: "R1", name: "Sunflower" },
-        { id: "R2", name: "Lily" },
-        { id: "R3", name: "Marigold" },
-        { id: "R4", name: "Lavender" },
-        { id: "R5", name: "Dahlia" },
-        { id: "R6", name: "Gardenia" },
-        { id: "R7", name: "Petunia" },
-        { id: "R8", name: "Zinnia" }
-      ];
-
-      var seasonalPrices = [];
-      var events = [];
-      var bookingsCache = [];
-
-      // Initial: always show login form (hide loading, show login)
-      if (loading) loading.style.display = "none";
-      if (login) login.style.display = "block";
-      if (otpBlock) otpBlock.style.display = "none";
-      if (denied) denied.style.display = "none";
-      if (dashboard) dashboard.style.display = "none";
-
-      var loginBtn = document.getElementById("adminLoginBtn");
-      if (loginBtn) loginBtn.addEventListener("click", window.adminDoLogin);
-      if (loginForm) loginForm.addEventListener("submit", function (e) { e.preventDefault(); if (window.adminDoLogin) window.adminDoLogin(); });
-      var otpVerifyBtn = document.getElementById("adminOtpVerifyBtn");
-      if (otpVerifyBtn) otpVerifyBtn.addEventListener("click", window.adminDoVerifyOtp);
-      if (otpForm) otpForm.addEventListener("submit", function (e) { e.preventDefault(); if (window.adminDoVerifyOtp) window.adminDoVerifyOtp(); });
-
-      function renderBasePrices() {
-        if (!basePriceGrid) return;
-        basePriceGrid.innerHTML = roomList.map(function (r) {
-          return (
-            '<div class="admin__price-row">' +
-            '<label for="bp-' + r.id + '">' + r.name + ' (' + r.id + ')</label>' +
-            '<input type="number" id="bp-' + r.id + '" data-room="' + r.id + '" min="0" step="1" value="0" placeholder="0">'
-          );
-        }).join("");
-      }
-
-      if (saveBasePriceBtn) {
-        saveBasePriceBtn.addEventListener("click", function () {
-          var payload = [];
-          roomList.forEach(function (r) {
-            var input = document.getElementById("bp-" + r.id);
-            if (input) payload.push({ roomId: r.id, pricePerNight: Number(input.value) || 0 });
-          });
-          fetch("/api/admin/base-price", {
-            method: "PUT",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ rooms: payload })
-          })
-            .then(function (res) { return res.ok ? res.json() : res.json().then(function () { throw new Error("Failed"); }); })
-            .then(function () { setMsg(basePriceMsg, "Base prices updated.", false); })
-            .catch(function () { setMsg(basePriceMsg, "Could not save. Backend may not be configured.", true); });
-        });
-      }
-
-      if (addSeasonalBtn) {
-        addSeasonalBtn.addEventListener("click", function () {
-          var room = document.getElementById("seasonRoom");
-          var from = document.getElementById("seasonFrom");
-          var to = document.getElementById("seasonTo");
-          var price = document.getElementById("seasonPrice");
-          var reason = document.getElementById("seasonReason");
-          if (!room || !from || !to || !price || !reason) return;
-          var fromVal = from.value;
-          var toVal = to.value;
-          if (!fromVal || !toVal) { setMsg(seasonalMsg, "Please set from and to dates.", true); return; }
-          seasonalPrices.push({
-            roomId: room.value,
-            from: fromVal,
-            to: toVal,
-            pricePerNight: Number(price.value) || 0,
-            reason: reason.value.trim() || "Seasonal"
-          });
-          setMsg(seasonalMsg, "");
-          renderSeasonal();
-          from.value = ""; to.value = ""; price.value = ""; reason.value = "";
-        });
-      }
-
-      function renderSeasonal() {
-        if (!seasonalList) return;
-        if (seasonalPrices.length === 0) {
-          seasonalList.innerHTML = '<p class="admin__empty">No seasonal pricing added yet.</p>';
-          return;
-        }
-        seasonalList.innerHTML = seasonalPrices.map(function (s, i) {
-          return (
-            '<div class="admin__season-item">' +
-            '<span>' + s.roomId + ' · ' + s.from + ' – ' + s.to + ' · ₹' + s.pricePerNight + ' (' + (s.reason || '') + ')</span>' +
-            '<button type="button" class="btn btn--outline btn--sm" data-season-index="' + i + '">Remove</button>' +
-            '</div>'
-          );
-        }).join("");
-        seasonalList.querySelectorAll("[data-season-index]").forEach(function (btn) {
-          btn.addEventListener("click", function () {
-            var idx = parseInt(btn.getAttribute("data-season-index"), 10);
-            seasonalPrices.splice(idx, 1);
-            renderSeasonal();
-          });
-        });
-      }
-
-      function loadBookings() {
-        fetch("/api/admin/bookings", { credentials: "include" })
-          .then(function (r) { return r.json(); })
-          .then(function (data) {
-            var list = data.bookings || [];
-            bookingsCache = list;
-            if (!bookingsBody) return;
-            if (list.length === 0) {
-              bookingsEmpty.style.display = "block";
-              bookingsBody.innerHTML = "";
-              if (updateBookingSelect) {
-                updateBookingSelect.innerHTML = '<option value="">— Select booking —</option>';
-              }
-              return;
-            }
-            bookingsEmpty.style.display = "none";
-            bookingsBody.innerHTML = list.map(function (b) {
-              return (
-                "<tr><td>" + (b.userName || b.guestName || "-") + "</td><td>" +
-                (b.roomName || b.roomId || "-") + "</td><td>" +
-                (b.checkIn || "-") + "</td><td>" + (b.checkOut || "-") + "</td><td>" +
-                (b.status || "-") + "</td></tr>"
-              );
-            }).join("");
-            if (updateBookingSelect) {
-              updateBookingSelect.innerHTML = '<option value="">— Select booking —</option>' +
-                list.map(function (b, i) {
-                  var id = b._id || b.id || i;
-                  var label = (b.userName || b.guestName || "Booking") + " · " + (b.roomName || b.roomId || "") + " · " + (b.checkIn || "");
-                  return '<option value="' + id + '">' + label + '</option>';
-                }).join("");
-            }
-          })
-          .catch(function () {
-            if (bookingsEmpty) {
-              bookingsEmpty.textContent = "Could not load bookings.";
-              bookingsEmpty.style.display = "block";
-            }
-            if (bookingsBody) bookingsBody.innerHTML = "";
-          });
-      }
-
-      if (updateBookingBtn && updateBookingSelect && updateStatusSelect) {
-        updateBookingBtn.addEventListener("click", function () {
-          var bookingId = updateBookingSelect.value;
-          var status = updateStatusSelect.value;
-          if (!bookingId) { setMsg(bookingUpdateMsg, "Select a booking first.", true); return; }
-          fetch("/api/admin/bookings/" + bookingId + "/status", {
-            method: "PATCH",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ status: status })
-          })
-            .then(function (res) { return res.ok ? res.json() : res.json().then(function (d) { throw new Error(d.message || "Failed"); }); })
-            .then(function () { setMsg(bookingUpdateMsg, "Status updated.", false); loadBookings(); })
-            .catch(function (err) { setMsg(bookingUpdateMsg, err.message || "Could not update.", true); });
-        });
-      }
-
-      if (addEventBtn && eventName && eventDate) {
-        addEventBtn.addEventListener("click", function () {
-          var name = eventName.value.trim();
-          var date = eventDate.value;
-          if (!name) { setMsg(eventsMsg, "Enter event name.", true); return; }
-          events.push({ name: name, date: date || "" });
-          setMsg(eventsMsg, "");
-          eventName.value = ""; eventDate.value = "";
-          renderEvents();
-        });
-      }
-
-      function renderEvents() {
-        if (!eventList) return;
-        if (events.length === 0) {
-          eventList.innerHTML = '<p class="admin__empty">No events added yet.</p>';
-          return;
-        }
-        eventList.innerHTML = events.map(function (ev, i) {
-          return '<div class="admin__event-item">' + (ev.date ? ev.date + " — " : "") + ev.name + '</div>';
-        }).join("");
-      }
-    })();
-  </script>
-  <script src="/js/blob-cursor.js"></script>
-</body>
+    <script src="/js/blob-cursor.js"></script>
+    <script src="/js/admin.js"></script>
+  </body>
 </html>
