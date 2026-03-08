@@ -69,3 +69,8 @@ export const updateBooking = async (req, res) => {
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
+
+export const updateBaseRoomInfo = async (req, res) => {
+  try {
+  } catch (error) {}
+};
