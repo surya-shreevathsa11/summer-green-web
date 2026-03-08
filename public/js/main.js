@@ -212,7 +212,7 @@
         var roomAddedModal = $("#roomAddedModal");
         if (infoEl)
           infoEl.textContent =
-            pendingBookRoom.name + " — €" + pendingBookRoom.price + " / night";
+            pendingBookRoom.name + " — ₹" + pendingBookRoom.price + " / night";
         if (roomAddedModal) openModal("#roomAddedModal");
         pendingBookRoom = null;
         fetchCartCount();
@@ -423,7 +423,7 @@
           <span class="room-card__number">0${room.id}</span>
           <h3 class="room-card__name">${escapeHtml(room.name)}</h3>
           <p class="room-card__desc">${escapeHtml(room.description)}</p>
-          <p class="room-card__price"><span>&euro;${room.price}</span> / night</p>
+          <p class="room-card__price"><span>₹${room.price}</span> / night</p>
           <div class="room-card__actions">
             <button type="button" class="btn btn--outline btn--sm" data-add-cart="${room.id}" data-name="${escapeHtml(room.name)}" data-price="${room.price}">Add to cart</button>
           </div>

@@ -108,6 +108,27 @@
             ? room.children.children
             : 0;
       var roomName = room.roomId || "Room";
+      var breakdownHtml = "";
+      if (room.priceBreakdown && Array.isArray(room.priceBreakdown) && room.priceBreakdown.length > 0) {
+        breakdownHtml =
+          '<div class="cart__item-breakdown">' +
+          room.priceBreakdown
+            .map(function (row) {
+              var d = row.date != null ? formatDate(row.date) : "";
+              var p = row.price != null ? row.price : 0;
+              var r = row.reason ? escapeHtml(row.reason) : "";
+              return (
+                '<div class="cart__item-breakdown__row">' +
+                (d ? escapeHtml(d) + " — " : "") +
+                "₹" +
+                p +
+                (r ? " (" + r + ")" : "") +
+                "</div>"
+              );
+            })
+            .join("") +
+          "</div>";
+      }
       var item = document.createElement("div");
       item.className = "cart__item";
       item.innerHTML =
@@ -126,9 +147,11 @@
             (children ? ", " + children + " child(ren)" : "")
           : "") +
         "</div>" +
-        '<div class="cart__item-price">€' +
+        '<div class="cart__item-price">' +
+        '₹' +
         price +
         " total</div>" +
+        breakdownHtml +
         "</div>" +
         '<button type="button" class="cart__item-remove cursor-target" data-remove data-room-id="' +
         escapeHtml(room.roomId) +
@@ -147,7 +170,7 @@
         removeFromCart(roomId, checkIn, checkOut);
       });
     });
-    if (totalEl) totalEl.textContent = "€" + total;
+    if (totalEl) totalEl.textContent = "₹" + total;
     updateNavCartCount(serverCart.length);
   }
 
