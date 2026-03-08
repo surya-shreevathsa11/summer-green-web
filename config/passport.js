@@ -12,6 +12,7 @@ passport.use(
     },
     async function verify(accessToken, refreshToken, profile, done) {
       try {
+        console.log(profile);
         const googleId = profile.id;
         const email = profile.emails?.[0]?.value;
 
@@ -23,13 +24,17 @@ passport.use(
             email,
             avatar: profile.photos?.[0]?.value,
           });
+        } else {
+          user.avatar = profile.photos?.[0]?.value || user.avatar;
+          user.name = profile.displayName || user.name;
+          await user.save();
         }
         return done(null, user);
       } catch (err) {
         done(err, null);
       }
-    },
-  ),
+    }
+  )
 );
 
 passport.serializeUser((user, done) => {
