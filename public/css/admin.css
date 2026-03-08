@@ -1,20 +1,27 @@
-/* ── Admin Layout ─────────────────────────────────────────────────────────── */
+/* ── Admin Layout (matches site + booking page: full-screen bg image, frosted header) ─────────────────────────────────────────────────────────── */
 .admin-body {
   min-height: 100vh;
-  background: #f5f2ee;
   padding: 0;
   margin: 0;
+  background-image: url("/img/designarena_image_ix01sftz.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 .admin__header {
-  background: #1a1408;
-  color: #f5f0e8;
+  background: rgba(20, 33, 61, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: #f8f8f8;
   padding: 1.25rem 2rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .admin__header-title {
@@ -22,16 +29,16 @@
   font-size: 1.5rem;
   font-style: italic;
   margin: 0;
-  color: #f5f0e8;
+  color: #f8f8f8;
   font-weight: 400;
 }
 
 .admin__header-title span {
-  color: #c8973a;
+  color: var(--color-burnt-copper, #fca311);
 }
 
 .admin__back {
-  color: rgba(248, 248, 248, 0.75);
+  color: rgba(248, 248, 248, 0.9);
   text-decoration: none;
   font-size: 0.82rem;
   letter-spacing: 0.04em;
@@ -39,21 +46,34 @@
 }
 
 .admin__back:hover {
-  color: #c8973a;
+  color: var(--color-burnt-copper, #fca311);
 }
 
 .admin__wrap {
-  padding: 2rem 1.5rem;
-  max-width: 960px;
+  min-height: 100vh;
+  padding: -1.5rem 1.5rem 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin: 0 auto;
 }
 
+/* Same size and proportions as booking card (.cart-page .container) */
 .admin__card {
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #e8e0d0;
-  box-shadow: 0 4px 24px rgba(44, 36, 22, 0.08);
-  padding: 2.5rem;
+  max-width: 520px;
+  width: calc(100% - 3rem);
+  background: var(--color-urban-white, #fff);
+  border-radius: 1rem;
+  border: 1px solid var(--border-light, #e8e0d0);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  padding: 3rem clamp(1.25rem, 4vw, 2.5rem) 3.5rem;
+  transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+}
+
+.admin__card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(252, 163, 17, 0.2);
+  border-color: rgba(252, 163, 17, 0.35);
 }
 
 /* ── Views ────────────────────────────────────────────────────────────────── */
@@ -369,30 +389,6 @@
   font-size: 0.9rem;
 }
 
-/* ── Events form ──────────────────────────────────────────────────────────── */
-.admin__event-form {
-  display: grid;
-  grid-template-columns: 2fr 1fr auto;
-  gap: 0.75rem;
-  align-items: end;
-  margin-bottom: 0.5rem;
-}
-
-.admin__event-list {
-  margin-top: 1rem;
-}
-
-.admin__event-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.6rem 0;
-  border-bottom: 1px solid #f0e8da;
-  font-size: 0.875rem;
-  color: #4a3f2a;
-  gap: 0.75rem;
-}
-
 /* ── Messages ─────────────────────────────────────────────────────────────── */
 .admin__msg {
   font-size: 0.85rem;
@@ -506,16 +502,21 @@
   color: #b03020;
 }
 
-/* ── Responsive ───────────────────────────────────────────────────────────── */
+/* ── Responsive (match booking card breakpoints) ───────────────────────────── */
+@media (max-width: 768px) {
+  .admin__wrap {
+    padding: 3rem 0 2.5rem;
+  }
+  .admin__card {
+    padding: 1.75rem clamp(1.25rem, 4vw, 2rem);
+  }
+}
 @media (max-width: 720px) {
   .admin__card {
     padding: 1.5rem;
   }
   .admin__season-form {
     grid-template-columns: 1fr 1fr;
-  }
-  .admin__event-form {
-    grid-template-columns: 1fr;
   }
   .admin__status-form {
     flex-direction: column;
@@ -528,10 +529,10 @@
 
 @media (max-width: 480px) {
   .admin__wrap {
-    padding: 1rem;
+    padding: 2rem 0 2.5rem;
   }
   .admin__card {
-    padding: 1.25rem;
+    padding: 1.5rem 1.25rem;
     border-radius: 8px;
   }
   .admin__season-form {

@@ -30,16 +30,9 @@
   var bookingsBody = document.getElementById("bookingsBody");
   var bookingsEmpty = document.getElementById("bookingsEmpty");
 
-  var eventNameInput = document.getElementById("eventName");
-  var eventDateInput = document.getElementById("eventDate");
-  var addEventBtn = document.getElementById("addEventBtn");
-  var eventList = document.getElementById("eventList");
-  var eventsMsg = document.getElementById("eventsMsg");
-
   // ─── State ───────────────────────────────────────────────────────────────────
   var loggedInUsername = "";
   var seasonalPrices = [];
-  var events = [];
   var bookingsCache = [];
 
   var roomList = [
@@ -184,7 +177,6 @@
           renderBasePrices();
           renderSeasonal();
           loadBookings();
-          renderEvents();
         } else {
           setMsg(
             adminOtpError,
@@ -629,73 +621,6 @@
       });
   }
 
-  // ─── Events ───────────────────────────────────────────────────────────────────
-  if (addEventBtn) {
-    addEventBtn.addEventListener("click", function () {
-      var name = eventNameInput ? eventNameInput.value.trim() : "";
-      var date = eventDateInput ? eventDateInput.value : "";
-
-      if (!name) {
-        setMsg(eventsMsg, "Please enter an event name.", true);
-        return;
-      }
-
-      var entry = { name: name, date: date || "" };
-
-      // Send to backend
-      apiPost("/api/admin/events", entry)
-        .then(function (r) {
-          if (r.ok) {
-            events.push(entry);
-            setMsg(eventsMsg, "Event added.", false);
-            if (eventNameInput) eventNameInput.value = "";
-            if (eventDateInput) eventDateInput.value = "";
-            renderEvents();
-          } else {
-            setMsg(
-              eventsMsg,
-              (r.data && r.data.message) || "Failed to add event.",
-              true
-            );
-          }
-        })
-        .catch(function () {
-          setMsg(eventsMsg, "Network error. Could not add event.", true);
-        });
-    });
-  }
-
-  function renderEvents() {
-    if (!eventList) return;
-    if (events.length === 0) {
-      eventList.innerHTML = '<p class="admin__empty">No events added yet.</p>';
-      return;
-    }
-    eventList.innerHTML = events
-      .map(function (ev, i) {
-        return (
-          '<div class="admin__event-item">' +
-          "<span>" +
-          (ev.date ? "<strong>" + formatDate(ev.date) + "</strong> — " : "") +
-          escapeHtml(ev.name) +
-          "</span>" +
-          '<button type="button" class="btn btn--outline btn--sm" data-event-index="' +
-          i +
-          '">Remove</button>' +
-          "</div>"
-        );
-      })
-      .join("");
-
-    eventList.querySelectorAll("[data-event-index]").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        var idx = parseInt(btn.getAttribute("data-event-index"), 10);
-        events.splice(idx, 1);
-        renderEvents();
-      });
-    });
-  }
-
   // ─── Utility ──────────────────────────────────────────────────────────────────
   function escapeHtml(s) {
     if (s == null) return "";
@@ -734,7 +659,6 @@
         renderBasePrices();
         renderSeasonal();
         loadBookings();
-        renderEvents();
       } else {
         showView("adminLogin");
       }
