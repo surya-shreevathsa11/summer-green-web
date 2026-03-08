@@ -1,5 +1,5 @@
 import { Booking } from "../models/booking.model.js";
-import { checkAvailability } from "./booking.controller.js";
+import { Room, VariablePrice } from "../models/pricing.model.js";
 
 function parseDateOnly(str) {
   const [y, m, d] = str.split("-").map(Number);
@@ -70,7 +70,126 @@ export const updateBooking = async (req, res) => {
   }
 };
 
-export const updateBaseRoomInfo = async (req, res) => {
+// ─── PUT /api/admin/base-price ────────────────────────────────────────────────
+// Body: { rooms: [{ roomId, pricePerNight }] }
+export const updateBasePrices = async (req, res) => {
   try {
-  } catch (error) {}
+    const { rooms } = req.body;
+    if (!rooms || !Array.isArray(rooms) || rooms.length === 0) {
+      return res.status(400).json({ message: "rooms array is required" });
+    }
+
+    const updates = await Promise.all(
+      rooms.map(function (r) {
+        return Room.findOneAndUpdate(
+          { roomId: r.roomId },
+          { pricePerNight: r.pricePerNight },
+          { new: true }
+        );
+      })
+    );
+
+    const failed = updates.filter((u) => !u);
+    if (failed.length > 0) {
+      return res.status(207).json({
+        message: "Some rooms not found",
+        updated: updates.filter(Boolean).map((r) => r.roomId),
+      });
+    }
+
+    return res.status(200).json({
+      message: "Base prices updated successfully",
+      data: updates.map((r) => ({
+        roomId: r.roomId,
+        pricePerNight: r.pricePerNight,
+      })),
+    });
+  } catch (error) {
+    console.error("Error updating base prices:", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+// ─── POST /api/admin/seasonal-price ──────────────────────────────────────────
+// Body: { roomId, pricePerNight, reason, from, to }
+export const addSeasonalPrice = async (req, res) => {
+  try {
+    const { roomId, pricePerNight, reason, from, to } = req.body;
+
+    if (!roomId || !pricePerNight || !reason || !from || !to) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const fromDate = new Date(from);
+    const toDate = new Date(to);
+
+    if (fromDate >= toDate) {
+      return res.status(400).json({ message: "from must be before to" });
+    }
+
+    // Check room exists
+    const room = await Room.findOne({ roomId });
+    if (!room) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    // Check for overlapping variable price entries for the same room
+    const overlap = await VariablePrice.findOne({
+      roomId,
+      from: { $lt: toDate },
+      to: { $gt: fromDate },
+    });
+
+    if (overlap) {
+      return res.status(409).json({
+        message: `Overlapping seasonal price already exists for ${roomId} (${overlap.from.toISOString().slice(0, 10)} – ${overlap.to.toISOString().slice(0, 10)})`,
+      });
+    }
+
+    const entry = await VariablePrice.create({
+      roomId,
+      pricePerNight,
+      reason,
+      from: fromDate,
+      to: toDate,
+    });
+
+    return res.status(201).json({
+      message: "Seasonal price added successfully",
+      data: entry,
+    });
+  } catch (error) {
+    console.error("Error adding seasonal price:", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+// ─── DELETE /api/admin/seasonal-price/:id ────────────────────────────────────
+export const deleteSeasonalPrice = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await VariablePrice.findByIdAndDelete(id);
+    if (!deleted) {
+      return res.status(404).json({ message: "Seasonal price not found" });
+    }
+    return res.status(200).json({ message: "Seasonal price deleted" });
+  } catch (error) {
+    console.error("Error deleting seasonal price:", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+// ─── GET /api/admin/seasonal-price ───────────────────────────────────────────
+// Optional: ?roomId=R1 to filter by room
+export const getSeasonalPrices = async (req, res) => {
+  try {
+    const filter = {};
+    if (req.query.roomId) filter.roomId = req.query.roomId;
+
+    const entries = await VariablePrice.find(filter).sort({ from: 1 });
+    return res.status(200).json({ data: entries });
+  } catch (error) {
+    console.error("Error fetching seasonal prices:", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
 };

@@ -19,6 +19,7 @@ const __dirname = dirname(__filename);
 import connectDB from "./db.js";
 
 const app = express();
+app.use(cookieParser());
 
 app.use(
   cors({
@@ -36,8 +37,6 @@ app.use(express.static(path.join(__dirname, "public")));
 app.get("/cart", (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "cart.html"));
 });
-
-app.use(cookieParser());
 
 app.use(
   session({
