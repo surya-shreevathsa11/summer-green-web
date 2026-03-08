@@ -51,6 +51,11 @@
     [viewLogin, viewOtp, viewDenied, viewDashboard].forEach(function (el) {
       if (el) el.style.display = el.id === id ? "block" : "none";
     });
+    var body = document.body;
+    if (body) {
+      if (id === "adminDashboard") body.classList.add("admin--dashboard");
+      else body.classList.remove("admin--dashboard");
+    }
   }
 
   function setMsg(el, text, isError) {

@@ -51,14 +51,14 @@
 
 .admin__wrap {
   min-height: 100vh;
-  padding: -1.5rem 1.5rem 3rem;
+  padding: 8rem 1.5rem 3rem;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto;
 }
 
-/* Same size and proportions as booking card (.cart-page .container) */
+/* Same size and proportions as booking card for login/OTP only */
 .admin__card {
   max-width: 520px;
   width: calc(100% - 3rem);
@@ -74,6 +74,40 @@
   transform: translateY(-6px) scale(1.02);
   box-shadow: 0 24px 56px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(252, 163, 17, 0.2);
   border-color: rgba(252, 163, 17, 0.35);
+}
+
+/* Dashboard: full-page section, no background image — header only + full-screen content */
+body.admin--dashboard {
+  background: var(--color-cool-mist, #f5f5f5);
+  background-image: none;
+}
+
+body.admin--dashboard .admin__wrap {
+  align-items: flex-start;
+  justify-content: stretch;
+  min-height: calc(100vh - 4.5rem);
+  padding: 2rem 1.5rem 3rem;
+  max-width: none;
+}
+
+body.admin--dashboard .admin__card {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  border-radius: 0;
+  border: none;
+  border-top: none;
+  box-shadow: none;
+  padding: 2.5rem clamp(1.5rem, 5vw, 3rem) 3rem;
+  background: transparent;
+  transition: none;
+  min-height: 0;
+}
+
+body.admin--dashboard .admin__card:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: transparent;
 }
 
 /* ── Views ────────────────────────────────────────────────────────────────── */
@@ -216,6 +250,34 @@
   display: flex;
   align-items: baseline;
   gap: 0.5rem;
+}
+
+/* Dashboard full-page: user-friendly spacing and alignment */
+body.admin--dashboard .admin__section {
+  margin-bottom: 3.5rem;
+  padding-bottom: 3rem;
+  padding-top: 0.5rem;
+}
+
+body.admin--dashboard .admin__section h2 {
+  margin-bottom: 1.5rem;
+}
+
+body.admin--dashboard .admin__grid {
+  gap: 1rem;
+}
+
+body.admin--dashboard .admin__price-row {
+  padding: 0.85rem 1rem;
+}
+
+body.admin--dashboard .admin__season-form {
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+body.admin--dashboard .admin__filter-bar {
+  margin-bottom: 1.5rem;
 }
 
 .admin__section-sub {
@@ -502,13 +564,24 @@
   color: #b03020;
 }
 
-/* ── Responsive (match booking card breakpoints) ───────────────────────────── */
+/* ── Responsive (mobile + iPad compatible) ──────────────────────────────────── */
 @media (max-width: 768px) {
   .admin__wrap {
     padding: 3rem 0 2.5rem;
   }
   .admin__card {
     padding: 1.75rem clamp(1.25rem, 4vw, 2rem);
+  }
+  body.admin--dashboard .admin__wrap {
+    min-height: calc(100vh - 4rem);
+    padding: 1.5rem 1rem 2rem;
+  }
+  body.admin--dashboard .admin__card {
+    padding: 2rem 1.25rem 2.5rem;
+  }
+  body.admin--dashboard .admin__section {
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
   }
 }
 @media (max-width: 720px) {
@@ -525,6 +598,9 @@
   .admin__grid {
     grid-template-columns: 1fr 1fr;
   }
+  body.admin--dashboard .admin__card {
+    padding: 1.75rem 1rem 2rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -540,5 +616,19 @@
   }
   .admin__grid {
     grid-template-columns: 1fr;
+  }
+  body.admin--dashboard .admin__wrap {
+    min-height: calc(100vh - 3.5rem);
+    padding: 1.25rem 0.75rem 1.5rem;
+  }
+  body.admin--dashboard .admin__card {
+    padding: 1.5rem 0.75rem 1.5rem;
+  }
+  body.admin--dashboard .admin__section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+  }
+  body.admin--dashboard .admin__price-row {
+    padding: 0.75rem 0.85rem;
   }
 }
