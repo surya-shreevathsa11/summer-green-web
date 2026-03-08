@@ -24,9 +24,13 @@ app.use(
   cors({
     origin: process.env.CORS_ORIGIN,
     credentials: true,
-  }),
+  })
 );
 
+app.use(
+  "/api/payment/razorpay-webhook",
+  express.raw({ type: "application/json" })
+);
 app.use(express.json({ limit: "128kb" }));
 app.use(express.static(path.join(__dirname, "public")));
 app.get("/cart", (_req, res) => {
@@ -51,7 +55,7 @@ app.use(
       secure: false, // true in production (HTTPS)
       sameSite: "lax",
     },
-  }),
+  })
 );
 app.use(passport.initialize());
 app.use(passport.session());
@@ -64,12 +68,9 @@ app.use("/api/auth", authRouter);
 app.use("/api/booking", bookingRouter);
 
 //rzp and payment
-app.use("/api/payment", razorpayRouter);
 //need to set to raw for webhooks to work
-app.use(
-  "/api/payment/razorpay-webhook",
-  express.raw({ type: "application/json" }),
-);
+
+app.use("/api/payment", razorpayRouter);
 
 import { addInitalPrices } from "./config/addInitialRoom.js";
 addInitalPrices();
@@ -80,3 +81,15 @@ connectDB().then(() => {
     console.log("Server running at port", port);
   });
 });
+
+///////////////////////////////
+// import { sendConfirmationMailToGuest } from "./utils/resend.util.js";
+// import { Booking } from "./models/booking.model.js";
+// async function test() {
+//   const booking = await Booking.findOne({
+//     razorpayOrderId: "order_SOcsxVr3Mskyla",
+//   });
+//   await sendConfirmationMailToGuest(booking);
+// }
+//
+// test();

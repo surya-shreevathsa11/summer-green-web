@@ -60,7 +60,6 @@ async function calculateBookingPrice(roomId, checkIn, checkOut) {
 const checkAvailability = async (booking) => {
   try {
     const { roomId } = booking;
-
     const checkIn = parseDateOnly(booking.checkIn);
     const checkOut = parseDateOnly(booking.checkOut);
     const today = parseDateOnly(new Date().toISOString().slice(0, 10));
@@ -71,19 +70,25 @@ const checkAvailability = async (booking) => {
     }
 
     if (checkIn >= checkOut || checkIn <= today) {
-      return { 0: "Please select a proper checkIn " };
+      return { 0: "Please select a proper checkIn" };
     }
 
+    // Query inside the rooms array using dot notation
     const isRoomBooked = await Booking.findOne({
-      roomId,
-      status: { $in: ["paid", "blocked"] },
-      checkOut: { $gt: booking.checkIn },
-      checkIn: { $lt: booking.checkOut },
+      status: { $in: ["confirmed", "blocked"] },
+      rooms: {
+        $elemMatch: {
+          roomId: roomId,
+          checkOut: { $gt: checkIn },
+          checkIn: { $lt: checkOut },
+        },
+      },
     });
 
     if (isRoomBooked) {
+      const room = await Room.findOne({ roomId });
       return {
-        0: `Room ${isRoomBooked.name} is unavailable for the selected dates`,
+        0: `Room ${room.name} is unavailable for the selected dates`,
       };
     }
 
@@ -134,17 +139,17 @@ export const availabilityAndPrice = async (req, res) => {
     const checkOut = req.body.checkOut;
 
     const booking = {
-      roomId: req.body.roomId,
-      checkIn: req.body.checkIn,
-      checkOut: req.body.checkOut,
+      roomId,
+      checkIn,
+      checkOut,
     };
 
-    const isRoomAvailable = checkAvailability(booking);
-    if (Number(Object.keys(isRoomAvailable)[0])) {
+    const isRoomAvailable = await checkAvailability(booking);
+    if (!Number(Object.keys(isRoomAvailable)[0])) {
       return res.status(400).json({ message: isRoomAvailable[0] });
     }
 
-    const pricing = calculateBookingPrice(
+    const pricing = await calculateBookingPrice(
       req.body.roomId,
       req.body.checkIn,
       req.body.checkOut
@@ -189,8 +194,11 @@ export const addToCart = async (req, res) => {
 
     const pricing = await calculateBookingPrice(roomId, checkIn, checkOut);
 
+    const room = await Room.findOne({ roomId });
+
     const bookingDetails = {
       roomId,
+      roomName: room.name,
       checkIn: parseDateOnly(checkIn),
       checkOut: parseDateOnly(checkOut),
       price: pricing.totalPrice,
@@ -353,7 +361,6 @@ export const bookRooms = async (req, res) => {
     }
 
     const rooms = await Cart.findOne({ userId: req.user._id });
-    console.log(rooms);
     if (!rooms) {
       return res.status(400).json({ message: "Cart is empty" });
     }
@@ -385,9 +392,12 @@ export const bookRooms = async (req, res) => {
       //the total price for the whole cart
       totalBookingPrice += totalPrice;
 
+      const roomName = await Room.findOne({ roomId });
+
       //price for each room
       const bookingInfo = {
         roomId: roomId,
+        roomName: roomName.name,
         price: totalPrice,
         priceBreakdown: breakdown,
         adults: Number(adults),

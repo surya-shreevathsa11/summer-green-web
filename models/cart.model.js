@@ -11,6 +11,7 @@ const roomInfoSchema = new Schema(
       enum: roomIds,
       required: true,
     },
+    roomName: String,
     price: {
       type: Number,
       required: true,
@@ -36,7 +37,7 @@ const roomInfoSchema = new Schema(
       required: true,
     },
   },
-  { _id: false },
+  { _id: false }
 );
 
 const cartSchema = new Schema(
@@ -51,7 +52,7 @@ const cartSchema = new Schema(
       default: [],
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 export const Cart = mongoose.model("Cart", cartSchema);

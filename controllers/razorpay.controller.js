@@ -19,6 +19,14 @@ export const handleRazorpayWebhook = async (req, res) => {
     const webhookSignature = req.headers["x-razorpay-signature"];
     const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET; // Set this in .env
 
+    console.log("Content-Type:", req.headers["content-type"]);
+    console.log("Body type:", typeof req.body, Buffer.isBuffer(req.body));
+    console.log("Signature header:", req.headers["x-razorpay-signature"]);
+    console.log(
+      "Webhook secret exists:",
+      !!process.env.RAZORPAY_WEBHOOK_SECRET
+    );
+
     if (!webhookSignature || !webhookSecret) {
       console.error("Missing webhook signature or secret");
       return res.status(400).json({ message: "Invalid webhook" });
@@ -99,14 +107,6 @@ async function handlePaymentCaptured(payload) {
 
     //delete cart after confirmation
     await Cart.deleteOne({ userId: booking.userId });
-
-    // console.log("=== BOOKING PAYMENT UPDATE ===");
-    // console.log("Booking ID:", booking._id);
-    // console.log("Total Price:", totalPrice);
-    // console.log("Amount Just Paid:", amountPaid);
-    // console.log("Total Paid So Far:", booking.pricing.paidAmount);
-    // console.log("Remaining Amount:", booking.pricing.remainingAmount);
-    // console.log("Status:", booking.status);
 
     // Send confirmation emails
     await sendConfirmationMailToGuest(booking);

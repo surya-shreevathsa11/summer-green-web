@@ -9,7 +9,7 @@ export const priceBreakdownSchema = new Schema(
     price: Number,
     reason: String,
   },
-  { _id: false },
+  { _id: false }
 );
 
 const bookingRoomSchema = new Schema({
@@ -17,6 +17,10 @@ const bookingRoomSchema = new Schema({
     type: String,
     enum: roomIds,
     required: true,
+  },
+
+  roomName: {
+    type: String,
   },
 
   price: {
@@ -95,7 +99,7 @@ const BookingSchema = new Schema(
       default: "pending",
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 export const Booking = mongoose.model("Booking", BookingSchema);
