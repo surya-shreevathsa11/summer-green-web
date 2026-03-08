@@ -64,6 +64,7 @@ import authRouter from "./routes/auth.routes.js";
 import bookingRouter from "./routes/booking.route.js";
 import razorpayRouter from "./routes/razorpay.route.js";
 import adminLoginRouter from "./routes/admin.auth.route.js";
+import adminRouter from "./routes/admin.route.js";
 
 app.use("/api/auth", authRouter);
 app.use("/api/booking", bookingRouter);
@@ -75,6 +76,7 @@ app.use("/api/payment", razorpayRouter);
 
 /////////admin routes
 app.use("/api/admin", adminLoginRouter);
+app.use("/api/admin", adminRouter);
 
 import { addInitalPrices } from "./config/addInitialRoom.js";
 addInitalPrices();

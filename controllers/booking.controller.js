@@ -57,7 +57,7 @@ async function calculateBookingPrice(roomId, checkIn, checkOut) {
   };
 }
 
-const checkAvailability = async (booking) => {
+export const checkAvailability = async (booking) => {
   try {
     const { roomId } = booking;
     const checkIn = parseDateOnly(booking.checkIn);

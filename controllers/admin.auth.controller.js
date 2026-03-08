@@ -22,7 +22,6 @@ const generateAccessToken = (res) => {
 
 export const login = async (req, res) => {
   try {
-    console.log("admin auth verify");
     const adminName = process.env.ADMIN_USERNAME;
     const adminPassword = process.env.ADMIN_PASSWORD;
     const adminEmail = process.env.ADMIN_EMAIL;
