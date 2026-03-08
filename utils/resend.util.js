@@ -398,3 +398,98 @@ export async function sendPaymentFailedMailToGuest(booking) {
     html: buildPaymentFailedHtml(booking),
   });
 }
+
+export const sendAdminOTPEmail = async (email, otp) => {
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Login – Summer Green</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f0ebe1;font-family:Helvetica,Arial,sans-serif;">
+
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0ebe1;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table width="520" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;width:100%;">
+
+          <!-- Header -->
+          <tr>
+            <td align="center" style="background:linear-gradient(160deg,#1a1408 0%,#2c2416 60%,#3a2e18 100%);border-radius:12px 12px 0 0;padding:40px 40px 32px;">
+              <p style="margin:0 0 6px 0;font-size:11px;letter-spacing:4px;color:#c8973a;text-transform:uppercase;font-family:Helvetica,Arial,sans-serif;">Homestay Experience</p>
+              <h1 style="margin:0;font-family:'Georgia',serif;font-size:36px;color:#f5f0e8;font-weight:normal;letter-spacing:1px;">Summer Green</h1>
+              <div style="width:40px;height:2px;background:#c8973a;margin:14px auto 0;"></div>
+            </td>
+          </tr>
+
+          <!-- Banner -->
+          <tr>
+            <td align="center" style="background:#c8973a;padding:12px 40px;">
+              <p style="margin:0;font-size:11px;letter-spacing:3px;color:#1a1408;text-transform:uppercase;font-family:Helvetica,Arial,sans-serif;font-weight:bold;">&#128274; &nbsp; Admin Login Verification</p>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="background:#ffffff;padding:40px 40px 36px;">
+              <p style="margin:0 0 8px;font-family:'Georgia',serif;font-size:20px;color:#2c2416;">Hello, Admin</p>
+              <p style="margin:0 0 32px;font-size:14px;color:#6b5f4a;line-height:1.7;">
+                A login attempt was made to the Summer Green admin panel. Use the OTP below to complete verification. Do not share this code with anyone.
+              </p>
+
+              <!-- OTP Box -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center">
+                    <div style="display:inline-block;background:#faf8f4;border:1px solid #e8e0d0;border-top:3px solid #c8973a;border-radius:8px;padding:28px 48px;margin-bottom:28px;">
+                      <p style="margin:0 0 8px;font-size:11px;letter-spacing:3px;color:#a89878;text-transform:uppercase;font-family:Helvetica,Arial,sans-serif;">Your One-Time Password</p>
+                      <p style="margin:0;font-family:'Courier New',monospace;font-size:40px;font-weight:bold;letter-spacing:12px;color:#c8973a;">${otp}</p>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fff8ee;border:1px solid #e8d9b0;border-radius:8px;margin-bottom:8px;">
+                <tr>
+                  <td style="padding:14px 20px;">
+                    <p style="margin:0;font-size:12px;color:#8a6a2a;line-height:1.6;font-family:Helvetica,Arial,sans-serif;">
+                      &#9888;&nbsp; This OTP is valid for <strong>5 minutes</strong>. If you did not request this, please ignore this email and secure your account.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="background:#2c2416;border-radius:0 0 12px 12px;padding:24px 40px;">
+              <p style="margin:0 0 4px;font-family:'Georgia',serif;font-size:15px;color:#f5f0e8;">Summer Green Homestay</p>
+              <p style="margin:0 0 8px;font-size:12px;color:#8a7a5a;font-family:Helvetica,Arial,sans-serif;">Madikeri, Coorg, Karnataka</p>
+              <p style="margin:0;font-size:11px;color:#5a4f3a;font-family:Helvetica,Arial,sans-serif;">bookings@summergreen.in</p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
+  `;
+
+  const { data, error } = await resend.emails.send({
+    from: "Summer Green <bookings@summergreen.in>",
+    to: [email],
+    reply_to: "bookings@summergreen.in",
+    subject: "Your Admin Login OTP – Summer Green",
+    html,
+  });
+
+  if (error) {
+    throw new Error(error.message || "Failed to send OTP email");
+  }
+};
