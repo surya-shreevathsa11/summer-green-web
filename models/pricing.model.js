@@ -14,7 +14,7 @@ const capacitySchema = new Schema(
       required: true,
     },
   },
-  { _id: false },
+  { _id: false }
 );
 
 const roomSchema = new Schema({
@@ -75,7 +75,7 @@ variablePriceSchema.index({ roomId: 1, from: 1, to: 1 });
 
 export const VariablePrice = mongoose.model(
   "VariablePrice",
-  variablePriceSchema,
+  variablePriceSchema
 );
 
 export const Room = mongoose.model("Room", roomSchema);
