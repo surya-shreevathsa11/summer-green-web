@@ -314,11 +314,60 @@
   const navProfileBookings = $("#navProfileBookings");
   if (navProfileBookings) {
     navProfileBookings.addEventListener("click", (e) => {
+      e.preventDefault();
       if (navProfileDropdown) navProfileDropdown.classList.remove("is-open");
       const navLinks = $("#navLinks");
       if (navLinks) navLinks.classList.remove("open");
-      e.preventDefault();
-      window.location.href = "/cart";
+
+      var listEl = $("#myBookingsList");
+      var emptyEl = $("#myBookingsError");
+      var emptyMsgEl = $("#myBookingsEmpty");
+      if (listEl) listEl.innerHTML = "";
+      if (emptyEl) { emptyEl.style.display = "none"; emptyEl.textContent = ""; }
+      if (emptyMsgEl) emptyMsgEl.style.display = "none";
+
+      fetch("/api/booking/bookings", { credentials: "same-origin" })
+        .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+        .then(function (result) {
+          if (!result.ok) {
+            if (emptyEl) {
+              emptyEl.textContent = result.data && result.data.message ? result.data.message : "Please sign in to view bookings.";
+              emptyEl.style.display = "block";
+            }
+            openModal("#myBookingsModal");
+            return;
+          }
+          var bookings = result.data && result.data.data ? result.data.data : [];
+          if (bookings.length === 0) {
+            if (emptyMsgEl) emptyMsgEl.style.display = "block";
+          } else if (listEl) {
+            listEl.innerHTML = bookings.map(function (b) {
+              var rooms = b.rooms || [];
+              var roomsSummary = rooms.map(function (r) { return r.roomName || r.roomId || "—"; }).join(", ");
+              var checkIn = rooms[0] && rooms[0].checkIn ? new Date(rooms[0].checkIn).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
+              var checkOut = rooms[0] && rooms[0].checkOut ? new Date(rooms[0].checkOut).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
+              var status = (b.status || "pending").toLowerCase();
+              var guestName = (b.guest && b.guest.name) ? b.guest.name : "—";
+              return (
+                "<div class=\"my-bookings__item\">" +
+                "<span class=\"my-bookings__guest\">" + (guestName.replace(/</g, "&lt;").replace(/>/g, "&gt;")) + "</span>" +
+                "<span class=\"my-bookings__rooms\">" + (roomsSummary.replace(/</g, "&lt;").replace(/>/g, "&gt;")) + "</span>" +
+                "<span class=\"my-bookings__dates\">" + checkIn + " – " + checkOut + "</span>" +
+                "<span class=\"my-bookings__total\">₹" + (b.totalAmount != null ? Number(b.totalAmount).toLocaleString("en-IN") : "0") + "</span>" +
+                "<span class=\"my-bookings__status my-bookings__status--" + status + "\">" + status + "</span>" +
+                "</div>"
+              );
+            }).join("");
+          }
+          openModal("#myBookingsModal");
+        })
+        .catch(function () {
+          if (emptyEl) {
+            emptyEl.textContent = "Could not load bookings.";
+            emptyEl.style.display = "block";
+          }
+          openModal("#myBookingsModal");
+        });
     });
   }
 
@@ -585,7 +634,7 @@
       "h1, h2, h3, h4, h5, h6, p, .hero__title, .hero__subtitle, .hero__desc, .section__title, .section__subtitle";
     var hoverSelector =
       'a, button, .btn, input, textarea, [role="button"], .room-card, .gallery__item';
-    var headerSelector = ".nav, .admin__header";
+    var headerSelector = ".nav, .admin__header, .footer";
     function isOverHeader(el) {
       return el && el.closest && el.closest(headerSelector);
     }

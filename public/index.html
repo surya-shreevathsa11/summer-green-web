@@ -37,10 +37,9 @@
     <!-- Navigation -->
     <nav class="nav" id="nav">
       <div class="nav__inner container">
-        <a href="#" class="nav__logo"
-          ><span class="nav__logo-name">Summer Green</span
-          ><span class="nav__logo-tagline"></span
-        ></a>
+        <a href="#" class="nav__logo" aria-label="Summer Green Homestay">
+          <img src="/img/summary%20green.jpeg" alt="Summer Green Homestay" class="nav__logo-img" />
+        </a>
         <button class="nav__toggle" id="navToggle" aria-label="Toggle menu">
           <span></span><span></span><span></span>
         </button>
@@ -494,10 +493,7 @@
         </a>
         <div class="footer__center">
           <div class="footer__brand">
-            <span class="footer__logo-name">Summer Green</span>
-            <span class="footer__logo-tagline"
-              ><span class="footerline"></span><span class="footerline"></span
-            ></span>
+            <img src="/img/summary%20green.jpeg" alt="Summer Green Homestay" class="footer__logo-img" />
           </div>
           <p class="footer__copyright">
             &copy; 2026 Summer Green. All rights reserved.
@@ -636,6 +632,18 @@
             Add to cart
           </button>
         </form>
+      </div>
+    </div>
+
+    <!-- My Bookings modal (list from API) -->
+    <div class="modal modal--my-bookings" id="myBookingsModal" aria-label="My Bookings">
+      <div class="modal__overlay" data-close></div>
+      <div class="modal__content modal__content--my-bookings">
+        <button class="modal__close" data-close aria-label="Close">&times;</button>
+        <h3 class="modal__title">My Bookings</h3>
+        <div class="my-bookings__list" id="myBookingsList"></div>
+        <p class="my-bookings__empty" id="myBookingsEmpty" style="display: none;">No upcoming bookings.</p>
+        <p class="my-bookings__error" id="myBookingsError" style="display: none;"></p>
       </div>
     </div>
 
