@@ -65,6 +65,10 @@ export const updateBooking = async (req, res) => {
       { returnDocument: "after" }
     );
 
+    if (updatedBooking.status === "cancelled") {
+      await sendCancellationMailToGuest(updatedBooking);
+    }
+
     return res.status(200).json({
       message: "Booking updated successfully",
       data: updatedBooking,
