@@ -487,6 +487,7 @@ export const listBookings = async (req, res) => {
     const bookings = await Booking.find({
       userId: req.user._id,
       "rooms.checkOut": { $gte: today },
+      status: { $in: ["confirmed", "cancelled"] },
     }).sort({ createdAt: -1 });
 
     return res.status(200).json({ data: bookings });
