@@ -66,6 +66,117 @@
   border-color: rgba(248, 248, 248, 0.6);
 }
 
+.admin__header-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.admin__header-subtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  font-family: "Montserrat", sans-serif;
+  color: rgba(248, 248, 248, 0.88);
+  font-weight: 400;
+}
+
+.admin__header-username {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-family: "Montserrat", sans-serif;
+  color: #f8f8f8;
+}
+
+/* Dashboard: stats grid + tabs (reference UI) */
+.admin__stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.admin__stat-card {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 1.25rem 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(20, 33, 61, 0.1);
+  box-shadow: 0 4px 20px rgba(20, 33, 61, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.admin__stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(20, 33, 61, 0.12);
+}
+
+.admin__stat-label {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-obsidian, #14213d);
+  opacity: 0.8;
+  font-family: "Montserrat", sans-serif;
+}
+
+.admin__stat-value {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-obsidian, #14213d);
+  font-family: "Montserrat", sans-serif;
+}
+
+.admin__stat-card--primary .admin__stat-value { color: var(--color-burnt-copper, #fca311); }
+.admin__stat-card--success .admin__stat-value { color: #2d6a2d; }
+.admin__stat-card--warning .admin__stat-value { color: #c77700; }
+.admin__stat-card--danger .admin__stat-value { color: #b3261e; }
+
+.admin__tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(20, 33, 61, 0.12);
+  flex-wrap: wrap;
+}
+
+.admin__tab-btn {
+  padding: 0.75rem 1.25rem;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-obsidian, #14213d);
+  opacity: 0.75;
+  transition: color 0.2s, border-color 0.2s, opacity 0.2s;
+  font-family: "Montserrat", sans-serif;
+  border-radius: 0.25rem 0.25rem 0 0;
+}
+
+.admin__tab-btn:hover {
+  opacity: 1;
+  color: var(--color-burnt-copper, #e3940f);
+}
+
+.admin__tab-btn.active {
+  color: var(--color-burnt-copper, #fca311);
+  border-bottom-color: var(--color-burnt-copper, #fca311);
+  opacity: 1;
+}
+
+.admin__tab-content {
+  display: none;
+}
+
+.admin__tab-content.active {
+  display: block;
+}
+
 .admin__wrap {
   min-height: 100vh;
   padding: 8rem 1.5rem 3rem;

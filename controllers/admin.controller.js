@@ -34,7 +34,7 @@ export const getBooking = async (req, res) => {
   }
 };
 
-//update confirmed booking to cancelled or blocked; cancelled -> delete from DB
+//update confirmed booking to cancelled or blocked
 export const updateBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
@@ -55,14 +55,6 @@ export const updateBooking = async (req, res) => {
       return res.status(400).json({
         message:
           "Cannot change confirmed booking to pending. Consider cancellation instead.",
-      });
-    }
-
-    if (status === "cancelled") {
-      await Booking.findByIdAndDelete(bookingId);
-      return res.status(200).json({
-        message: "Booking deleted",
-        deleted: true,
       });
     }
 

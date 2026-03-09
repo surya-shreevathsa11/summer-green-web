@@ -19,6 +19,12 @@
 
   var adminRetryBtn = document.getElementById("adminRetryBtn");
   var adminLogoutBtn = document.getElementById("adminLogoutBtn");
+  var adminHeaderSubtitle = document.getElementById("adminHeaderSubtitle");
+  var adminHeaderUsername = document.getElementById("adminHeaderUsername");
+  var statTotalBookings = document.getElementById("statTotalBookings");
+  var statConfirmed = document.getElementById("statConfirmed");
+  var statPending = document.getElementById("statPending");
+  var statBlockedDates = document.getElementById("statBlockedDates");
 
   var basePriceGrid = document.getElementById("basePriceGrid");
   var saveBasePriceBtn = document.getElementById("saveBasePriceBtn");
@@ -68,6 +74,45 @@
     if (adminLogoutBtn) {
       adminLogoutBtn.style.display = id === "adminDashboard" ? "" : "none";
     }
+    if (adminHeaderSubtitle) {
+      adminHeaderSubtitle.style.display = id === "adminDashboard" ? "" : "none";
+    }
+    if (adminHeaderUsername) {
+      adminHeaderUsername.style.display = id === "adminDashboard" ? "" : "none";
+      if (id === "adminDashboard") adminHeaderUsername.textContent = loggedInUsername || "";
+    }
+    if (id === "adminDashboard") refreshStats();
+  }
+
+  function refreshStats() {
+    var total = bookingsCache.length;
+    var confirmed = bookingsCache.filter(function (b) { return b.status === "confirmed"; }).length;
+    var pending = bookingsCache.filter(function (b) { return b.status === "pending"; }).length;
+    var blockedCount = blockedDatesList.length;
+    if (statTotalBookings) statTotalBookings.textContent = total;
+    if (statConfirmed) statConfirmed.textContent = confirmed;
+    if (statPending) statPending.textContent = pending;
+    if (statBlockedDates) statBlockedDates.textContent = blockedCount;
+  }
+
+  function switchTab(tabId) {
+    var tabs = { bookings: "tabContentBookings", pricing: "tabContentPricing", blockdates: "tabContentBlockDates" };
+    var contentId = tabs[tabId];
+    if (!contentId) return;
+    document.querySelectorAll(".admin__tab-btn").forEach(function (btn) {
+      btn.classList.remove("active");
+      btn.setAttribute("aria-selected", "false");
+    });
+    document.querySelectorAll(".admin__tab-content").forEach(function (panel) {
+      panel.classList.remove("active");
+      panel.style.display = "none";
+    });
+    var btn = document.getElementById("tabBookings");
+    if (tabId === "pricing") btn = document.getElementById("tabPricing");
+    if (tabId === "blockdates") btn = document.getElementById("tabBlockDates");
+    if (btn) { btn.classList.add("active"); btn.setAttribute("aria-selected", "true"); }
+    var panel = document.getElementById(contentId);
+    if (panel) { panel.classList.add("active"); panel.style.display = "block"; }
   }
 
   function setMsg(el, text, isError) {
@@ -399,10 +444,12 @@
       .then(function (r) {
         blockedDatesList = (r.data && r.data.data) || [];
         renderBlockDates();
+        refreshStats();
       })
       .catch(function () {
         blockedDatesList = [];
         renderBlockDates();
+        refreshStats();
       });
   }
 
@@ -447,6 +494,7 @@
               }
             );
             renderBlockDates();
+            refreshStats();
             setMsg(blockDatesMsg, "Block removed.", false);
           } else {
             setMsg(
@@ -485,6 +533,7 @@
           if (r.ok && r.data && r.data.data) {
             blockedDatesList.push(r.data.data);
             renderBlockDates();
+            refreshStats();
             setMsg(blockDatesMsg, "Dates blocked successfully.", false);
             if (blockFrom) blockFrom.value = "";
             if (blockTo) blockTo.value = "";
@@ -530,6 +579,7 @@
         var list = (r.data && r.data.data) || [];
         bookingsCache = list;
         renderBookingsTable(list);
+        refreshStats();
       })
       .catch(function () {
         if (bookingsEmpty) {
@@ -549,6 +599,11 @@
       loadBookings();
     });
   }
+
+  [["tabBookings", "bookings"], ["tabPricing", "pricing"], ["tabBlockDates", "blockdates"]].forEach(function (pair) {
+    var btn = document.getElementById(pair[0]);
+    if (btn) btn.addEventListener("click", function () { switchTab(pair[1]); });
+  });
 
   function renderBookingsTable(list) {
     if (!bookingsBody) return;
@@ -723,37 +778,24 @@
           apiPatch("/api/admin/bookings/" + id, { status: status })
             .then(function (r) {
               if (r.ok) {
-                if (status === "cancelled" && (r.data && r.data.deleted)) {
-                  var row = bookingsBody.querySelector(
-                    "tr[data-booking-id='" + id + "']"
-                  );
-                  if (row) row.remove();
-                  bookingsCache = bookingsCache.filter(function (b) {
-                    return (b._id || b.id || "").toString() !== id;
-                  });
-                  if (bookingsBody && bookingsBody.querySelectorAll("tr").length === 0 && bookingsEmpty) {
-                    bookingsEmpty.style.display = "block";
-                  }
-                } else {
-                  if (badge) {
-                    badge.textContent = status;
-                    badge.className =
-                      "admin__badge " + (statusBadgeClass[status] || "");
-                  }
-                  if (msgEl) {
-                    msgEl.textContent = "✓ Saved";
-                    msgEl.className = "admin__inline-msg admin__inline-msg--ok";
-                  }
-                  setTimeout(function () {
-                    var panel = document.getElementById("editPanel-" + id);
-                    var editBtn = bookingsBody.querySelector(
-                      ".admin__edit-btn[data-booking-id='" + id + "']"
-                    );
-                    if (panel) panel.style.display = "none";
-                    if (editBtn) editBtn.style.display = "";
-                    if (msgEl) msgEl.textContent = "";
-                  }, 1500);
+                if (badge) {
+                  badge.textContent = status;
+                  badge.className =
+                    "admin__badge " + (statusBadgeClass[status] || "");
                 }
+                if (msgEl) {
+                  msgEl.textContent = "✓ Saved";
+                  msgEl.className = "admin__inline-msg admin__inline-msg--ok";
+                }
+                setTimeout(function () {
+                  var panel = document.getElementById("editPanel-" + id);
+                  var editBtn = bookingsBody.querySelector(
+                    ".admin__edit-btn[data-booking-id='" + id + "']"
+                  );
+                  if (panel) panel.style.display = "none";
+                  if (editBtn) editBtn.style.display = "";
+                  if (msgEl) msgEl.textContent = "";
+                }, 1500);
               } else {
                 if (msgEl) {
                   msgEl.textContent = (r.data && r.data.message) || "Failed";

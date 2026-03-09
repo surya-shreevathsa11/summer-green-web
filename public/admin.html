@@ -23,8 +23,12 @@
     </div>
 
     <header class="admin__header">
-      <h1 class="admin__header-title">Summer Green <span>Admin</span></h1>
+      <div class="admin__header-brand">
+        <h1 class="admin__header-title">Summer Green <span>Admin</span></h1>
+        <p class="admin__header-subtitle" id="adminHeaderSubtitle" style="display: none;">Manage bookings and pricing</p>
+      </div>
       <div class="admin__header-actions">
+        <span class="admin__header-username" id="adminHeaderUsername" style="display: none;"></span>
         <button type="button" class="admin__logout btn btn--ghost btn--sm" id="adminLogoutBtn" style="display: none;">Logout</button>
         <a href="/" class="admin__back">← Back to site</a>
       </div>
@@ -159,179 +163,161 @@
 
         <!-- Dashboard -->
         <div id="adminDashboard" class="admin__view" style="display: none">
-          <!-- Base Prices -->
-          <section class="admin__section">
-            <h2>
-              Base Prices <span class="admin__section-sub">per night (₹)</span>
-            </h2>
-            <p class="admin__msg" id="basePriceMsg" style="display: none"></p>
-            <div class="admin__grid" id="basePriceGrid"></div>
-            <button
-              type="button"
-              class="btn btn--primary btn--sm"
-              id="saveBasePriceBtn"
-              style="margin-top: 1.25rem"
-            >
-              Save Base Prices
-            </button>
-          </section>
-
-          <!-- Seasonal Pricing -->
-          <section class="admin__section">
-            <h2>Seasonal Pricing</h2>
-            <p class="admin__msg" id="seasonalMsg" style="display: none"></p>
-            <div class="admin__season-form">
-              <div class="form__group">
-                <label for="seasonRoom">Room</label>
-                <select id="seasonRoom">
-                  <option value="R1">R1 — Sunflower</option>
-                  <option value="R2">R2 — Lily</option>
-                  <option value="R3">R3 — Marigold</option>
-                  <option value="R4">R4 — Lavender</option>
-                  <option value="R5">R5 — Dahlia</option>
-                  <option value="R6">R6 — Gardenia</option>
-                  <option value="R7">R7 — Petunia</option>
-                  <option value="R8">R8 — Zinnia</option>
-                </select>
-              </div>
-              <div class="form__group">
-                <label for="seasonFrom">From</label>
-                <input type="date" id="seasonFrom" />
-              </div>
-              <div class="form__group">
-                <label for="seasonTo">To</label>
-                <input type="date" id="seasonTo" />
-              </div>
-              <div class="form__group">
-                <label for="seasonPrice">Price / night (₹)</label>
-                <input
-                  type="number"
-                  id="seasonPrice"
-                  min="0"
-                  step="1"
-                  placeholder="0"
-                />
-              </div>
-              <div class="form__group">
-                <label for="seasonReason">Reason</label>
-                <input
-                  type="text"
-                  id="seasonReason"
-                  placeholder="e.g. Peak season"
-                />
-              </div>
-              <div class="form__group form__group--action">
-                <button
-                  type="button"
-                  class="btn btn--outline btn--sm"
-                  id="addSeasonalBtn"
-                >
-                  Add
-                </button>
-              </div>
+          <div class="admin__stats-grid" id="adminStatsGrid">
+            <div class="admin__stat-card admin__stat-card--primary">
+              <h3 class="admin__stat-label">Total Bookings</h3>
+              <p class="admin__stat-value" id="statTotalBookings">0</p>
             </div>
-            <div class="admin__season-list" id="seasonalList"></div>
-          </section>
-
-          <!-- Block dates -->
-          <section class="admin__section">
-            <h2>Block dates</h2>
-            <p class="admin__msg" id="blockDatesMsg" style="display: none"></p>
-            <div class="admin__season-form">
-              <div class="form__group">
-                <label for="blockRoom">Room</label>
-                <select id="blockRoom">
-                  <option value="R1">R1 — Sunflower</option>
-                  <option value="R2">R2 — Lily</option>
-                  <option value="R3">R3 — Marigold</option>
-                  <option value="R4">R4 — Lavender</option>
-                  <option value="R5">R5 — Dahlia</option>
-                  <option value="R6">R6 — Gardenia</option>
-                  <option value="R7">R7 — Petunia</option>
-                  <option value="R8">R8 — Zinnia</option>
-                </select>
-              </div>
-              <div class="form__group">
-                <label for="blockFrom">From</label>
-                <input type="date" id="blockFrom" />
-              </div>
-              <div class="form__group">
-                <label for="blockTo">To</label>
-                <input type="date" id="blockTo" />
-              </div>
-              <div class="form__group form__group--action">
-                <button type="button" class="btn btn--outline btn--sm" id="addBlockDateBtn">
-                  Add block
-                </button>
-              </div>
+            <div class="admin__stat-card admin__stat-card--success">
+              <h3 class="admin__stat-label">Paid / Confirmed</h3>
+              <p class="admin__stat-value" id="statConfirmed">0</p>
             </div>
-            <div class="admin__season-list" id="blockDatesList"></div>
-          </section>
-
-          <!-- Bookings -->
-          <section class="admin__section">
-            <h2>Bookings</h2>
-
-            <!-- Filter bar -->
-            <div class="admin__filter-bar">
-              <div class="form__group">
-                <label for="filterStatus">Status</label>
-                <select id="filterStatus">
-                  <option value="">All statuses</option>
-                  <option value="pending">Pending</option>
-                  <option value="confirmed">Confirmed</option>
-                  <option value="cancelled">Cancelled</option>
-                  <option value="blocked">Blocked</option>
-                </select>
-              </div>
-              <div class="form__group">
-                <label for="filterUpcoming">Show</label>
-                <select id="filterUpcoming">
-                  <option value="">All bookings</option>
-                  <option value="true">Upcoming only</option>
-                </select>
-              </div>
-              <div class="form__group form__group--action">
-                <button
-                  type="button"
-                  class="btn btn--outline btn--sm"
-                  id="applyFilterBtn"
-                >
-                  Apply
-                </button>
-              </div>
-              <div class="form__group form__group--action">
-                <button
-                  type="button"
-                  class="btn btn--ghost btn--sm"
-                  id="clearFilterBtn"
-                >
-                  Clear
-                </button>
-              </div>
+            <div class="admin__stat-card admin__stat-card--warning">
+              <h3 class="admin__stat-label">Pending</h3>
+              <p class="admin__stat-value" id="statPending">0</p>
             </div>
+            <div class="admin__stat-card admin__stat-card--danger">
+              <h3 class="admin__stat-label">Blocked Dates</h3>
+              <p class="admin__stat-value" id="statBlockedDates">0</p>
+            </div>
+          </div>
 
-            <div class="admin__table-wrap">
-              <table class="admin__table" id="bookingsTable">
-                <thead>
-                  <tr>
-                    <th>Guest</th>
-                    <th>Phone</th>
-                    <th>Rooms</th>
-                    <th>Check-in</th>
-                    <th>Check-out</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody id="bookingsBody"></tbody>
-              </table>
-            </div>
-            <div class="admin__empty" id="bookingsEmpty" style="display: none">
-              No bookings found.
-            </div>
-          </section>
+          <nav class="admin__tabs" role="tablist">
+            <button type="button" class="admin__tab-btn active" role="tab" id="tabBookings" data-tab="bookings" aria-selected="true">Bookings</button>
+            <button type="button" class="admin__tab-btn" role="tab" id="tabPricing" data-tab="pricing" aria-selected="false">Pricing Rules</button>
+            <button type="button" class="admin__tab-btn" role="tab" id="tabBlockDates" data-tab="blockdates" aria-selected="false">Block Dates</button>
+          </nav>
+
+          <div id="tabContentBookings" class="admin__tab-content active" role="tabpanel">
+            <section class="admin__section">
+              <h2>All Bookings</h2>
+              <div class="admin__filter-bar">
+                <div class="form__group">
+                  <label for="filterStatus">Status</label>
+                  <select id="filterStatus">
+                    <option value="">All statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="cancelled">Cancelled</option>
+                    <option value="blocked">Blocked</option>
+                  </select>
+                </div>
+                <div class="form__group">
+                  <label for="filterUpcoming">Show</label>
+                  <select id="filterUpcoming">
+                    <option value="">All bookings</option>
+                    <option value="true">Upcoming only</option>
+                  </select>
+                </div>
+                <div class="form__group form__group--action">
+                  <button type="button" class="btn btn--outline btn--sm" id="applyFilterBtn">Apply</button>
+                </div>
+                <div class="form__group form__group--action">
+                  <button type="button" class="btn btn--ghost btn--sm" id="clearFilterBtn">Clear</button>
+                </div>
+              </div>
+              <div class="admin__table-wrap">
+                <table class="admin__table" id="bookingsTable">
+                  <thead>
+                    <tr>
+                      <th>Guest</th>
+                      <th>Phone</th>
+                      <th>Rooms</th>
+                      <th>Check-in</th>
+                      <th>Check-out</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="bookingsBody"></tbody>
+                </table>
+              </div>
+              <div class="admin__empty" id="bookingsEmpty" style="display: none">No bookings found.</div>
+            </section>
+          </div>
+
+          <div id="tabContentPricing" class="admin__tab-content" role="tabpanel" style="display: none">
+            <section class="admin__section">
+              <h2>Base Prices <span class="admin__section-sub">per night (₹)</span></h2>
+              <p class="admin__msg" id="basePriceMsg" style="display: none"></p>
+              <div class="admin__grid" id="basePriceGrid"></div>
+              <button type="button" class="btn btn--primary btn--sm" id="saveBasePriceBtn" style="margin-top: 1.25rem">Save Base Prices</button>
+            </section>
+            <section class="admin__section">
+              <h2>Seasonal Pricing</h2>
+              <p class="admin__msg" id="seasonalMsg" style="display: none"></p>
+              <div class="admin__season-form">
+                <div class="form__group">
+                  <label for="seasonRoom">Room</label>
+                  <select id="seasonRoom">
+                    <option value="R1">R1 — Sunflower</option>
+                    <option value="R2">R2 — Lily</option>
+                    <option value="R3">R3 — Marigold</option>
+                    <option value="R4">R4 — Lavender</option>
+                    <option value="R5">R5 — Dahlia</option>
+                    <option value="R6">R6 — Gardenia</option>
+                    <option value="R7">R7 — Petunia</option>
+                    <option value="R8">R8 — Zinnia</option>
+                  </select>
+                </div>
+                <div class="form__group">
+                  <label for="seasonFrom">From</label>
+                  <input type="date" id="seasonFrom" />
+                </div>
+                <div class="form__group">
+                  <label for="seasonTo">To</label>
+                  <input type="date" id="seasonTo" />
+                </div>
+                <div class="form__group">
+                  <label for="seasonPrice">Price / night (₹)</label>
+                  <input type="number" id="seasonPrice" min="0" step="1" placeholder="0" />
+                </div>
+                <div class="form__group">
+                  <label for="seasonReason">Reason</label>
+                  <input type="text" id="seasonReason" placeholder="e.g. Peak season" />
+                </div>
+                <div class="form__group form__group--action">
+                  <button type="button" class="btn btn--outline btn--sm" id="addSeasonalBtn">Add</button>
+                </div>
+              </div>
+              <div class="admin__season-list" id="seasonalList"></div>
+            </section>
+          </div>
+
+          <div id="tabContentBlockDates" class="admin__tab-content" role="tabpanel" style="display: none">
+            <section class="admin__section">
+              <h2>Block dates</h2>
+              <p class="admin__msg" id="blockDatesMsg" style="display: none"></p>
+              <div class="admin__season-form">
+                <div class="form__group">
+                  <label for="blockRoom">Room</label>
+                  <select id="blockRoom">
+                    <option value="R1">R1 — Sunflower</option>
+                    <option value="R2">R2 — Lily</option>
+                    <option value="R3">R3 — Marigold</option>
+                    <option value="R4">R4 — Lavender</option>
+                    <option value="R5">R5 — Dahlia</option>
+                    <option value="R6">R6 — Gardenia</option>
+                    <option value="R7">R7 — Petunia</option>
+                    <option value="R8">R8 — Zinnia</option>
+                  </select>
+                </div>
+                <div class="form__group">
+                  <label for="blockFrom">From</label>
+                  <input type="date" id="blockFrom" />
+                </div>
+                <div class="form__group">
+                  <label for="blockTo">To</label>
+                  <input type="date" id="blockTo" />
+                </div>
+                <div class="form__group form__group--action">
+                  <button type="button" class="btn btn--outline btn--sm" id="addBlockDateBtn">Add block</button>
+                </div>
+              </div>
+              <div class="admin__season-list" id="blockDatesList"></div>
+            </section>
+          </div>
         </div>
         <!-- /adminDashboard -->
       </div>
