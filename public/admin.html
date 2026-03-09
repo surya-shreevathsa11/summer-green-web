@@ -46,7 +46,7 @@
               class="admin__msg admin__msg--error"
               style="display: none"
             ></p>
-            <form id="adminLoginForm" onsubmit="return false;" novalidate>
+            <form id="adminLoginForm" novalidate>
               <div class="form__group">
                 <label for="adminUsername">Username</label>
                 <input
@@ -170,11 +170,11 @@
               <p class="admin__stat-value" id="statTotalBookings">0</p>
             </div>
             <div class="admin__stat-card admin__stat-card--success">
-              <h3 class="admin__stat-label">Paid / Confirmed</h3>
+              <h3 class="admin__stat-label">Paid Bookings</h3>
               <p class="admin__stat-value" id="statConfirmed">0</p>
             </div>
             <div class="admin__stat-card admin__stat-card--warning">
-              <h3 class="admin__stat-label">Pending</h3>
+              <h3 class="admin__stat-label">Pending Bookings</h3>
               <p class="admin__stat-value" id="statPending">0</p>
             </div>
             <div class="admin__stat-card admin__stat-card--danger">
@@ -184,9 +184,9 @@
           </div>
 
           <nav class="admin__tabs" role="tablist">
-            <button type="button" class="admin__tab-btn active" role="tab" id="tabBookings" data-tab="bookings" aria-selected="true">Bookings</button>
-            <button type="button" class="admin__tab-btn" role="tab" id="tabPricing" data-tab="pricing" aria-selected="false">Pricing Rules</button>
-            <button type="button" class="admin__tab-btn" role="tab" id="tabBlockDates" data-tab="blockdates" aria-selected="false">Block Dates</button>
+            <button type="button" class="admin__tab-btn active" role="tab" id="tabBookings" data-tab="bookings" aria-selected="true"><span class="admin__tab-icon" aria-hidden="true">📅</span> Bookings</button>
+            <button type="button" class="admin__tab-btn" role="tab" id="tabPricing" data-tab="pricing" aria-selected="false"><span class="admin__tab-icon" aria-hidden="true">🏷</span> Pricing Rules</button>
+            <button type="button" class="admin__tab-btn" role="tab" id="tabBlockDates" data-tab="blockdates" aria-selected="false"><span class="admin__tab-icon" aria-hidden="true">⊘</span> Block Dates</button>
             <button type="button" class="admin__tab-btn" role="tab" id="tabRoomImages" data-tab="images" aria-selected="false">Room Images</button>
           </nav>
 
@@ -198,7 +198,7 @@
                   <div class="form__group admin__filter-inline">
                     <label for="filterStatus">Status</label>
                     <select id="filterStatus">
-                      <option value="">All statuses</option>
+                      <option value="">All Status</option>
                       <option value="pending">Pending</option>
                       <option value="confirmed">Confirmed</option>
                       <option value="cancelled">Cancelled</option>
@@ -242,84 +242,181 @@
           </div>
 
           <div id="tabContentPricing" class="admin__tab-content" role="tabpanel" style="display: none">
-            <section class="admin__section">
-              <h2>Base Prices <span class="admin__section-sub">per night (₹)</span></h2>
-              <p class="admin__msg" id="basePriceMsg" style="display: none"></p>
-              <div class="admin__grid" id="basePriceGrid"></div>
-              <button type="button" class="btn btn--primary btn--sm" id="saveBasePriceBtn" style="margin-top: 1.25rem">Save Base Prices</button>
-            </section>
-            <section class="admin__section">
-              <h2>Seasonal Pricing</h2>
-              <p class="admin__msg" id="seasonalMsg" style="display: none"></p>
-              <div class="admin__season-form">
-                <div class="form__group">
-                  <label for="seasonRoom">Room</label>
-                  <select id="seasonRoom">
-                    <option value="R1">R1 — Sunflower</option>
-                    <option value="R2">R2 — Lily</option>
-                    <option value="R3">R3 — Marigold</option>
-                    <option value="R4">R4 — Lavender</option>
-                    <option value="R5">R5 — Dahlia</option>
-                    <option value="R6">R6 — Gardenia</option>
-                    <option value="R7">R7 — Petunia</option>
-                    <option value="R8">R8 — Zinnia</option>
-                  </select>
+            <section class="admin__section admin__pricing-section">
+              <div class="admin__pricing-card">
+                <div class="admin__pricing-header">
+                  <h2 class="admin__pricing-title">Pricing Rules</h2>
+                  <button type="button" class="btn admin__btn-add-rule" id="addPricingRuleBtn">+ Add Rule</button>
                 </div>
-                <div class="form__group">
-                  <label for="seasonFrom">From</label>
-                  <input type="date" id="seasonFrom" />
+                <p class="admin__msg admin__pricing-msg" id="pricingRuleMsg" style="display: none"></p>
+                <div class="admin__table-wrap admin__pricing-table-wrap">
+                  <table class="admin__table admin__pricing-table" id="pricingRulesTable">
+                    <thead>
+                      <tr>
+                        <th>Rule Name</th>
+                        <th>Applies To</th>
+                        <th>Dates</th>
+                        <th>Modifier</th>
+                        <th>Days</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th class="admin__th-actions">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="pricingRulesBody"></tbody>
+                  </table>
                 </div>
-                <div class="form__group">
-                  <label for="seasonTo">To</label>
-                  <input type="date" id="seasonTo" />
-                </div>
-                <div class="form__group">
-                  <label for="seasonPrice">Price / night (₹)</label>
-                  <input type="number" id="seasonPrice" min="0" step="1" placeholder="0" />
-                </div>
-                <div class="form__group">
-                  <label for="seasonReason">Reason</label>
-                  <input type="text" id="seasonReason" placeholder="e.g. Peak season" />
-                </div>
-                <div class="form__group form__group--action">
-                  <button type="button" class="btn btn--outline btn--sm" id="addSeasonalBtn">Add</button>
+                <div class="admin__empty admin__empty-rules" id="pricingRulesEmpty">
+                  <p>No pricing rules found. Create your first rule!</p>
                 </div>
               </div>
-              <div class="admin__season-list" id="seasonalList"></div>
+              <div class="admin__pricing-base">
+                <h3 class="admin__pricing-base-title">Base Prices <span class="admin__section-sub">per night (₹)</span></h3>
+                <p class="admin__msg" id="basePriceMsg" style="display: none"></p>
+                <div class="admin__grid" id="basePriceGrid"></div>
+                <button type="button" class="btn btn--outline btn--sm" id="saveBasePriceBtn" style="margin-top: 1rem">Save Base Prices</button>
+              </div>
             </section>
           </div>
 
+          <!-- Add Pricing Rule modal (anudinakuteera-style) -->
+          <div class="admin__modal-overlay" id="addPricingRuleModal" aria-hidden="true" style="display: none">
+            <div class="admin__modal admin__modal--pricing">
+              <div class="admin__modal-header">
+                <h3 class="admin__modal-title">Add Pricing Rule</h3>
+                <button type="button" class="admin__modal-close" id="addPricingRuleClose" aria-label="Close">&times;</button>
+              </div>
+              <form id="addPricingRuleForm" class="admin__modal-body">
+                <p class="admin__msg" id="addRuleFormMsg" style="display: none"></p>
+                <div class="admin__form-row">
+                  <div class="form__group form__group--full">
+                    <label for="ruleName">Rule Name <span class="form__required">*</span></label>
+                    <input type="text" id="ruleName" name="ruleName" placeholder="e.g., Weekend Premium" required />
+                  </div>
+                </div>
+                <div class="admin__form-row">
+                  <div class="form__group form__group--full">
+                    <label for="ruleDescription">Description</label>
+                    <textarea id="ruleDescription" name="ruleDescription" rows="2" placeholder="Optional description"></textarea>
+                  </div>
+                </div>
+                <div class="admin__form-row admin__form-row--two">
+                  <div class="form__group">
+                    <label for="ruleStartDate">Start Date <span class="form__required">*</span></label>
+                    <div class="admin__input-with-icon">
+                      <input type="date" id="ruleStartDate" name="ruleStartDate" required />
+                      <span class="admin__input-icon admin__input-icon--calendar" aria-hidden="true">📅</span>
+                    </div>
+                  </div>
+                  <div class="form__group">
+                    <label for="ruleEndDate">End Date <span class="form__required">*</span></label>
+                    <div class="admin__input-with-icon">
+                      <input type="date" id="ruleEndDate" name="ruleEndDate" required />
+                      <span class="admin__input-icon admin__input-icon--calendar" aria-hidden="true">📅</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="admin__form-row">
+                  <div class="form__group form__group--full">
+                    <label for="ruleAppliesTo">Applies To <span class="form__required">*</span></label>
+                    <select id="ruleAppliesTo" name="ruleAppliesTo" required>
+                      <option value="R1">R1 — Sunflower</option>
+                      <option value="R2">R2 — Lily</option>
+                      <option value="R3">R3 — Marigold</option>
+                      <option value="R4">R4 — Lavender</option>
+                      <option value="R5">R5 — Dahlia</option>
+                      <option value="R6">R6 — Gardenia</option>
+                      <option value="R7">R7 — Petunia</option>
+                      <option value="R8">R8 — Zinnia</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="admin__form-row admin__form-row--two">
+                  <div class="form__group">
+                    <label for="ruleModifierType">Modifier Type <span class="form__required">*</span></label>
+                    <select id="ruleModifierType" name="ruleModifierType">
+                      <option value="fixed">Fixed price</option>
+                      <option value="percentage">Percentage</option>
+                    </select>
+                  </div>
+                  <div class="form__group">
+                    <label for="ruleModifierValue">Modifier Value <span class="form__required">*</span></label>
+                    <input type="number" id="ruleModifierValue" name="ruleModifierValue" min="0" step="1" placeholder="e.g., 30 for +30%" required />
+                  </div>
+                </div>
+                <div class="admin__form-row">
+                  <div class="form__group form__group--full">
+                    <label class="admin__label-block">Days of Week <span class="form__optional">(Optional — leave empty for all days)</span></label>
+                    <div class="admin__days-row">
+                      <label class="admin__day-check"><input type="checkbox" name="ruleDay" value="0" /> Sun</label>
+                      <label class="admin__day-check"><input type="checkbox" name="ruleDay" value="1" /> Mon</label>
+                      <label class="admin__day-check"><input type="checkbox" name="ruleDay" value="2" /> Tue</label>
+                      <label class="admin__day-check"><input type="checkbox" name="ruleDay" value="3" /> Wed</label>
+                      <label class="admin__day-check"><input type="checkbox" name="ruleDay" value="4" /> Thu</label>
+                      <label class="admin__day-check"><input type="checkbox" name="ruleDay" value="5" /> Fri</label>
+                      <label class="admin__day-check"><input type="checkbox" name="ruleDay" value="6" /> Sat</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="admin__form-row">
+                  <div class="form__group form__group--full">
+                    <label for="rulePriority">Priority <span class="form__optional">(higher = more important)</span></label>
+                    <div class="admin__priority-wrap">
+                      <input type="number" id="rulePriority" name="rulePriority" min="0" value="0" />
+                      <input type="range" id="rulePrioritySlider" min="0" max="10" value="0" class="admin__priority-slider" />
+                    </div>
+                  </div>
+                </div>
+                <div class="admin__modal-actions">
+                  <button type="button" class="btn admin__btn-cancel" id="addPricingRuleCancel">Cancel</button>
+                  <button type="submit" class="btn admin__btn-save-rule" id="addPricingRuleSubmit">Save Rule</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
           <div id="tabContentBlockDates" class="admin__tab-content" role="tabpanel" style="display: none">
-            <section class="admin__section">
-              <h2>Block dates</h2>
-              <p class="admin__msg" id="blockDatesMsg" style="display: none"></p>
-              <div class="admin__season-form">
-                <div class="form__group">
-                  <label for="blockRoom">Room</label>
-                  <select id="blockRoom">
-                    <option value="R1">R1 — Sunflower</option>
-                    <option value="R2">R2 — Lily</option>
-                    <option value="R3">R3 — Marigold</option>
-                    <option value="R4">R4 — Lavender</option>
-                    <option value="R5">R5 — Dahlia</option>
-                    <option value="R6">R6 — Gardenia</option>
-                    <option value="R7">R7 — Petunia</option>
-                    <option value="R8">R8 — Zinnia</option>
-                  </select>
-                </div>
-                <div class="form__group">
-                  <label for="blockFrom">From</label>
-                  <input type="date" id="blockFrom" />
-                </div>
-                <div class="form__group">
-                  <label for="blockTo">To</label>
-                  <input type="date" id="blockTo" />
-                </div>
-                <div class="form__group form__group--action">
-                  <button type="button" class="btn btn--outline btn--sm" id="addBlockDateBtn">Add block</button>
+            <section class="admin__section admin__block-dates-section">
+              <div class="admin__block-dates-card">
+                <h2 class="admin__block-dates-title">Block Dates for Maintenance</h2>
+                <p class="admin__msg admin__block-dates-msg" id="blockDatesMsg" style="display: none"></p>
+                <div class="admin__block-dates-form">
+                  <div class="form__group">
+                    <label for="blockRoom">Room</label>
+                    <select id="blockRoom">
+                      <option value="R1">R1 — Sunflower</option>
+                      <option value="R2">R2 — Lily</option>
+                      <option value="R3">R3 — Marigold</option>
+                      <option value="R4">R4 — Lavender</option>
+                      <option value="R5">R5 — Dahlia</option>
+                      <option value="R6">R6 — Gardenia</option>
+                      <option value="R7">R7 — Petunia</option>
+                      <option value="R8">R8 — Zinnia</option>
+                    </select>
+                  </div>
+                  <div class="form__group">
+                    <label for="blockFrom">Start Date</label>
+                    <div class="admin__input-with-icon">
+                      <input type="date" id="blockFrom" placeholder="dd-mm-yyyy" />
+                      <span class="admin__input-icon admin__input-icon--calendar" aria-hidden="true">📅</span>
+                    </div>
+                  </div>
+                  <div class="form__group">
+                    <label for="blockTo">End Date</label>
+                    <div class="admin__input-with-icon">
+                      <input type="date" id="blockTo" placeholder="dd-mm-yyyy" />
+                      <span class="admin__input-icon admin__input-icon--calendar" aria-hidden="true">📅</span>
+                    </div>
+                  </div>
+                  <div class="form__group">
+                    <label for="blockReason">Reason <span class="form__optional">(Optional)</span></label>
+                    <input type="text" id="blockReason" placeholder="e.g., Maintenance, Repairs" />
+                  </div>
+                  <div class="form__group form__group--action">
+                    <button type="button" class="btn admin__btn-block-dates" id="addBlockDateBtn">Block Dates</button>
+                  </div>
                 </div>
               </div>
-              <div class="admin__season-list" id="blockDatesList"></div>
             </section>
           </div>
 

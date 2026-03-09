@@ -4,6 +4,7 @@ import { verifyJWT } from "../middleware/admin.middleware.js";
 import {
   getBooking,
   updateBooking,
+  deleteBooking,
   updateBasePrices,
   addSeasonalPrice,
   getSeasonalPrices,
@@ -22,6 +23,7 @@ const router = Router();
 
 router.get("/bookings", verifyJWT, getBooking); // Get all bookings
 router.patch("/bookings/:bookingId", verifyJWT, updateBooking); // Update booking
+router.delete("/bookings/:bookingId", verifyJWT, deleteBooking); // Delete cancelled booking permanently
 
 router.put("/base-price", verifyJWT, updateBasePrices);
 router.post("/seasonal-price", verifyJWT, addSeasonalPrice);

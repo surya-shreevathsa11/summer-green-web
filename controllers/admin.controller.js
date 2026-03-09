@@ -79,6 +79,27 @@ export const updateBooking = async (req, res) => {
   }
 };
 
+// DELETE /api/admin/bookings/:bookingId — permanently delete a cancelled booking
+export const deleteBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+    if (booking.status !== "cancelled") {
+      return res.status(400).json({
+        message: "Only cancelled bookings can be deleted permanently",
+      });
+    }
+    await Booking.findByIdAndDelete(bookingId);
+    return res.status(200).json({ message: "Booking deleted permanently" });
+  } catch (error) {
+    console.error("Error deleting booking:", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
 // ─── PUT /api/admin/base-price ────────────────────────────────────────────────
 // Body: { rooms: [{ roomId, pricePerNight }] }
 export const updateBasePrices = async (req, res) => {

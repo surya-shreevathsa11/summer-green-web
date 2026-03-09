@@ -30,9 +30,23 @@
   var saveBasePriceBtn = document.getElementById("saveBasePriceBtn");
   var basePriceMsg = document.getElementById("basePriceMsg");
 
-  var addSeasonalBtn = document.getElementById("addSeasonalBtn");
-  var seasonalList = document.getElementById("seasonalList");
-  var seasonalMsg = document.getElementById("seasonalMsg");
+  var addPricingRuleBtn = document.getElementById("addPricingRuleBtn");
+  var addPricingRuleModal = document.getElementById("addPricingRuleModal");
+  var addPricingRuleClose = document.getElementById("addPricingRuleClose");
+  var addPricingRuleCancel = document.getElementById("addPricingRuleCancel");
+  var addPricingRuleForm = document.getElementById("addPricingRuleForm");
+  var pricingRulesBody = document.getElementById("pricingRulesBody");
+  var pricingRulesEmpty = document.getElementById("pricingRulesEmpty");
+  var pricingRulesTable = document.getElementById("pricingRulesTable");
+  var pricingRuleMsg = document.getElementById("pricingRuleMsg");
+  var ruleName = document.getElementById("ruleName");
+  var ruleStartDate = document.getElementById("ruleStartDate");
+  var ruleEndDate = document.getElementById("ruleEndDate");
+  var ruleAppliesTo = document.getElementById("ruleAppliesTo");
+  var ruleModifierType = document.getElementById("ruleModifierType");
+  var ruleModifierValue = document.getElementById("ruleModifierValue");
+  var rulePriority = document.getElementById("rulePriority");
+  var rulePrioritySlider = document.getElementById("rulePrioritySlider");
 
   var bookingsBody = document.getElementById("bookingsBody");
   var bookingsEmpty = document.getElementById("bookingsEmpty");
@@ -41,8 +55,10 @@
   var blockRoom = document.getElementById("blockRoom");
   var blockFrom = document.getElementById("blockFrom");
   var blockTo = document.getElementById("blockTo");
+  var blockReason = document.getElementById("blockReason");
   var addBlockDateBtn = document.getElementById("addBlockDateBtn");
   var blockDatesList = document.getElementById("blockDatesList");
+  var blockDatesFilterRoom = document.getElementById("blockDatesFilterRoom");
 
   // ─── State ───────────────────────────────────────────────────────────────────
   var loggedInUsername = "";
@@ -116,6 +132,12 @@
     if (panel) { panel.classList.add("active"); panel.style.display = "block"; }
     if (tabId === "images" && document.getElementById("imageRoom")) {
       loadRoomImages(document.getElementById("imageRoom").value);
+    }
+    if (tabId === "pricing") {
+      loadPricingRules();
+    }
+    if (tabId === "blockdates") {
+      loadBlockDates();
     }
   }
 
@@ -203,89 +225,87 @@
   }
 
   // ─── Auth ─────────────────────────────────────────────────────────────────────
+  var loginInProgress = false;
   function doLogin() {
-    var username = adminUsername ? adminUsername.value.trim() : "";
-    var password = adminPassword ? adminPassword.value : "";
+    if (loginInProgress) return;
+    var usernameEl = document.getElementById("adminUsername");
+    var passwordEl = document.getElementById("adminPassword");
+    var errEl = document.getElementById("adminLoginError");
+    var username = usernameEl ? usernameEl.value.trim() : "";
+    var password = passwordEl ? passwordEl.value : "";
 
     if (!username || !password) {
-      setMsg(adminLoginError, "Please enter username and password.", true);
+      setMsg(errEl, "Please enter username and password.", true);
       return;
     }
 
-    setMsg(adminLoginError, "");
+    setMsg(errEl, "");
+    loginInProgress = true;
 
     apiPost("/api/admin/login", { username: username, password: password })
       .then(function (r) {
+        loginInProgress = false;
         if (r.ok) {
           loggedInUsername = username;
           showView("adminOtp");
-          if (adminOtpInput) {
-            adminOtpInput.value = "";
-            adminOtpInput.focus();
+          var otpInput = document.getElementById("adminOtpInput");
+          if (otpInput) {
+            otpInput.value = "";
+            otpInput.focus();
           }
         } else {
           setMsg(
-            adminLoginError,
+            errEl,
             (r.data && r.data.message) || "Login failed.",
             true
           );
         }
       })
       .catch(function () {
-        setMsg(adminLoginError, "Network error. Please try again.", true);
+        loginInProgress = false;
+        setMsg(document.getElementById("adminLoginError"), "Network error. Please try again.", true);
       });
   }
 
   function doVerifyOtp() {
-    var otp = adminOtpInput ? adminOtpInput.value.trim() : "";
+    var otpEl = document.getElementById("adminOtpInput");
+    var errEl = document.getElementById("adminOtpError");
+    var otp = otpEl ? otpEl.value.trim() : "";
 
     if (!otp) {
-      setMsg(adminOtpError, "Please enter the OTP.", true);
+      setMsg(errEl, "Please enter the OTP.", true);
       return;
     }
     if (!loggedInUsername) {
-      setMsg(adminOtpError, "Session expired. Please sign in again.", true);
+      setMsg(errEl, "Session expired. Please sign in again.", true);
       showView("adminLogin");
       return;
     }
 
-    setMsg(adminOtpError, "");
+    setMsg(errEl, "");
 
     apiPost("/api/admin/verify-otp", { username: loggedInUsername, otp: otp })
       .then(function (r) {
         if (r.ok) {
           showView("adminDashboard");
           renderBasePrices();
-          renderSeasonal();
           loadBlockDates();
           loadBookings();
         } else {
           setMsg(
-            adminOtpError,
+            errEl,
             (r.data && r.data.message) || "Invalid OTP.",
             true
           );
         }
       })
       .catch(function () {
-        setMsg(adminOtpError, "Network error. Please try again.", true);
+        setMsg(document.getElementById("adminOtpError"), "Network error. Please try again.", true);
       });
   }
 
-  // ─── Password toggle ─────────────────────────────────────────────────────────
-  if (adminPasswordToggle && adminPassword) {
-    adminPasswordToggle.addEventListener("click", function () {
-      var isPassword = adminPassword.getAttribute("type") === "password";
-      adminPassword.setAttribute("type", isPassword ? "text" : "password");
-      var eyeOn = document.querySelector(".admin__eye-icon");
-      var eyeOff = document.querySelector(".admin__eye-off-icon");
-      if (eyeOn) eyeOn.style.display = isPassword ? "none" : "block";
-      if (eyeOff) eyeOff.style.display = isPassword ? "block" : "none";
-      adminPasswordToggle.setAttribute(
-        "aria-label",
-        isPassword ? "Hide password" : "Show password"
-      );
-    });
+  function renderSeasonal() {
+    /* no-op: pricing rules UI replaced seasonal list; kept for init compatibility */
   }
 
   // ─── Base prices ─────────────────────────────────────────────────────────────
@@ -341,105 +361,172 @@
     });
   }
 
-  // ─── Seasonal pricing ─────────────────────────────────────────────────────────
-  if (addSeasonalBtn) {
-    addSeasonalBtn.addEventListener("click", function () {
-      var roomEl = document.getElementById("seasonRoom");
-      var fromEl = document.getElementById("seasonFrom");
-      var toEl = document.getElementById("seasonTo");
-      var priceEl = document.getElementById("seasonPrice");
-      var reasonEl = document.getElementById("seasonReason");
-
-      var fromVal = fromEl ? fromEl.value : "";
-      var toVal = toEl ? toEl.value : "";
-      var priceVal = priceEl ? Number(priceEl.value) : 0;
-      var reasonVal = reasonEl ? reasonEl.value.trim() : "";
-
-      if (!fromVal || !toVal) {
-        setMsg(seasonalMsg, "Please set from and to dates.", true);
-        return;
-      }
-      if (fromVal >= toVal) {
-        setMsg(seasonalMsg, "From date must be before to date.", true);
-        return;
-      }
-      if (!priceVal || priceVal <= 0) {
-        setMsg(seasonalMsg, "Please enter a valid price.", true);
-        return;
-      }
-
-      var entry = {
-        roomId: roomEl ? roomEl.value : "R1",
-        from: fromVal,
-        to: toVal,
-        pricePerNight: priceVal,
-        reason: reasonVal || "Seasonal",
-      };
-
-      // Send to backend
-      apiPost("/api/admin/seasonal-price", entry)
-        .then(function (r) {
-          if (r.ok) {
-            seasonalPrices.push(entry);
-            setMsg(seasonalMsg, "Seasonal price added.", false);
-            renderSeasonal();
-            if (fromEl) fromEl.value = "";
-            if (toEl) toEl.value = "";
-            if (priceEl) priceEl.value = "";
-            if (reasonEl) reasonEl.value = "";
-          } else {
-            setMsg(
-              seasonalMsg,
-              (r.data && r.data.message) || "Failed to add.",
-              true
-            );
-          }
-        })
-        .catch(function () {
-          setMsg(seasonalMsg, "Network error. Could not add.", true);
-        });
-    });
+  // ─── Pricing Rules (anudinakuteera-style) ─────────────────────────────────────
+  function loadPricingRules() {
+    apiGet("/api/admin/seasonal-price")
+      .then(function (r) {
+        seasonalPrices = (r.data && r.data.data) || [];
+        renderPricingRulesTable();
+      })
+      .catch(function () {
+        seasonalPrices = [];
+        renderPricingRulesTable();
+      });
   }
 
-  function renderSeasonal() {
-    if (!seasonalList) return;
+  function renderPricingRulesTable() {
+    if (!pricingRulesBody || !pricingRulesEmpty || !pricingRulesTable) return;
     if (seasonalPrices.length === 0) {
-      seasonalList.innerHTML =
-        '<p class="admin__empty">No seasonal pricing added yet.</p>';
+      pricingRulesTable.style.display = "none";
+      pricingRulesEmpty.style.display = "block";
       return;
     }
-    seasonalList.innerHTML = seasonalPrices
-      .map(function (s, i) {
+    pricingRulesEmpty.style.display = "none";
+    pricingRulesTable.style.display = "table";
+    var fromStr = function (d) {
+      if (!d) return "—";
+      var x = typeof d === "string" ? d : (d.toISOString ? d.toISOString().slice(0, 10) : "");
+      return x;
+    };
+    pricingRulesBody.innerHTML = seasonalPrices
+      .map(function (rule) {
+        var id = rule._id || rule.id;
+        var from = fromStr(rule.from);
+        var to = fromStr(rule.to);
+        var roomName = roomList.find(function (r) { return r.id === rule.roomId; });
+        var appliesTo = roomName ? rule.roomId + " — " + roomName.name : rule.roomId;
         return (
-          '<div class="admin__season-item">' +
-          "<span>" +
-          s.roomId +
-          " · " +
-          s.from +
-          " – " +
-          s.to +
-          " · ₹" +
-          s.pricePerNight +
-          "/night" +
-          (s.reason ? " <em>(" + s.reason + ")</em>" : "") +
-          "</span>" +
-          '<button type="button" class="btn btn--outline btn--sm" data-season-index="' +
-          i +
-          '">Remove</button>' +
-          "</div>"
+          "<tr>" +
+          "<td>" + (rule.reason || "—") + "</td>" +
+          "<td>" + appliesTo + "</td>" +
+          "<td>" + from + " – " + to + "</td>" +
+          "<td>₹" + (rule.pricePerNight != null ? rule.pricePerNight : "—") + " / night</td>" +
+          "<td>—</td>" +
+          "<td>0</td>" +
+          "<td>Active</td>" +
+          '<td><button type="button" class="btn btn--ghost btn--sm admin__rule-remove" data-rule-id="' + (id || "") + '">Remove</button></td>' +
+          "</tr>"
         );
       })
       .join("");
 
-    seasonalList
-      .querySelectorAll("[data-season-index]")
-      .forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          var idx = parseInt(btn.getAttribute("data-season-index"), 10);
-          seasonalPrices.splice(idx, 1);
-          renderSeasonal();
-        });
+    pricingRulesBody.querySelectorAll(".admin__rule-remove").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var ruleId = btn.getAttribute("data-rule-id");
+        if (!ruleId) return;
+        apiDelete("/api/admin/seasonal-price/" + ruleId)
+          .then(function (res) {
+            if (res.ok) loadPricingRules();
+          })
+          .catch(function () { loadPricingRules(); });
       });
+    });
+  }
+
+  function openPricingRuleModal() {
+    if (addPricingRuleModal) {
+      addPricingRuleModal.style.display = "flex";
+      addPricingRuleModal.setAttribute("aria-hidden", "false");
+    }
+  }
+
+  function closePricingRuleModal() {
+    if (addPricingRuleModal) {
+      addPricingRuleModal.style.display = "none";
+      addPricingRuleModal.setAttribute("aria-hidden", "true");
+    }
+  }
+
+  if (addPricingRuleBtn) {
+    addPricingRuleBtn.addEventListener("click", openPricingRuleModal);
+  }
+  if (addPricingRuleClose) {
+    addPricingRuleClose.addEventListener("click", closePricingRuleModal);
+  }
+  if (addPricingRuleCancel) {
+    addPricingRuleCancel.addEventListener("click", closePricingRuleModal);
+  }
+  if (addPricingRuleModal) {
+    addPricingRuleModal.addEventListener("click", function (e) {
+      if (e.target === addPricingRuleModal) closePricingRuleModal();
+    });
+  }
+
+  if (rulePriority && rulePrioritySlider) {
+    rulePrioritySlider.addEventListener("input", function () {
+      rulePriority.value = rulePrioritySlider.value;
+    });
+    rulePriority.addEventListener("input", function () {
+      var v = parseInt(rulePriority.value, 10);
+      if (!isNaN(v)) rulePrioritySlider.value = Math.min(10, Math.max(0, v));
+    });
+  }
+
+  if (addPricingRuleForm) {
+    addPricingRuleForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var nameVal = ruleName ? ruleName.value.trim() : "";
+      var startVal = ruleStartDate ? ruleStartDate.value : "";
+      var endVal = ruleEndDate ? ruleEndDate.value : "";
+      var appliesVal = ruleAppliesTo ? ruleAppliesTo.value : "R1";
+      var modType = ruleModifierType ? ruleModifierType.value : "fixed";
+      var modVal = ruleModifierValue ? Number(ruleModifierValue.value) : 0;
+
+      var formMsg = document.getElementById("addRuleFormMsg");
+      if (!nameVal) {
+        setMsg(formMsg, "Rule name is required.", true);
+        if (formMsg) formMsg.style.display = "block";
+        return;
+      }
+      if (!startVal || !endVal) {
+        setMsg(formMsg, "Start and end dates are required.", true);
+        if (formMsg) formMsg.style.display = "block";
+        return;
+      }
+      if (startVal >= endVal) {
+        setMsg(formMsg, "Start date must be before end date.", true);
+        if (formMsg) formMsg.style.display = "block";
+        return;
+      }
+      var pricePerNight = modType === "percentage" ? 0 : modVal;
+      if (pricePerNight <= 0 && modType === "fixed") {
+        setMsg(formMsg, "Please enter a valid price.", true);
+        if (formMsg) formMsg.style.display = "block";
+        return;
+      }
+      if (modType === "percentage") {
+        setMsg(formMsg, "Percentage modifier is not supported yet. Use Fixed price.", true);
+        if (formMsg) formMsg.style.display = "block";
+        return;
+      }
+
+      var payload = {
+        roomId: appliesVal,
+        reason: nameVal,
+        from: startVal,
+        to: endVal,
+        pricePerNight: pricePerNight,
+      };
+
+      setMsg(formMsg, "", false);
+      apiPost("/api/admin/seasonal-price", payload)
+        .then(function (r) {
+          if (r.ok) {
+            closePricingRuleModal();
+            loadPricingRules();
+            addPricingRuleForm.reset();
+            if (rulePriority) rulePriority.value = "0";
+            if (rulePrioritySlider) rulePrioritySlider.value = "0";
+          } else {
+            setMsg(formMsg, (r.data && r.data.message) || "Failed to add rule.", true);
+            if (formMsg) formMsg.style.display = "block";
+          }
+        })
+        .catch(function () {
+          setMsg(formMsg, "Network error. Could not add rule.", true);
+          if (formMsg) formMsg.style.display = "block";
+        });
+    });
   }
 
   // ─── Block dates ─────────────────────────────────────────────────────────────
@@ -459,28 +546,32 @@
 
   function renderBlockDates() {
     if (!blockDatesList) return;
-    if (blockedDatesList.length === 0) {
+    var filterRoom = blockDatesFilterRoom ? blockDatesFilterRoom.value : "";
+    var list = filterRoom
+      ? blockedDatesList.filter(function (b) { return (b.roomId || "") === filterRoom; })
+      : blockedDatesList;
+
+    if (list.length === 0) {
       blockDatesList.innerHTML =
-        '<p class="admin__empty">No blocked dates. Add a block to make a room unavailable for specific dates.</p>';
+        '<p class="admin__empty admin__blocked-empty">' +
+        (blockedDatesList.length === 0
+          ? "No blocked dates. Add a block to make a room unavailable for specific dates."
+          : "No blocked dates for the selected room.") +
+        "</p>";
       return;
     }
-    blockDatesList.innerHTML = blockedDatesList
+
+    blockDatesList.innerHTML = list
       .map(function (b) {
         var fromStr = b.from ? b.from.toString().slice(0, 10) : "";
         var toStr = b.to ? b.to.toString().slice(0, 10) : "";
         var id = (b._id || b.id || "").toString();
+        var roomName = roomList.find(function (r) { return r.id === b.roomId; });
+        var roomLabel = roomName ? b.roomId + " — " + roomName.name : b.roomId;
         return (
-          '<div class="admin__season-item">' +
-          "<span>" +
-          (b.roomId || "") +
-          " · " +
-          fromStr +
-          " – " +
-          toStr +
-          "</span>" +
-          '<button type="button" class="btn btn--outline btn--sm" data-block-id="' +
-          escapeHtml(id) +
-          '">Remove</button>' +
+          '<div class="admin__blocked-item">' +
+          '<span class="admin__blocked-item-text">' + roomLabel + " · " + fromStr + " – " + toStr + "</span>" +
+          '<button type="button" class="btn admin__btn-remove-block" data-block-id="' + escapeHtml(id) + '">Remove</button>' +
           "</div>"
         );
       })
@@ -493,22 +584,22 @@
         apiDelete("/api/admin/block-dates/" + id).then(function (r) {
           if (r.ok) {
             blockedDatesList = blockedDatesList.filter(
-              function (b) {
-                return (b._id || b.id || "").toString() !== id;
-              }
+              function (b) { return (b._id || b.id || "").toString() !== id; }
             );
             renderBlockDates();
             refreshStats();
             setMsg(blockDatesMsg, "Block removed.", false);
           } else {
-            setMsg(
-              blockDatesMsg,
-              (r.data && r.data.message) || "Failed to remove block.",
-              true
-            );
+            setMsg(blockDatesMsg, (r.data && r.data.message) || "Failed to remove block.", true);
           }
         });
       });
+    });
+  }
+
+  if (blockDatesFilterRoom) {
+    blockDatesFilterRoom.addEventListener("change", function () {
+      renderBlockDates();
     });
   }
 
@@ -541,6 +632,7 @@
             setMsg(blockDatesMsg, "Dates blocked successfully.", false);
             if (blockFrom) blockFrom.value = "";
             if (blockTo) blockTo.value = "";
+            if (blockReason) blockReason.value = "";
           } else {
             setMsg(
               blockDatesMsg,
@@ -578,6 +670,25 @@
         "<tr><td colspan='9' style='text-align:center;padding:1.5rem;color:#a89878;'>Loading…</td></tr>";
     if (bookingsEmpty) bookingsEmpty.style.display = "none";
 
+    var statusFilter = filterStatus ? filterStatus.value : "";
+    if (statusFilter === "blocked") {
+      apiGet("/api/admin/block-dates")
+        .then(function (r) {
+          var list = (r.data && r.data.data) || [];
+          blockedDatesList = list;
+          renderBlockedDatesInBookingsTable(list);
+          refreshStats();
+        })
+        .catch(function () {
+          if (bookingsEmpty) {
+            bookingsEmpty.querySelector("p").textContent = "Could not load blocked dates.";
+            bookingsEmpty.style.display = "block";
+          }
+          if (bookingsBody) bookingsBody.innerHTML = "";
+        });
+      return;
+    }
+
     apiGet(buildBookingsUrl())
       .then(function (r) {
         var list = (r.data && r.data.data) || [];
@@ -587,11 +698,64 @@
       })
       .catch(function () {
         if (bookingsEmpty) {
-          bookingsEmpty.textContent = "Could not load bookings.";
+          bookingsEmpty.querySelector("p").textContent = "Could not load bookings.";
           bookingsEmpty.style.display = "block";
         }
         if (bookingsBody) bookingsBody.innerHTML = "";
       });
+  }
+
+  function renderBlockedDatesInBookingsTable(blockedList) {
+    if (!bookingsBody) return;
+    if (blockedList.length === 0) {
+      if (bookingsEmpty) {
+        bookingsEmpty.querySelector("p").textContent = "No blocked dates.";
+        if (bookingsEmpty.querySelector(".admin__empty-hint"))
+          bookingsEmpty.querySelector(".admin__empty-hint").textContent = "Block dates from the Block Dates tab.";
+        bookingsEmpty.style.display = "block";
+      }
+      bookingsBody.innerHTML = "";
+      return;
+    }
+    if (bookingsEmpty) bookingsEmpty.style.display = "none";
+
+    bookingsBody.innerHTML = blockedList
+      .map(function (b) {
+        var fromStr = b.from ? b.from.toString().slice(0, 10) : "";
+        var toStr = b.to ? b.to.toString().slice(0, 10) : "";
+        var id = (b._id || b.id || "").toString();
+        var roomName = roomList.find(function (r) { return r.id === b.roomId; });
+        var roomsSummary = roomName ? b.roomId + " — " + roomName.name : (b.roomId || "—");
+        return (
+          "<tr data-block-id='" + escapeHtml(id) + "'>" +
+          "<td><span class='admin__guest-name'>Blocked</span></td>" +
+          "<td>—</td>" +
+          "<td>" + escapeHtml(roomsSummary) + "</td>" +
+          "<td>—</td>" +
+          "<td>" + escapeHtml(fromStr) + "</td>" +
+          "<td>" + escapeHtml(toStr) + "</td>" +
+          "<td>—</td>" +
+          "<td class='admin__status-cell'><span class='admin__badge admin__badge--blocked'>Blocked</span></td>" +
+          "<td class='admin__edit-cell'>" +
+          "<button type='button' class='btn admin__btn-unblock' data-block-id='" + escapeHtml(id) + "'>Unblock</button>" +
+          "</td>" +
+          "</tr>"
+        );
+      })
+      .join("");
+
+    bookingsBody.querySelectorAll(".admin__btn-unblock").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var id = btn.getAttribute("data-block-id");
+        if (!id) return;
+        apiDelete("/api/admin/block-dates/" + id).then(function (r) {
+          if (r.ok) {
+            loadBookings();
+            refreshStats();
+          }
+        });
+      });
+    });
   }
 
   if (applyFilterBtn) applyFilterBtn.addEventListener("click", loadBookings);
@@ -950,6 +1114,9 @@
           "<button type='button' class='btn btn--ghost btn--sm admin__edit-btn' data-booking-id='" +
           id +
           "'>Edit</button>" +
+          (currentStatus === "cancelled"
+            ? " <button type='button' class='btn admin__btn-delete-permanent' data-booking-id='" + id + "' aria-label='Delete permanently' title='Delete permanently'><span class='admin__icon-trash' aria-hidden='true'></span></button>"
+            : "") +
           "<div class='admin__edit-panel' id='editPanel-" +
           id +
           "' style='display:none;'>" +
@@ -1035,6 +1202,42 @@
                   msgEl.textContent = "✓ Saved";
                   msgEl.className = "admin__inline-msg admin__inline-msg--ok";
                 }
+                var editCell = badge && badge.closest("tr") && badge.closest("tr").querySelector(".admin__edit-cell");
+                if (status !== "cancelled" && editCell) {
+                  var existingDelete = editCell.querySelector(".admin__btn-delete-permanent");
+                  if (existingDelete) existingDelete.remove();
+                }
+                if (status === "cancelled" && editCell && !editCell.querySelector(".admin__btn-delete-permanent")) {
+                    var deleteBtn = document.createElement("button");
+                    deleteBtn.type = "button";
+                    deleteBtn.className = "btn admin__btn-delete-permanent";
+                    deleteBtn.setAttribute("data-booking-id", id);
+                    deleteBtn.setAttribute("aria-label", "Delete permanently");
+                    deleteBtn.setAttribute("title", "Delete permanently");
+                    var trashSpan = document.createElement("span");
+                    trashSpan.className = "admin__icon-trash";
+                    trashSpan.setAttribute("aria-hidden", "true");
+                    deleteBtn.appendChild(trashSpan);
+                    deleteBtn.style.marginLeft = "0.5rem";
+                    editCell.insertBefore(deleteBtn, editCell.querySelector(".admin__edit-panel"));
+                    deleteBtn.addEventListener("click", function () {
+                      if (!id) return;
+                      if (!window.confirm("Are you sure you want to delete this cancelled booking permanently? This cannot be undone.")) return;
+                      apiDelete("/api/admin/bookings/" + id).then(function (res) {
+                        if (res.ok) {
+                          var row = bookingsBody.querySelector("tr[data-booking-id='" + id + "']");
+                          if (row) row.remove();
+                          bookingsCache = bookingsCache.filter(function (b) {
+                            return (b._id || b.id || "").toString() !== id;
+                          });
+                          refreshStats();
+                          if (bookingsBody.querySelectorAll("tr").length === 0 && bookingsEmpty) {
+                            bookingsEmpty.style.display = "block";
+                          }
+                        }
+                      });
+                    });
+                  }
                 setTimeout(function () {
                   var panel = document.getElementById("editPanel-" + id);
                   var editBtn = bookingsBody.querySelector(
@@ -1062,6 +1265,28 @@
             });
         });
       });
+
+    // Delete permanently (cancelled bookings only) — confirm before delete
+    bookingsBody.querySelectorAll(".admin__btn-delete-permanent").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var id = btn.getAttribute("data-booking-id");
+        if (!id) return;
+        if (!window.confirm("Are you sure you want to delete this cancelled booking permanently? This cannot be undone.")) return;
+        apiDelete("/api/admin/bookings/" + id).then(function (res) {
+          if (res.ok) {
+            var row = bookingsBody.querySelector("tr[data-booking-id='" + id + "']");
+            if (row) row.remove();
+            bookingsCache = bookingsCache.filter(function (b) {
+              return (b._id || b.id || "").toString() !== id;
+            });
+            refreshStats();
+            if (bookingsBody.querySelectorAll("tr").length === 0 && bookingsEmpty) {
+              bookingsEmpty.style.display = "block";
+            }
+          }
+        });
+      });
+    });
   }
 
   // ─── Utility ──────────────────────────────────────────────────────────────────
@@ -1072,56 +1297,86 @@
     return d.innerHTML;
   }
 
-  // ─── Event listeners ──────────────────────────────────────────────────────────
-  if (adminLoginForm) {
-    adminLoginForm.addEventListener("submit", function (e) {
-      e.preventDefault();
-      doLogin();
-    });
+  // ─── Auth UI: bind after DOM is ready so login and password toggle always work ───
+  function attachAuthHandlers() {
+    var loginForm = document.getElementById("adminLoginForm");
+    var loginBtn = document.getElementById("adminLoginBtn");
+    var pwToggle = document.getElementById("adminPasswordToggle");
+    var pwInput = document.getElementById("adminPassword");
+    var otpForm = document.getElementById("adminOtpForm");
+
+    if (loginForm) {
+      loginForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        doLogin();
+      });
+    }
+    if (loginBtn) {
+      loginBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        doLogin();
+      });
+    }
+    if (pwToggle && pwInput) {
+      pwToggle.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var isPw = pwInput.getAttribute("type") === "password";
+        pwInput.setAttribute("type", isPw ? "text" : "password");
+        var wrap = pwToggle.closest(".admin__password-wrap");
+        if (wrap) {
+          var eyeOn = wrap.querySelector(".admin__eye-icon");
+          var eyeOff = wrap.querySelector(".admin__eye-off-icon");
+          if (eyeOn) eyeOn.style.display = isPw ? "none" : "block";
+          if (eyeOff) eyeOff.style.display = isPw ? "block" : "none";
+        }
+        pwToggle.setAttribute("aria-label", isPw ? "Hide password" : "Show password");
+      });
+    }
+    if (otpForm) {
+      otpForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        doVerifyOtp();
+      });
+    }
+
+    var retryBtn = document.getElementById("adminRetryBtn");
+    var logoutBtn = document.getElementById("adminLogoutBtn");
+    if (retryBtn) retryBtn.addEventListener("click", function () { showView("adminLogin"); });
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", function () {
+        apiPost("/api/admin/logout", {})
+          .then(function () { loggedInUsername = ""; showView("adminLogin"); })
+          .catch(function () { loggedInUsername = ""; showView("adminLogin"); });
+      });
+    }
   }
 
-  if (adminOtpForm) {
-    adminOtpForm.addEventListener("submit", function (e) {
-      e.preventDefault();
-      doVerifyOtp();
-    });
-  }
-
-  if (adminRetryBtn) {
-    adminRetryBtn.addEventListener("click", function () {
-      showView("adminLogin");
-    });
-  }
-
-  if (adminLogoutBtn) {
-    adminLogoutBtn.addEventListener("click", function () {
-      apiPost("/api/admin/logout", {})
-        .then(function (r) {
-          loggedInUsername = "";
+  function runInit() {
+    fetch("/api/admin/bookings", { credentials: "include" })
+      .then(function (res) {
+        if (res.ok) {
+          showView("adminDashboard");
+          renderBasePrices();
+          renderSeasonal();
+          loadBlockDates();
+          loadBookings();
+        } else {
           showView("adminLogin");
-        })
-        .catch(function () {
-          loggedInUsername = "";
-          showView("adminLogin");
-        });
-    });
-  }
-
-  // ─── Init ────────────────────────────────────────────────────────────────────
-  // ─── Init ────────────────────────────────────────────────────────────────────
-  fetch("/api/admin/bookings", { credentials: "include" })
-    .then(function (res) {
-      if (res.ok) {
-        showView("adminDashboard");
-        renderBasePrices();
-        renderSeasonal();
-        loadBlockDates();
-        loadBookings();
-      } else {
+        }
+      })
+      .catch(function () {
         showView("adminLogin");
-      }
-    })
-    .catch(function () {
-      showView("adminLogin");
+      });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function () {
+      attachAuthHandlers();
+      runInit();
     });
+  } else {
+    attachAuthHandlers();
+    runInit();
+  }
 })();
