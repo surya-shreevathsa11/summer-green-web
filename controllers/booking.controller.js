@@ -97,7 +97,7 @@ export const checkAvailability = async (booking) => {
     const isBlocked = await BlockedDate.findOne({
       roomId,
       from: { $lt: checkOut },
-      to: { $gte: checkIn },
+      to: { $gt: checkIn },
     });
 
     if (isBlocked) {
