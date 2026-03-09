@@ -37,6 +37,9 @@ app.use(express.static(path.join(__dirname, "public")));
 app.get("/cart", (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "cart.html"));
 });
+app.get("/admin", (_req, res) => {
+  res.sendFile(path.join(__dirname, "public", "admin.html"));
+});
 
 app.use(
   session({
