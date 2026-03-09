@@ -40,6 +40,9 @@ app.get("/cart", (_req, res) => {
 app.get("/admin", (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "admin.html"));
 });
+app.get("/reviews", (_req, res) => {
+  res.sendFile(path.join(__dirname, "public", "reviews.html"));
+});
 
 app.use(
   session({

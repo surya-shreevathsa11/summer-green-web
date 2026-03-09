@@ -1,18 +1,6 @@
 (function () {
   let currentUser = null;
 
-  /* Room cover images: 1st–5th and extras for more rooms */
-  const roomCoverImages = [
-    "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1600&h=1200&q=80",
-    "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1600&h=1200&q=80",
-    "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=1600&h=1200&q=80",
-    "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=1600&h=1200&q=80",
-    "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1600&h=1200&q=80",
-    "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1600&h=1200&q=80",
-    "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1600&h=1200&q=80",
-    "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=1600&h=1200&q=80",
-  ];
-
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => document.querySelectorAll(sel);
 
@@ -473,7 +461,7 @@
             const imgSrc =
               room.images && room.images.banner
                 ? room.images.banner
-                : roomCoverImages[idx % roomCoverImages.length];
+                : "/img/summary%20green.jpeg";
             const galleryOnly = [];
             if (room.images && room.images.gallery && room.images.gallery.length)
               galleryOnly.push(...room.images.gallery);
