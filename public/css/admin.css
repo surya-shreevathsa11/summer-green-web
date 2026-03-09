@@ -692,12 +692,77 @@ body.admin--dashboard .admin__season-form .form__group {
   font-style: italic;
 }
 
+/* ── Bookings list (All Bookings) ───────────────────────────────────────────── */
+.admin__section--bookings {
+  padding-top: 0.5rem;
+}
+
+.admin__bookings-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(20, 33, 61, 0.1);
+}
+
+.admin__bookings-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-family: "Cormorant Garamond", serif;
+  font-weight: 600;
+  color: var(--color-obsidian, #14213d);
+}
+
+.admin__bookings-filters {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.admin__filter-inline {
+  margin-bottom: 0;
+  min-width: 140px;
+}
+
+.admin__filter-inline label {
+  display: block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-obsidian, #14213d);
+  opacity: 0.8;
+  margin-bottom: 0.35rem;
+}
+
+.admin__empty--bookings {
+  padding: 2.5rem 1.5rem;
+  border-radius: 0.75rem;
+  background: rgba(20, 33, 61, 0.03);
+  border: 1px dashed rgba(20, 33, 61, 0.15);
+}
+
+.admin__empty--bookings p {
+  margin: 0 0 0.5rem 0;
+  color: var(--color-obsidian, #14213d);
+  opacity: 0.85;
+}
+
+.admin__empty-hint {
+  font-size: 0.85rem !important;
+  opacity: 0.65 !important;
+}
+
 /* ── Bookings table ───────────────────────────────────────────────────────── */
 .admin__table-wrap {
   overflow-x: auto;
-  border-radius: 8px;
-  border: 1px solid #e8e0d0;
+  border-radius: 10px;
+  border: 1px solid rgba(20, 33, 61, 0.12);
   min-width: 0;
+  box-shadow: 0 1px 4px rgba(20, 33, 61, 0.04);
 }
 
 .admin__table {
@@ -706,69 +771,138 @@ body.admin--dashboard .admin__season-form .form__group {
   font-size: 0.875rem;
 }
 
+.admin__table--bookings thead tr {
+  background: rgba(20, 33, 61, 0.06);
+}
+
 .admin__table th {
   text-align: left;
-  padding: 0.7rem 1rem;
-  background: #faf8f4;
-  color: #a89878;
-  font-weight: 500;
+  padding: 0.85rem 1rem;
+  color: var(--color-obsidian, #14213d);
+  font-weight: 600;
   font-size: 0.72rem;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  border-bottom: 1px solid #e8e0d0;
+  border-bottom: 2px solid rgba(20, 33, 61, 0.12);
+}
+
+.admin__th-actions {
+  text-align: right;
+  white-space: nowrap;
 }
 
 .admin__table td {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid #f0e8da;
-  color: #2c2416;
-  vertical-align: top;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(20, 33, 61, 0.06);
+  color: var(--color-obsidian, #14213d);
+  vertical-align: middle;
   line-height: 1.5;
+}
+
+.admin__table--bookings tbody tr {
+  transition: background 0.15s ease;
+}
+
+.admin__table--bookings tbody tr:hover td {
+  background: rgba(252, 163, 17, 0.05);
 }
 
 .admin__table tr:last-child td {
   border-bottom: none;
 }
-.admin__table tr:hover td {
-  background: #fdf9f4;
-}
 
 .admin__table small {
-  color: #a89878;
-  font-size: 0.78rem;
+  color: var(--color-obsidian, #14213d);
+  opacity: 0.75;
+  font-size: 0.8rem;
 }
+
 .admin__paid {
-  color: #6a8a5a !important;
+  color: #2d6a2d !important;
+  font-weight: 500;
+}
+
+/* Guest cell: name prominent, email secondary */
+.admin__table--bookings td:first-child {
+  font-weight: 500;
+}
+
+.admin__table--bookings td:first-child small {
+  display: block;
+  margin-top: 0.2rem;
+  font-weight: 400;
+}
+
+.admin__guest-name {
+  font-weight: 600;
+  color: var(--color-obsidian, #14213d);
 }
 
 /* Status badges */
 .admin__badge {
   display: inline-block;
-  padding: 0.2rem 0.6rem;
-  border-radius: 99px;
-  font-size: 0.72rem;
-  font-weight: 500;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   background: #f0e8da;
-  color: #8a7a5a;
+  color: #6a5a4a;
 }
 
 .admin__badge--confirmed {
-  background: #eaf5e8;
-  color: #3a7a3a;
+  background: #e2f0e2;
+  color: #2d6a2d;
 }
+
 .admin__badge--pending {
-  background: #fef9ec;
+  background: #fef5e0;
   color: #a07a20;
 }
+
 .admin__badge--cancelled {
-  background: #fdecea;
+  background: #fde8e8;
   color: #a03a2a;
 }
+
 .admin__badge--blocked {
-  background: #eeeef5;
-  color: #5a5a8a;
+  background: #e8eaf0;
+  color: #4a4a6a;
+}
+
+/* Actions column: Edit + edit panel */
+.admin__edit-cell {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.admin__edit-btn {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 6px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.admin__edit-panel {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.admin__edit-panel .admin__status-select {
+  min-width: 110px;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+.admin__status-save {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .admin__empty {
@@ -910,6 +1044,13 @@ body.admin--dashboard .admin__season-form .form__group {
   body.admin--dashboard .admin__section {
     margin-bottom: 2.5rem;
     padding-bottom: 2rem;
+  }
+  .admin__bookings-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .admin__bookings-filters {
+    width: 100%;
   }
 }
 @media (max-width: 720px) {

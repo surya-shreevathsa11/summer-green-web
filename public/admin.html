@@ -189,51 +189,53 @@
           </nav>
 
           <div id="tabContentBookings" class="admin__tab-content active" role="tabpanel">
-            <section class="admin__section">
-              <h2>All Bookings</h2>
-              <div class="admin__filter-bar">
-                <div class="form__group">
-                  <label for="filterStatus">Status</label>
-                  <select id="filterStatus">
-                    <option value="">All statuses</option>
-                    <option value="pending">Pending</option>
-                    <option value="confirmed">Confirmed</option>
-                    <option value="cancelled">Cancelled</option>
-                    <option value="blocked">Blocked</option>
-                  </select>
-                </div>
-                <div class="form__group">
-                  <label for="filterUpcoming">Show</label>
-                  <select id="filterUpcoming">
-                    <option value="">All bookings</option>
-                    <option value="true">Upcoming only</option>
-                  </select>
-                </div>
-                <div class="form__group form__group--action">
+            <section class="admin__section admin__section--bookings">
+              <div class="admin__bookings-header">
+                <h2 class="admin__bookings-title">All Bookings</h2>
+                <div class="admin__bookings-filters">
+                  <div class="form__group admin__filter-inline">
+                    <label for="filterStatus">Status</label>
+                    <select id="filterStatus">
+                      <option value="">All statuses</option>
+                      <option value="pending">Pending</option>
+                      <option value="confirmed">Confirmed</option>
+                      <option value="cancelled">Cancelled</option>
+                      <option value="blocked">Blocked</option>
+                    </select>
+                  </div>
+                  <div class="form__group admin__filter-inline">
+                    <label for="filterUpcoming">Show</label>
+                    <select id="filterUpcoming">
+                      <option value="">All bookings</option>
+                      <option value="true">Upcoming only</option>
+                    </select>
+                  </div>
                   <button type="button" class="btn btn--outline btn--sm" id="applyFilterBtn">Apply</button>
-                </div>
-                <div class="form__group form__group--action">
                   <button type="button" class="btn btn--ghost btn--sm" id="clearFilterBtn">Clear</button>
                 </div>
               </div>
               <div class="admin__table-wrap">
-                <table class="admin__table" id="bookingsTable">
+                <table class="admin__table admin__table--bookings" id="bookingsTable">
                   <thead>
                     <tr>
                       <th>Guest</th>
                       <th>Phone</th>
                       <th>Rooms</th>
+                      <th>Guests</th>
                       <th>Check-in</th>
                       <th>Check-out</th>
                       <th>Amount</th>
                       <th>Status</th>
-                      <th></th>
+                      <th class="admin__th-actions">Actions</th>
                     </tr>
                   </thead>
                   <tbody id="bookingsBody"></tbody>
                 </table>
               </div>
-              <div class="admin__empty" id="bookingsEmpty" style="display: none">No bookings found.</div>
+              <div class="admin__empty admin__empty--bookings" id="bookingsEmpty" style="display: none">
+                <p>No bookings found.</p>
+                <p class="admin__empty-hint">Try changing the status or date filter.</p>
+              </div>
             </section>
           </div>
 

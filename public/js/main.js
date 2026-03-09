@@ -33,31 +33,34 @@
     });
   }
 
-  // --- Smooth scroll for nav links (except Rooms which opens full-screen modal) ---
+  // --- Smooth scroll for nav links (Rooms and other # anchors scroll to section; page stays scrollable) ---
+  function scrollToSection(selector, offset) {
+    var el = typeof selector === "string" ? $(selector) : selector;
+    if (!el) return;
+    var lenis = typeof window.getLenis === "function" ? window.getLenis() : null;
+    if (lenis && typeof lenis.scrollTo === "function") {
+      lenis.scrollTo(el, { offset: offset != null ? offset : -80, duration: 1.2 });
+    } else {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
   $$(
     ".nav__links a, .hero .btn, .footer__links a, .section__actions a",
   ).forEach((link) => {
     link.addEventListener("click", (e) => {
-      if (
-        link.id === "navRoomsLink" ||
-        (link.getAttribute("href") === "#rooms" && link.closest(".nav__links"))
-      ) {
+      const href = link.getAttribute("href");
+      if (href === "#rooms") {
         e.preventDefault();
-        var modalGrid = $("#roomsModalGrid");
-        var mainGrid = $("#roomsGrid");
-        if (modalGrid && mainGrid && mainGrid.innerHTML) {
-          modalGrid.innerHTML = mainGrid.innerHTML;
-          updateRoomCartButtons();
-        }
-        openModal("#roomsModal");
-        $("#navLinks").classList.remove("open");
+        scrollToSection("#rooms", -80);
+        var navLinks = $("#navLinks");
+        if (navLinks) navLinks.classList.remove("open");
         return;
       }
-      const href = link.getAttribute("href");
       if (href && href.startsWith("#")) {
         e.preventDefault();
         const target = $(href);
-        if (target) target.scrollIntoView({ behavior: "smooth" });
+        if (target) scrollToSection(target, -80);
         $("#navLinks").classList.remove("open");
       }
     });
@@ -310,10 +313,12 @@
   }
   const navProfileBookings = $("#navProfileBookings");
   if (navProfileBookings) {
-    navProfileBookings.addEventListener("click", () => {
+    navProfileBookings.addEventListener("click", (e) => {
       if (navProfileDropdown) navProfileDropdown.classList.remove("is-open");
       const navLinks = $("#navLinks");
       if (navLinks) navLinks.classList.remove("open");
+      e.preventDefault();
+      window.location.href = "/cart";
     });
   }
 
@@ -580,6 +585,10 @@
       "h1, h2, h3, h4, h5, h6, p, .hero__title, .hero__subtitle, .hero__desc, .section__title, .section__subtitle";
     var hoverSelector =
       'a, button, .btn, input, textarea, [role="button"], .room-card, .gallery__item';
+    var headerSelector = ".nav, .admin__header";
+    function isOverHeader(el) {
+      return el && el.closest && el.closest(headerSelector);
+    }
     document.addEventListener("mouseover", (e) => {
       const target =
         e.target && e.target.closest && e.target.closest(hoverSelector);
@@ -587,6 +596,7 @@
         e.target && e.target.closest && e.target.closest(textSelector);
       hovering = Boolean(target);
       container.classList.toggle("is-hover-text", Boolean(textEl));
+      container.classList.toggle("is-over-header", isOverHeader(e.target));
       if (activeHoverEl && activeHoverEl !== target) {
         activeHoverEl.classList.remove("cursor-target");
       }
@@ -601,6 +611,7 @@
       if (!e.relatedTarget) {
         hovering = false;
         container.classList.remove("is-hover-text");
+        container.classList.remove("is-over-header");
         if (activeHoverEl) activeHoverEl.classList.remove("cursor-target");
         activeHoverEl = null;
         updateClasses();
@@ -612,6 +623,7 @@
         e.relatedTarget.closest && e.relatedTarget.closest(textSelector);
       hovering = Boolean(stillHover);
       container.classList.toggle("is-hover-text", Boolean(stillText));
+      container.classList.toggle("is-over-header", isOverHeader(e.relatedTarget));
       if (!hovering && activeHoverEl) {
         activeHoverEl.classList.remove("cursor-target");
         activeHoverEl = null;

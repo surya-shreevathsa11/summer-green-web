@@ -571,7 +571,7 @@
   function loadBookings() {
     if (bookingsBody)
       bookingsBody.innerHTML =
-        "<tr><td colspan='8' style='text-align:center;padding:1.5rem;color:#a89878;'>Loading…</td></tr>";
+        "<tr><td colspan='9' style='text-align:center;padding:1.5rem;color:#a89878;'>Loading…</td></tr>";
     if (bookingsEmpty) bookingsEmpty.style.display = "none";
 
     apiGet(buildBookingsUrl())
@@ -631,6 +631,9 @@
             return r.roomName || r.roomId || "—";
           })
           .join(", ");
+        var totalAdults = rooms.reduce(function (sum, r) { return sum + (r.adults || 0); }, 0);
+        var totalKids = rooms.reduce(function (sum, r) { return sum + (r.children || 0); }, 0);
+        var guestsText = totalAdults || totalKids ? (totalAdults + "A" + (totalKids ? ", " + totalKids + "K" : "")) : "—";
         var checkIns = rooms
           .map(function (r) {
             return formatDate(r.checkIn);
@@ -665,8 +668,9 @@
           id +
           "'>" +
           "<td>" +
+          "<span class='admin__guest-name'>" +
           escapeHtml((b.guest && b.guest.name) || "—") +
-          "<br><small>" +
+          "</span><br><small>" +
           escapeHtml((b.guest && b.guest.email) || "") +
           "</small></td>" +
           "<td>" +
@@ -674,6 +678,9 @@
           "</td>" +
           "<td>" +
           escapeHtml(roomsSummary) +
+          "</td>" +
+          "<td>" +
+          escapeHtml(guestsText) +
           "</td>" +
           "<td>" +
           checkIns +
@@ -686,7 +693,6 @@
           "<br><small class='admin__paid'>Paid: ₹" +
           (b.amountPaid || 0).toLocaleString("en-IN") +
           "</small></td>" +
-          // Status column — badge only by default
           "<td class='admin__status-cell'>" +
           "<span class='admin__badge " +
           badgeClass +
@@ -696,12 +702,10 @@
           currentStatus +
           "</span>" +
           "</td>" +
-          // Edit column
           "<td class='admin__edit-cell'>" +
           "<button type='button' class='btn btn--ghost btn--sm admin__edit-btn' data-booking-id='" +
           id +
           "'>Edit</button>" +
-          // Hidden edit panel — shown on Edit click
           "<div class='admin__edit-panel' id='editPanel-" +
           id +
           "' style='display:none;'>" +
