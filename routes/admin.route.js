@@ -14,6 +14,7 @@ import {
   updateRoomImages,
   addGalleryImage,
   removeGalleryImage,
+  getCloudinarySignature,
 } from "../controllers/admin.controller.js";
 
 const router = Router();
@@ -30,6 +31,7 @@ router.get("/block-dates", verifyJWT, getBlockedDates);
 router.post("/block-dates", verifyJWT, addBlockedDate);
 router.delete("/block-dates/:id", verifyJWT, deleteBlockedDate);
 
+router.get("/cloud-signature", verifyJWT, getCloudinarySignature);
 router.patch("/rooms/:roomId/images", verifyJWT, updateRoomImages);
 router.patch("/rooms/:roomId/images/gallery/add", verifyJWT, addGalleryImage);
 router.patch(
