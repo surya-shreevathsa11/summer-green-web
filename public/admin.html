@@ -24,7 +24,10 @@
 
     <header class="admin__header">
       <h1 class="admin__header-title">Summer Green <span>Admin</span></h1>
-      <a href="/" class="admin__back">← Back to site</a>
+      <div class="admin__header-actions">
+        <button type="button" class="admin__logout btn btn--ghost btn--sm" id="adminLogoutBtn" style="display: none;">Logout</button>
+        <a href="/" class="admin__back">← Back to site</a>
+      </div>
     </header>
 
     <main class="admin__wrap">
@@ -228,6 +231,41 @@
               </div>
             </div>
             <div class="admin__season-list" id="seasonalList"></div>
+          </section>
+
+          <!-- Block dates -->
+          <section class="admin__section">
+            <h2>Block dates</h2>
+            <p class="admin__msg" id="blockDatesMsg" style="display: none"></p>
+            <div class="admin__season-form">
+              <div class="form__group">
+                <label for="blockRoom">Room</label>
+                <select id="blockRoom">
+                  <option value="R1">R1 — Sunflower</option>
+                  <option value="R2">R2 — Lily</option>
+                  <option value="R3">R3 — Marigold</option>
+                  <option value="R4">R4 — Lavender</option>
+                  <option value="R5">R5 — Dahlia</option>
+                  <option value="R6">R6 — Gardenia</option>
+                  <option value="R7">R7 — Petunia</option>
+                  <option value="R8">R8 — Zinnia</option>
+                </select>
+              </div>
+              <div class="form__group">
+                <label for="blockFrom">From</label>
+                <input type="date" id="blockFrom" />
+              </div>
+              <div class="form__group">
+                <label for="blockTo">To</label>
+                <input type="date" id="blockTo" />
+              </div>
+              <div class="form__group form__group--action">
+                <button type="button" class="btn btn--outline btn--sm" id="addBlockDateBtn">
+                  Add block
+                </button>
+              </div>
+            </div>
+            <div class="admin__season-list" id="blockDatesList"></div>
           </section>
 
           <!-- Bookings -->

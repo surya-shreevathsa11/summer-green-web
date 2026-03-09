@@ -131,22 +131,32 @@
     sections.forEach(function (section) {
       var els = gsap.utils.toArray("[data-reveal]", section);
       if (els.length === 0) return;
+      if (section.dataset.revealed === "1") {
+        gsap.set(els, { opacity: 1, y: 0, scaleX: 1, clearProps: "transform" });
+        return;
+      }
       var trigger = st.create({
         trigger: section,
-        start: "top 85%",
+        start: "top 88%",
+        once: true,
         onEnter: function () {
-          gsap.fromTo(els, { opacity: 0, y: 60, force3D: true }, {
+          if (section.dataset.revealed === "1") return;
+          section.dataset.revealed = "1";
+          var fromVars = { opacity: 0, y: 40, force3D: true };
+          var toVars = {
             opacity: 1,
             y: 0,
-            duration: prefersReducedMotion ? 0.3 : 1,
-            stagger: prefersReducedMotion ? 0 : 0.2,
+            duration: prefersReducedMotion ? 0.3 : 0.7,
+            stagger: prefersReducedMotion ? 0 : 0.12,
             ease: "power3.out",
             force3D: true,
-            overwrite: true,
+            overwrite: "auto",
             clearProps: "transform",
+          };
+          requestAnimationFrame(function () {
+            gsap.fromTo(els, fromVars, toVars);
           });
         },
-        once: true,
       });
       revealTriggers.push(trigger);
     });

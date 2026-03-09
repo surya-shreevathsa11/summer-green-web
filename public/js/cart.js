@@ -120,7 +120,7 @@
               return (
                 '<div class="cart__item-breakdown__row">' +
                 (d ? escapeHtml(d) + " — " : "") +
-                "₹" +
+                "₹" +   
                 p +
                 (r ? " (" + r + ")" : "") +
                 "</div>"
@@ -144,7 +144,7 @@
           ? " · " +
             adults +
             " adult(s)" +
-            (children ? ", " + children + " child(ren)" : "")
+            (children ? ", " + children + " kid(s)" : "")
           : "") +
         "</div>" +
         '<div class="cart__item-price">' +

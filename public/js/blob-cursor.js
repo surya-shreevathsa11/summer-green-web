@@ -62,6 +62,10 @@
       down = false;
       updateClasses();
     });
+    var headerSelector = ".nav, .admin__header";
+    function isOverHeader(el) {
+      return el && el.closest && el.closest(headerSelector);
+    }
     document.addEventListener("mouseover", function (e) {
       var target =
         e.target && e.target.closest && e.target.closest(hoverSelector);
@@ -69,6 +73,7 @@
         e.target && e.target.closest && e.target.closest(textSelector);
       hovering = Boolean(target);
       container.classList.toggle("is-hover-text", Boolean(textEl));
+      container.classList.toggle("is-over-header", isOverHeader(e.target));
       if (activeHoverEl && activeHoverEl !== target) {
         activeHoverEl.classList.remove("cursor-target");
       }
@@ -82,6 +87,7 @@
       if (!e.relatedTarget) {
         hovering = false;
         container.classList.remove("is-hover-text");
+        container.classList.remove("is-over-header");
         if (activeHoverEl) activeHoverEl.classList.remove("cursor-target");
         activeHoverEl = null;
         updateClasses();
@@ -93,6 +99,7 @@
         e.relatedTarget.closest && e.relatedTarget.closest(textSelector);
       hovering = Boolean(stillHover);
       container.classList.toggle("is-hover-text", Boolean(stillText));
+      container.classList.toggle("is-over-header", isOverHeader(e.relatedTarget));
       if (!hovering && activeHoverEl) {
         activeHoverEl.classList.remove("cursor-target");
         activeHoverEl = null;

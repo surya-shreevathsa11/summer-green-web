@@ -8,6 +8,9 @@ import {
   addSeasonalPrice,
   getSeasonalPrices,
   deleteSeasonalPrice,
+  getBlockedDates,
+  addBlockedDate,
+  deleteBlockedDate,
 } from "../controllers/admin.controller.js";
 
 const router = Router();
@@ -19,4 +22,9 @@ router.put("/base-price", verifyJWT, updateBasePrices);
 router.post("/seasonal-price", verifyJWT, addSeasonalPrice);
 router.get("/seasonal-price", verifyJWT, getSeasonalPrices);
 router.delete("/seasonal-price/:id", verifyJWT, deleteSeasonalPrice);
+
+router.get("/block-dates", verifyJWT, getBlockedDates);
+router.post("/block-dates", verifyJWT, addBlockedDate);
+router.delete("/block-dates/:id", verifyJWT, deleteBlockedDate);
+
 export default router;

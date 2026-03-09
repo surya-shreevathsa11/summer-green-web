@@ -16,11 +16,11 @@
   --color-copper-light: #FDB838;
   /* Nav scrolled — dark blue */
   --nav-scrolled-bg: #14213D;
-  /* Blob cursor — transparent, no yellow */
-  --cursor-blob-fill: rgba(255, 255, 255, 0.18);
-  --cursor-blob-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  --cursor-blob-shadow-hover: 0 4px 16px rgba(0,0,0,0.25);
-  --cursor-blob-inner: rgba(255, 255, 255, 0.4);
+  /* Blob cursor — header colour (Yankees blue) across all pages/sections */
+  --cursor-blob-fill: #14213D;
+  --cursor-blob-shadow: 0 2px 10px rgba(20, 33, 61, 0.5), 0 0 0 1px rgba(255,255,255,0.08);
+  --cursor-blob-shadow-hover: 0 4px 16px rgba(20, 33, 61, 0.55), 0 0 0 1px rgba(255,255,255,0.12);
+  --cursor-blob-inner: rgba(255, 255, 255, 0.95);
 }
 
 /* Button hover glow to match yellow accent */

@@ -1,6 +1,7 @@
 import { Booking } from "../models/booking.model.js";
 import { Room, VariablePrice } from "../models/pricing.model.js";
 import { Cart } from "../models/cart.model.js";
+import { BlockedDate } from "../models/blocked-date.model.js";
 
 function parseDateOnly(str) {
   // Parse as YYYY-MM-DD and create at UTC midnight
@@ -89,6 +90,20 @@ export const checkAvailability = async (booking) => {
       const room = await Room.findOne({ roomId });
       return {
         0: `Room ${room.name} is unavailable for the selected dates`,
+      };
+    }
+
+    // Check admin-blocked dates (from/to stored as UTC midnight; checkOut is exclusive)
+    const isBlocked = await BlockedDate.findOne({
+      roomId,
+      from: { $lt: checkOut },
+      to: { $gte: checkIn },
+    });
+
+    if (isBlocked) {
+      const roomDoc = await Room.findOne({ roomId });
+      return {
+        0: `Room ${roomDoc.name} is blocked for the selected dates`,
       };
     }
 

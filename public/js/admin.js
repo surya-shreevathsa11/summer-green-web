@@ -18,6 +18,7 @@
   var adminOtpError = document.getElementById("adminOtpError");
 
   var adminRetryBtn = document.getElementById("adminRetryBtn");
+  var adminLogoutBtn = document.getElementById("adminLogoutBtn");
 
   var basePriceGrid = document.getElementById("basePriceGrid");
   var saveBasePriceBtn = document.getElementById("saveBasePriceBtn");
@@ -30,10 +31,18 @@
   var bookingsBody = document.getElementById("bookingsBody");
   var bookingsEmpty = document.getElementById("bookingsEmpty");
 
+  var blockDatesMsg = document.getElementById("blockDatesMsg");
+  var blockRoom = document.getElementById("blockRoom");
+  var blockFrom = document.getElementById("blockFrom");
+  var blockTo = document.getElementById("blockTo");
+  var addBlockDateBtn = document.getElementById("addBlockDateBtn");
+  var blockDatesList = document.getElementById("blockDatesList");
+
   // ─── State ───────────────────────────────────────────────────────────────────
   var loggedInUsername = "";
   var seasonalPrices = [];
   var bookingsCache = [];
+  var blockedDatesList = [];
 
   var roomList = [
     { id: "R1", name: "Sunflower" },
@@ -55,6 +64,9 @@
     if (body) {
       if (id === "adminDashboard") body.classList.add("admin--dashboard");
       else body.classList.remove("admin--dashboard");
+    }
+    if (adminLogoutBtn) {
+      adminLogoutBtn.style.display = id === "adminDashboard" ? "" : "none";
     }
   }
 
@@ -126,6 +138,21 @@
     });
   }
 
+  function apiDelete(url) {
+    return fetch(url, {
+      method: "DELETE",
+      credentials: "include",
+    }).then(function (res) {
+      return res.text().then(function (text) {
+        var data = {};
+        try {
+          data = text ? JSON.parse(text) : {};
+        } catch (e) {}
+        return { ok: res.ok, status: res.status, data: data };
+      });
+    });
+  }
+
   // ─── Auth ─────────────────────────────────────────────────────────────────────
   function doLogin() {
     var username = adminUsername ? adminUsername.value.trim() : "";
@@ -181,6 +208,7 @@
           showView("adminDashboard");
           renderBasePrices();
           renderSeasonal();
+          loadBlockDates();
           loadBookings();
         } else {
           setMsg(
@@ -363,6 +391,115 @@
           renderSeasonal();
         });
       });
+  }
+
+  // ─── Block dates ─────────────────────────────────────────────────────────────
+  function loadBlockDates() {
+    apiGet("/api/admin/block-dates")
+      .then(function (r) {
+        blockedDatesList = (r.data && r.data.data) || [];
+        renderBlockDates();
+      })
+      .catch(function () {
+        blockedDatesList = [];
+        renderBlockDates();
+      });
+  }
+
+  function renderBlockDates() {
+    if (!blockDatesList) return;
+    if (blockedDatesList.length === 0) {
+      blockDatesList.innerHTML =
+        '<p class="admin__empty">No blocked dates. Add a block to make a room unavailable for specific dates.</p>';
+      return;
+    }
+    blockDatesList.innerHTML = blockedDatesList
+      .map(function (b) {
+        var fromStr = b.from ? b.from.toString().slice(0, 10) : "";
+        var toStr = b.to ? b.to.toString().slice(0, 10) : "";
+        var id = (b._id || b.id || "").toString();
+        return (
+          '<div class="admin__season-item">' +
+          "<span>" +
+          (b.roomId || "") +
+          " · " +
+          fromStr +
+          " – " +
+          toStr +
+          "</span>" +
+          '<button type="button" class="btn btn--outline btn--sm" data-block-id="' +
+          escapeHtml(id) +
+          '">Remove</button>' +
+          "</div>"
+        );
+      })
+      .join("");
+
+    blockDatesList.querySelectorAll("[data-block-id]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var id = btn.getAttribute("data-block-id");
+        if (!id) return;
+        apiDelete("/api/admin/block-dates/" + id).then(function (r) {
+          if (r.ok) {
+            blockedDatesList = blockedDatesList.filter(
+              function (b) {
+                return (b._id || b.id || "").toString() !== id;
+              }
+            );
+            renderBlockDates();
+            setMsg(blockDatesMsg, "Block removed.", false);
+          } else {
+            setMsg(
+              blockDatesMsg,
+              (r.data && r.data.message) || "Failed to remove block.",
+              true
+            );
+          }
+        });
+      });
+    });
+  }
+
+  if (addBlockDateBtn) {
+    addBlockDateBtn.addEventListener("click", function () {
+      var fromVal = blockFrom ? blockFrom.value : "";
+      var toVal = blockTo ? blockTo.value : "";
+
+      if (!fromVal || !toVal) {
+        setMsg(blockDatesMsg, "Please set from and to dates.", true);
+        return;
+      }
+      if (fromVal >= toVal) {
+        setMsg(blockDatesMsg, "From date must be before to date.", true);
+        return;
+      }
+
+      var payload = {
+        roomId: blockRoom ? blockRoom.value : "R1",
+        from: fromVal,
+        to: toVal,
+      };
+
+      apiPost("/api/admin/block-dates", payload)
+        .then(function (r) {
+          if (r.ok && r.data && r.data.data) {
+            blockedDatesList.push(r.data.data);
+            renderBlockDates();
+            setMsg(blockDatesMsg, "Dates blocked successfully.", false);
+            if (blockFrom) blockFrom.value = "";
+            if (blockTo) blockTo.value = "";
+          } else {
+            setMsg(
+              blockDatesMsg,
+              (r.data && r.data.message) || "Failed to add block.",
+              true
+            );
+          }
+        })
+        .catch(function () {
+          setMsg(blockDatesMsg, "Network error. Could not add block.", true);
+        });
+    });
   }
 
   // ─── Bookings ─────────────────────────────────────────────────────────────────
@@ -586,26 +723,37 @@
           apiPatch("/api/admin/bookings/" + id, { status: status })
             .then(function (r) {
               if (r.ok) {
-                // Update badge in status column
-                if (badge) {
-                  badge.textContent = status;
-                  badge.className =
-                    "admin__badge " + (statusBadgeClass[status] || "");
-                }
-                if (msgEl) {
-                  msgEl.textContent = "✓ Saved";
-                  msgEl.className = "admin__inline-msg admin__inline-msg--ok";
-                }
-                setTimeout(function () {
-                  // Auto-close edit panel after save
-                  var panel = document.getElementById("editPanel-" + id);
-                  var editBtn = bookingsBody.querySelector(
-                    ".admin__edit-btn[data-booking-id='" + id + "']"
+                if (status === "cancelled" && (r.data && r.data.deleted)) {
+                  var row = bookingsBody.querySelector(
+                    "tr[data-booking-id='" + id + "']"
                   );
-                  if (panel) panel.style.display = "none";
-                  if (editBtn) editBtn.style.display = "";
-                  if (msgEl) msgEl.textContent = "";
-                }, 1500);
+                  if (row) row.remove();
+                  bookingsCache = bookingsCache.filter(function (b) {
+                    return (b._id || b.id || "").toString() !== id;
+                  });
+                  if (bookingsBody && bookingsBody.querySelectorAll("tr").length === 0 && bookingsEmpty) {
+                    bookingsEmpty.style.display = "block";
+                  }
+                } else {
+                  if (badge) {
+                    badge.textContent = status;
+                    badge.className =
+                      "admin__badge " + (statusBadgeClass[status] || "");
+                  }
+                  if (msgEl) {
+                    msgEl.textContent = "✓ Saved";
+                    msgEl.className = "admin__inline-msg admin__inline-msg--ok";
+                  }
+                  setTimeout(function () {
+                    var panel = document.getElementById("editPanel-" + id);
+                    var editBtn = bookingsBody.querySelector(
+                      ".admin__edit-btn[data-booking-id='" + id + "']"
+                    );
+                    if (panel) panel.style.display = "none";
+                    if (editBtn) editBtn.style.display = "";
+                    if (msgEl) msgEl.textContent = "";
+                  }, 1500);
+                }
               } else {
                 if (msgEl) {
                   msgEl.textContent = (r.data && r.data.message) || "Failed";
@@ -655,6 +803,20 @@
     });
   }
 
+  if (adminLogoutBtn) {
+    adminLogoutBtn.addEventListener("click", function () {
+      apiPost("/api/admin/logout", {})
+        .then(function (r) {
+          loggedInUsername = "";
+          showView("adminLogin");
+        })
+        .catch(function () {
+          loggedInUsername = "";
+          showView("adminLogin");
+        });
+    });
+  }
+
   // ─── Init ────────────────────────────────────────────────────────────────────
   // ─── Init ────────────────────────────────────────────────────────────────────
   fetch("/api/admin/bookings", { credentials: "include" })
@@ -663,6 +825,7 @@
         showView("adminDashboard");
         renderBasePrices();
         renderSeasonal();
+        loadBlockDates();
         loadBookings();
       } else {
         showView("adminLogin");

@@ -1,9 +1,15 @@
 import { Booking } from "../models/booking.model.js";
 import { Room, VariablePrice } from "../models/pricing.model.js";
+import { BlockedDate } from "../models/blocked-date.model.js";
 
 function parseDateOnly(str) {
   const [y, m, d] = str.split("-").map(Number);
   return new Date(y, m - 1, d);
+}
+
+function parseDateOnlyUTC(str) {
+  const [y, m, d] = str.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d, 0, 0, 0, 0));
 }
 
 export const getBooking = async (req, res) => {
@@ -28,7 +34,7 @@ export const getBooking = async (req, res) => {
   }
 };
 
-//update confirmed bookign to cancelled or blocked
+//update confirmed booking to cancelled or blocked; cancelled -> delete from DB
 export const updateBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
@@ -52,12 +58,18 @@ export const updateBooking = async (req, res) => {
       });
     }
 
-    //cancellation status mail triggerr todo
+    if (status === "cancelled") {
+      await Booking.findByIdAndDelete(bookingId);
+      return res.status(200).json({
+        message: "Booking deleted",
+        deleted: true,
+      });
+    }
 
     const updatedBooking = await Booking.findByIdAndUpdate(
       bookingId,
       { status },
-      { new: true }
+      { returnDocument: "after" }
     );
 
     return res.status(200).json({
@@ -84,7 +96,7 @@ export const updateBasePrices = async (req, res) => {
         return Room.findOneAndUpdate(
           { roomId: r.roomId },
           { pricePerNight: r.pricePerNight },
-          { new: true }
+          { returnDocument: "after" }
         );
       })
     );
@@ -190,6 +202,77 @@ export const getSeasonalPrices = async (req, res) => {
     return res.status(200).json({ data: entries });
   } catch (error) {
     console.error("Error fetching seasonal prices:", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+// ─── GET /api/admin/block-dates ──────────────────────────────────────────────
+export const getBlockedDates = async (req, res) => {
+  try {
+    const filter = {};
+    if (req.query.roomId) filter.roomId = req.query.roomId;
+
+    const entries = await BlockedDate.find(filter).sort({ from: 1 });
+    return res.status(200).json({ data: entries });
+  } catch (error) {
+    console.error("Error fetching block dates:", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+// ─── POST /api/admin/block-dates ──────────────────────────────────────────────
+// Body: { roomId, from, to } — from/to as YYYY-MM-DD
+export const addBlockedDate = async (req, res) => {
+  try {
+    const { roomId, from, to } = req.body;
+
+    if (!roomId || !from || !to) {
+      return res.status(400).json({ message: "roomId, from and to are required" });
+    }
+
+    const fromDate = parseDateOnlyUTC(from);
+    const toDate = parseDateOnlyUTC(to);
+
+    if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
+      return res.status(400).json({ message: "Invalid date format; use YYYY-MM-DD" });
+    }
+
+    if (fromDate >= toDate) {
+      return res.status(400).json({ message: "From date must be before to date" });
+    }
+
+    const room = await Room.findOne({ roomId });
+    if (!room) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    const entry = await BlockedDate.create({
+      roomId,
+      from: fromDate,
+      to: toDate,
+    });
+
+    return res.status(201).json({
+      message: "Dates blocked successfully",
+      data: entry,
+    });
+  } catch (error) {
+    console.error("Error adding block dates:", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+// ─── DELETE /api/admin/block-dates/:id ─────────────────────────────────────────
+export const deleteBlockedDate = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await BlockedDate.findByIdAndDelete(id);
+    if (!deleted) {
+      return res.status(404).json({ message: "Block not found" });
+    }
+    return res.status(200).json({ message: "Block removed" });
+  } catch (error) {
+    console.error("Error deleting block date:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
