@@ -476,3 +476,18 @@ export const bookRooms = async (req, res) => {
     res.status(500).json({ message: "Something went wrong" });
   }
 };
+
+export const listBookings = async (req, res) => {
+  try {
+    const today = parseDateOnly(new Date().toISOString().slice(0, 10));
+    const bookings = await Booking.find({
+      userId: req.user._id,
+      "rooms.checkOut": { $gte: today },
+    }).sort({ createdAt: -1 });
+
+    return res.status(200).json({ data: bookings });
+  } catch (error) {
+    console.error("error while listing bookings", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};

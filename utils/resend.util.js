@@ -493,3 +493,190 @@ export const sendAdminOTPEmail = async (email, otp) => {
     throw new Error(error.message || "Failed to send OTP email");
   }
 };
+
+function buildCancellationHtml(booking) {
+  const roomsHtml = (booking.rooms || [])
+    .map(function (room) {
+      const nights = Math.round(
+        (new Date(room.checkOut) - new Date(room.checkIn)) /
+          (1000 * 60 * 60 * 24)
+      );
+      const roomLabel = room.roomName || room.roomId;
+      return `
+        <div style="background:#faf8f4;border:1px solid #e8e0d0;border-radius:8px;padding:20px 24px;margin-bottom:16px;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td>
+                <p style="margin:0 0 4px 0;font-family:'Georgia',serif;font-size:17px;color:#2c2416;font-weight:bold;">${roomLabel}</p>
+                <p style="margin:0;font-size:13px;color:#8a7a5a;font-family:Helvetica,Arial,sans-serif;">
+                  ${new Date(room.checkIn).toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })}
+                  &rarr;
+                  ${new Date(room.checkOut).toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })}
+                  &nbsp;&middot;&nbsp; ${nights} night${nights !== 1 ? "s" : ""}
+                </p>
+                <p style="margin:4px 0 0;font-size:13px;color:#8a7a5a;font-family:Helvetica,Arial,sans-serif;">
+                  ${room.adults} Adult${room.adults !== 1 ? "s" : ""}${room.children > 0 ? ` &middot; ${room.children} Child${room.children !== 1 ? "ren" : ""}` : ""}
+                </p>
+              </td>
+              <td align="right" valign="top">
+                <p style="margin:0;font-family:'Georgia',serif;font-size:17px;color:#8a7a5a;text-decoration:line-through;">&#8377;${room.price.toLocaleString("en-IN")}</p>
+              </td>
+            </tr>
+          </table>
+        </div>
+      `;
+    })
+    .join("");
+
+  const isEligibleForRefund = booking.amountPaid > 0;
+  const cancellationDate = new Date().toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Booking Cancelled – Summer Green</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f0ebe1;font-family:Helvetica,Arial,sans-serif;">
+
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0ebe1;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
+
+          <!-- Header -->
+          <tr>
+            <td align="center" style="background:linear-gradient(160deg,#1a1408 0%,#2c2416 60%,#3a2e18 100%);border-radius:12px 12px 0 0;padding:48px 40px 36px;">
+              <p style="margin:0 0 8px 0;font-size:11px;letter-spacing:4px;color:#c8973a;text-transform:uppercase;font-family:Helvetica,Arial,sans-serif;">Homestay Experience</p>
+              <h1 style="margin:0;font-family:'Georgia',serif;font-size:42px;color:#f5f0e8;font-weight:normal;letter-spacing:1px;">Summer Green</h1>
+              <div style="width:48px;height:2px;background:#c8973a;margin:16px auto 24px;"></div>
+              <p style="margin:0;font-size:13px;color:#a89878;font-family:Helvetica,Arial,sans-serif;letter-spacing:2px;text-transform:uppercase;">Madikeri, Coorg</p>
+            </td>
+          </tr>
+
+          <!-- Cancelled Banner -->
+          <tr>
+            <td align="center" style="background:#8a4a3a;padding:14px 40px;">
+              <p style="margin:0;font-size:12px;letter-spacing:3px;color:#fff;text-transform:uppercase;font-family:Helvetica,Arial,sans-serif;font-weight:bold;">&#10005; &nbsp; Booking Cancelled</p>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="background:#ffffff;padding:40px 40px 32px;">
+
+              <p style="margin:0 0 8px 0;font-family:'Georgia',serif;font-size:22px;color:#2c2416;">Dear ${booking.guest.name},</p>
+              <p style="margin:0 0 28px 0;font-size:14px;color:#6b5f4a;line-height:1.7;">
+                We're sorry to inform you that your booking at Summer Green has been cancelled as of <strong>${cancellationDate}</strong>. We hope to welcome you another time.
+              </p>
+
+              <!-- Booking Reference -->
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#faf8f4;border:1px solid #e8e0d0;border-radius:8px;margin-bottom:28px;">
+                <tr>
+                  <td style="padding:16px 24px;border-bottom:1px solid #e8e0d0;">
+                    <p style="margin:0;font-size:11px;letter-spacing:2px;color:#a89878;text-transform:uppercase;font-family:Helvetica,Arial,sans-serif;">Cancellation Details</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:16px 24px;">
+                    <table width="100%" cellpadding="4" cellspacing="0" border="0">
+                      <tr>
+                        <td style="font-size:12px;color:#8a7a5a;font-family:Helvetica,Arial,sans-serif;">Booking ID</td>
+                        <td align="right" style="font-size:12px;color:#2c2416;font-family:'Courier New',monospace;font-weight:bold;">${booking._id}</td>
+                      </tr>
+                      <tr>
+                        <td style="font-size:12px;color:#8a7a5a;font-family:Helvetica,Arial,sans-serif;">Cancelled on</td>
+                        <td align="right" style="font-size:12px;color:#2c2416;font-family:Helvetica,Arial,sans-serif;">${cancellationDate}</td>
+                      </tr>
+                      <tr>
+                        <td style="font-size:12px;color:#8a7a5a;font-family:Helvetica,Arial,sans-serif;">Total Amount</td>
+                        <td align="right" style="font-size:12px;color:#2c2416;font-family:Helvetica,Arial,sans-serif;">&#8377;${booking.totalAmount.toLocaleString("en-IN")}</td>
+                      </tr>
+                      <tr>
+                        <td style="font-size:12px;color:#8a7a5a;font-family:Helvetica,Arial,sans-serif;">Amount Paid</td>
+                        <td align="right" style="font-size:13px;color:${isEligibleForRefund ? "#8a4a3a" : "#2c2416"};font-family:Helvetica,Arial,sans-serif;font-weight:bold;">&#8377;${booking.amountPaid.toLocaleString("en-IN")}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Cancelled Rooms -->
+              <p style="margin:0 0 12px 0;font-size:11px;letter-spacing:2px;color:#a89878;text-transform:uppercase;font-family:Helvetica,Arial,sans-serif;">Cancelled Room${booking.rooms.length > 1 ? "s" : ""}</p>
+              ${roomsHtml}
+
+              <!-- Refund policy -->
+              ${
+                isEligibleForRefund
+                  ? `
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fff8ee;border:1px solid #e8d9b0;border-radius:8px;margin-top:8px;">
+                <tr>
+                  <td style="padding:16px 20px;">
+                    <p style="margin:0 0 6px;font-size:13px;color:#8a6a2a;font-weight:bold;font-family:Helvetica,Arial,sans-serif;">Refund Information</p>
+                    <p style="margin:0;font-size:12px;color:#8a6a2a;line-height:1.6;font-family:Helvetica,Arial,sans-serif;">
+                      A payment of <strong>&#8377;${booking.amountPaid.toLocaleString("en-IN")}</strong> was made on this booking.
+                      As per our cancellation policy, refunds are applicable only if cancelled 15+ days before check-in.
+                      Please contact us on WhatsApp for refund queries.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              `
+                  : `
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#faf8f4;border:1px solid #e8e0d0;border-radius:8px;margin-top:8px;">
+                <tr>
+                  <td style="padding:16px 20px;">
+                    <p style="margin:0;font-size:12px;color:#8a7a5a;line-height:1.6;font-family:Helvetica,Arial,sans-serif;">
+                      No payment was made for this booking, so no refund is due.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              `
+              }
+
+              <!-- WhatsApp CTA -->
+              <table cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;">
+                <tr>
+                  <td style="background:#c8973a;border-radius:6px;padding:12px 28px;">
+                    <a href="https://wa.me/919008188595" style="font-size:13px;color:#1a1408;text-decoration:none;font-family:Helvetica,Arial,sans-serif;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">Contact Us on WhatsApp</a>
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="background:#2c2416;border-radius:0 0 12px 12px;padding:28px 40px;">
+              <p style="margin:0 0 8px;font-family:'Georgia',serif;font-size:16px;color:#f5f0e8;">Summer Green Homestay</p>
+              <p style="margin:0 0 4px;font-size:12px;color:#8a7a5a;font-family:Helvetica,Arial,sans-serif;">Madikeri, Coorg, Karnataka</p>
+              <p style="margin:12px 0 0;font-size:11px;color:#5a4f3a;font-family:Helvetica,Arial,sans-serif;">This is an automated notification. Please do not reply to this email.</p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
+  `;
+}
+
+export async function sendCancellationMailToGuest(booking) {
+  await resend.emails.send({
+    from: "Summer Green <bookings@summergreen.in>",
+    to: booking.guest.email,
+    subject: `Booking Cancelled – Summer Green (#${booking._id})`,
+    html: buildCancellationHtml(booking),
+  });
+}

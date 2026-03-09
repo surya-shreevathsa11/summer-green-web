@@ -8,10 +8,12 @@ import {
   listRooms,
   deleteRoomFromCart,
   bookRooms,
+  listBookings,
 } from "../controllers/booking.controller.js";
 import isAuthenticated from "../middleware/auth.middleware.js";
 
 router.get("/rooms", listRooms);
+router.get("/bookings", listBookings);
 router.get("/cart", isAuthenticated, listCart);
 router.post("/cart", isAuthenticated, addToCart);
 router.post("/checkAvailability", availabilityAndPrice);

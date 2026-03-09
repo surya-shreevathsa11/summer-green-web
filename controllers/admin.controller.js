@@ -1,6 +1,7 @@
 import { Booking } from "../models/booking.model.js";
 import { Room, VariablePrice } from "../models/pricing.model.js";
 import { BlockedDate } from "../models/blocked-date.model.js";
+import { sendCancellationMailToGuest } from "../utils/resend.util.js";
 
 function parseDateOnly(str) {
   const [y, m, d] = str.split("-").map(Number);
@@ -219,18 +220,24 @@ export const addBlockedDate = async (req, res) => {
     const { roomId, from, to } = req.body;
 
     if (!roomId || !from || !to) {
-      return res.status(400).json({ message: "roomId, from and to are required" });
+      return res
+        .status(400)
+        .json({ message: "roomId, from and to are required" });
     }
 
     const fromDate = parseDateOnlyUTC(from);
     const toDate = parseDateOnlyUTC(to);
 
     if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
-      return res.status(400).json({ message: "Invalid date format; use YYYY-MM-DD" });
+      return res
+        .status(400)
+        .json({ message: "Invalid date format; use YYYY-MM-DD" });
     }
 
     if (fromDate >= toDate) {
-      return res.status(400).json({ message: "From date must be before to date" });
+      return res
+        .status(400)
+        .json({ message: "From date must be before to date" });
     }
 
     const room = await Room.findOne({ roomId });
