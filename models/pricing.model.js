@@ -41,6 +41,11 @@ const roomSchema = new Schema({
   },
 
   capacity: capacitySchema,
+
+  images: {
+    banner: { type: String, default: null }, // main hero image
+    gallery: { type: [String], default: [] }, // additional images
+  },
 });
 
 const variablePriceSchema = new Schema({

@@ -279,3 +279,85 @@ export const deleteBlockedDate = async (req, res) => {
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
+
+// PATCH /api/admin/rooms/:roomId/images
+// Sets banner and/or replaces gallery
+export const updateRoomImages = async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const { banner, gallery } = req.body;
+
+    const update = {};
+    if (banner !== undefined) update["images.banner"] = banner;
+    if (gallery !== undefined) update["images.gallery"] = gallery;
+
+    if (Object.keys(update).length === 0) {
+      return res.status(400).json({ message: "No image data provided" });
+    }
+
+    const room = await Room.findOneAndUpdate(
+      { roomId },
+      { $set: update },
+      { new: true }
+    );
+
+    if (!room) return res.status(404).json({ message: "Room not found" });
+
+    return res
+      .status(200)
+      .json({ message: "Images updated", data: room.images });
+  } catch (error) {
+    console.error("Error updating room images:", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+// PATCH /api/admin/rooms/:roomId/images/gallery/add
+// Pushes a single new URL into gallery array
+export const addGalleryImage = async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const { url } = req.body;
+
+    if (!url) return res.status(400).json({ message: "url is required" });
+
+    const room = await Room.findOneAndUpdate(
+      { roomId },
+      { $push: { "images.gallery": url } },
+      { new: true }
+    );
+
+    if (!room) return res.status(404).json({ message: "Room not found" });
+
+    return res.status(200).json({ message: "Image added", data: room.images });
+  } catch (error) {
+    console.error("Error adding gallery image:", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+// PATCH /api/admin/rooms/:roomId/images/gallery/remove
+// Removes a single URL from gallery array
+export const removeGalleryImage = async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const { url } = req.body;
+
+    if (!url) return res.status(400).json({ message: "url is required" });
+
+    const room = await Room.findOneAndUpdate(
+      { roomId },
+      { $pull: { "images.gallery": url } },
+      { new: true }
+    );
+
+    if (!room) return res.status(404).json({ message: "Room not found" });
+
+    return res
+      .status(200)
+      .json({ message: "Image removed", data: room.images });
+  } catch (error) {
+    console.error("Error removing gallery image:", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};

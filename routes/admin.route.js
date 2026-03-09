@@ -11,6 +11,9 @@ import {
   getBlockedDates,
   addBlockedDate,
   deleteBlockedDate,
+  updateRoomImages,
+  addGalleryImage,
+  removeGalleryImage,
 } from "../controllers/admin.controller.js";
 
 const router = Router();
@@ -27,4 +30,11 @@ router.get("/block-dates", verifyJWT, getBlockedDates);
 router.post("/block-dates", verifyJWT, addBlockedDate);
 router.delete("/block-dates/:id", verifyJWT, deleteBlockedDate);
 
+router.patch("/rooms/:roomId/images", verifyJWT, updateRoomImages);
+router.patch("/rooms/:roomId/images/gallery/add", verifyJWT, addGalleryImage);
+router.patch(
+  "/rooms/:roomId/images/gallery/remove",
+  verifyJWT,
+  removeGalleryImage
+);
 export default router;
