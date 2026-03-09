@@ -469,10 +469,19 @@
       const grid = $("#roomsGrid");
       grid.innerHTML = data.rooms
         .map(
-          (room, idx) => `
-        <div class="room-card" data-reveal="slide-down" data-reveal-delay="${Math.min(idx * 100, 400)}">
+          (room, idx) => {
+            const imgSrc =
+              room.images && room.images.banner
+                ? room.images.banner
+                : roomCoverImages[idx % roomCoverImages.length];
+            const galleryOnly = [];
+            if (room.images && room.images.gallery && room.images.gallery.length)
+              galleryOnly.push(...room.images.gallery);
+            const roomImagesJson = galleryOnly.length ? JSON.stringify(galleryOnly) : "";
+            return `
+        <div class="room-card" data-reveal="slide-down" data-reveal-delay="${Math.min(idx * 100, 400)}"${roomImagesJson ? ' data-room-images="' + roomImagesJson.replace(/"/g, "&quot;") + '" data-room-name="' + (room.name || "").replace(/"/g, "&quot;") + '"' : ""}>
           <div class="room-card__media">
-            <img loading="lazy" alt="${escapeHtml(room.name)} cover" src="${roomCoverImages[idx % roomCoverImages.length]}">
+            <img loading="lazy" alt="${escapeHtml(room.name)} cover" src="${imgSrc}">
           </div>
           <span class="room-card__number">0${room.id}</span>
           <h3 class="room-card__name">${escapeHtml(room.name)}</h3>
@@ -482,7 +491,8 @@
             <button type="button" class="btn btn--outline btn--sm" data-add-cart="${room.id}" data-name="${escapeHtml(room.name)}" data-price="${room.price}">Add to cart</button>
           </div>
         </div>
-      `,
+      `;
+          },
         )
         .join("");
       if (window.refreshScrollReveals) window.refreshScrollReveals();
@@ -525,6 +535,81 @@
         lbImg.alt = img.alt || "";
         openModal("#galleryLightbox");
       }
+    });
+  }
+
+  // --- Room card click: open room gallery (banner + gallery images from admin) ---
+  var roomGalleryUrls = [];
+  var roomGalleryIndex = 0;
+  var roomGalleryImg = $("#roomGalleryImg");
+  var roomGalleryCounter = $("#roomGalleryCounter");
+  var roomGalleryPrev = $("#roomGalleryPrev");
+  var roomGalleryNext = $("#roomGalleryNext");
+
+  function toJpegUrl(url) {
+    if (!url || typeof url !== "string") return url;
+    if (url.indexOf("cloudinary.com") !== -1 && url.indexOf("/upload/") !== -1) {
+      return url.replace("/upload/", "/upload/f_jpg/");
+    }
+    return url;
+  }
+
+  function updateRoomGalleryImage() {
+    if (!roomGalleryImg || !roomGalleryUrls.length) return;
+    var idx = roomGalleryIndex;
+    if (idx < 0) idx = 0;
+    if (idx >= roomGalleryUrls.length) idx = roomGalleryUrls.length - 1;
+    roomGalleryIndex = idx;
+    roomGalleryImg.src = toJpegUrl(roomGalleryUrls[roomGalleryIndex]);
+    roomGalleryImg.alt = "Room image " + (roomGalleryIndex + 1);
+    if (roomGalleryCounter) {
+      roomGalleryCounter.textContent = (roomGalleryIndex + 1) + " / " + roomGalleryUrls.length;
+    }
+    if (roomGalleryPrev) roomGalleryPrev.style.visibility = roomGalleryUrls.length > 1 ? "visible" : "hidden";
+    if (roomGalleryNext) roomGalleryNext.style.visibility = roomGalleryUrls.length > 1 ? "visible" : "hidden";
+  }
+
+  function openRoomGallery(urls, roomName) {
+    if (!urls || !urls.length || !roomGalleryImg) return;
+    roomGalleryUrls = urls;
+    roomGalleryIndex = 0;
+    updateRoomGalleryImage();
+    openModal("#roomGalleryModal");
+  }
+
+  var roomsGridEl = $("#roomsGrid");
+  if (roomsGridEl) {
+    roomsGridEl.addEventListener("click", function (e) {
+      var card = e.target.closest(".room-card");
+      if (!card) return;
+      if (e.target.closest("[data-add-cart]") || e.target.closest(".room-card__actions")) return;
+      var raw = card.getAttribute("data-room-images");
+      if (!raw) return;
+      var urls = [];
+      try {
+        urls = JSON.parse(raw);
+      } catch (err) {}
+      if (!urls.length) return;
+      e.preventDefault();
+      var name = card.getAttribute("data-room-name") || "";
+      openRoomGallery(urls, name);
+    });
+  }
+
+  if (roomGalleryPrev) {
+    roomGalleryPrev.addEventListener("click", function (e) {
+      e.preventDefault();
+      if (roomGalleryUrls.length <= 1) return;
+      roomGalleryIndex = (roomGalleryIndex - 1 + roomGalleryUrls.length) % roomGalleryUrls.length;
+      updateRoomGalleryImage();
+    });
+  }
+  if (roomGalleryNext) {
+    roomGalleryNext.addEventListener("click", function (e) {
+      e.preventDefault();
+      if (roomGalleryUrls.length <= 1) return;
+      roomGalleryIndex = (roomGalleryIndex + 1) % roomGalleryUrls.length;
+      updateRoomGalleryImage();
     });
   }
 

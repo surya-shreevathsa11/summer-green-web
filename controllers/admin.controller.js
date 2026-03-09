@@ -362,6 +362,23 @@ export const removeGalleryImage = async (req, res) => {
   }
 };
 
+// GET /api/admin/rooms/:roomId — room details including images (for admin Room Images tab)
+export const getRoomImages = async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const room = await Room.findOne({ roomId }).lean();
+    if (!room) return res.status(404).json({ message: "Room not found" });
+    return res.status(200).json({
+      roomId: room.roomId,
+      name: room.name,
+      images: room.images || { banner: null, gallery: [] },
+    });
+  } catch (error) {
+    console.error("Error fetching room images:", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
 import { v2 as cloudinary } from "cloudinary";
 
 cloudinary.config({
@@ -374,9 +391,10 @@ cloudinary.config({
 export const getCloudinarySignature = (req, res) => {
   const timestamp = Math.round(Date.now() / 1000);
   const folder = "summer-green";
+  const source = "uw";
 
   const signature = cloudinary.utils.api_sign_request(
-    { timestamp, folder },
+    { timestamp, folder, source },
     process.env.CLOUDINARY_API_SECRET
   );
 

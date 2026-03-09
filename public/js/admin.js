@@ -96,7 +96,7 @@
   }
 
   function switchTab(tabId) {
-    var tabs = { bookings: "tabContentBookings", pricing: "tabContentPricing", blockdates: "tabContentBlockDates" };
+    var tabs = { bookings: "tabContentBookings", pricing: "tabContentPricing", blockdates: "tabContentBlockDates", images: "tabContentImages" };
     var contentId = tabs[tabId];
     if (!contentId) return;
     document.querySelectorAll(".admin__tab-btn").forEach(function (btn) {
@@ -110,9 +110,13 @@
     var btn = document.getElementById("tabBookings");
     if (tabId === "pricing") btn = document.getElementById("tabPricing");
     if (tabId === "blockdates") btn = document.getElementById("tabBlockDates");
+    if (tabId === "images") btn = document.getElementById("tabRoomImages");
     if (btn) { btn.classList.add("active"); btn.setAttribute("aria-selected", "true"); }
     var panel = document.getElementById(contentId);
     if (panel) { panel.classList.add("active"); panel.style.display = "block"; }
+    if (tabId === "images" && document.getElementById("imageRoom")) {
+      loadRoomImages(document.getElementById("imageRoom").value);
+    }
   }
 
   function setMsg(el, text, isError) {
@@ -600,10 +604,250 @@
     });
   }
 
-  [["tabBookings", "bookings"], ["tabPricing", "pricing"], ["tabBlockDates", "blockdates"]].forEach(function (pair) {
+  [["tabBookings", "bookings"], ["tabPricing", "pricing"], ["tabBlockDates", "blockdates"], ["tabRoomImages", "images"]].forEach(function (pair) {
     var btn = document.getElementById(pair[0]);
     if (btn) btn.addEventListener("click", function () { switchTab(pair[1]); });
   });
+
+  function openCloudinaryUpload(roomId, type) {
+    if (typeof cloudinary === "undefined") {
+      setMsg(document.getElementById("roomImagesMsg"), "Cloudinary widget is loading. Try again in a moment.", true);
+      return;
+    }
+    apiGet("/api/admin/cloud-signature").then(function (r) {
+      if (!r.ok || !r.data) {
+        setMsg(document.getElementById("roomImagesMsg"), "Could not get upload signature.", true);
+        return;
+      }
+      var d = r.data;
+      var widget = cloudinary.createUploadWidget(
+        {
+          cloudName: d.cloudName,
+          apiKey: d.apiKey,
+          uploadSignature: d.signature,
+          uploadSignatureTimestamp: d.timestamp,
+          folder: d.folder,
+          sources: ["local", "camera"],
+          multiple: type === "gallery",
+        },
+        function (error, result) {
+          if (error) return;
+          if (result.event === "success") {
+            var url = result.info && result.info.secure_url;
+            if (!url) return;
+            if (type === "banner") {
+              apiPatch("/api/admin/rooms/" + roomId + "/images", { banner: url }).then(function (res) {
+                setMsg(document.getElementById("roomImagesMsg"), res.ok ? "Banner updated." : (res.data && res.data.message) || "Update failed.", !res.ok);
+                if (res.ok && res.data && res.data.data) renderRoomImagesStrip(res.data.data);
+              });
+            } else {
+              apiPatch("/api/admin/rooms/" + roomId + "/images/gallery/add", { url: url }).then(function (res) {
+                setMsg(document.getElementById("roomImagesMsg"), res.ok ? "Image added to gallery." : (res.data && res.data.message) || "Add failed.", !res.ok);
+                if (res.ok && res.data && res.data.data) renderRoomImagesStrip(res.data.data);
+              });
+            }
+          }
+        }
+      );
+      widget.open();
+    }).catch(function () {
+      setMsg(document.getElementById("roomImagesMsg"), "Could not get upload signature.", true);
+    });
+  }
+
+  var imageRoomSelect = document.getElementById("imageRoom");
+  var uploadBannerBtn = document.getElementById("uploadBannerBtn");
+  var uploadGalleryBtn = document.getElementById("uploadGalleryBtn");
+  var roomImagesStrip = document.getElementById("roomImagesStrip");
+  var roomImagesViewerWrap = document.getElementById("roomImagesViewerWrap");
+  var roomImagesEmptyWrap = document.getElementById("roomImagesEmptyWrap");
+  var roomImagesFileListWrap = document.getElementById("roomImagesFileListWrap");
+  var roomImagesFileBody = document.getElementById("roomImagesFileBody");
+  var roomImagesCurrentImg = document.getElementById("roomImagesCurrentImg");
+  var roomImagesLabel = document.getElementById("roomImagesLabel");
+  var roomImagesCounter = document.getElementById("roomImagesCounter");
+  var roomImagesPrev = document.getElementById("roomImagesPrev");
+  var roomImagesNext = document.getElementById("roomImagesNext");
+  var roomImagesDeleteBtn = document.getElementById("roomImagesDeleteBtn");
+
+  var roomImagesList = [];
+  var roomImagesIndex = 0;
+
+  function toJpegUrl(url) {
+    if (!url || typeof url !== "string") return url;
+    if (url.indexOf("cloudinary.com") !== -1 && url.indexOf("/upload/") !== -1) {
+      return url.replace("/upload/", "/upload/f_jpg/");
+    }
+    return url;
+  }
+
+  function updateRoomImageView() {
+    if (!roomImagesList.length || !roomImagesCurrentImg) return;
+    var idx = roomImagesIndex;
+    if (idx < 0) idx = 0;
+    if (idx >= roomImagesList.length) idx = roomImagesList.length - 1;
+    roomImagesIndex = idx;
+    var item = roomImagesList[roomImagesIndex];
+    roomImagesCurrentImg.src = toJpegUrl(item.url);
+    roomImagesCurrentImg.alt = item.label;
+    if (roomImagesLabel) roomImagesLabel.textContent = item.label;
+    if (roomImagesCounter) {
+      roomImagesCounter.textContent = roomImagesList.length > 1
+        ? (roomImagesIndex + 1) + " / " + roomImagesList.length
+        : "1 / 1";
+    }
+    if (roomImagesPrev) roomImagesPrev.style.visibility = roomImagesList.length > 1 ? "visible" : "hidden";
+    if (roomImagesNext) roomImagesNext.style.visibility = roomImagesList.length > 1 ? "visible" : "hidden";
+    if (roomImagesFileBody) {
+      roomImagesFileBody.querySelectorAll(".room-images__file-row").forEach(function (row, i) {
+        row.classList.toggle("room-images__file-row--active", i === roomImagesIndex);
+      });
+    }
+  }
+
+  function renderRoomImagesFileList() {
+    if (!roomImagesFileBody || !roomImagesList.length) return;
+    var roomId = imageRoomSelect ? imageRoomSelect.value : "";
+    roomImagesFileBody.innerHTML = roomImagesList.map(function (item, idx) {
+      var safeUrl = toJpegUrl(item.url).replace(/"/g, "&quot;");
+      var safeLabel = item.label.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      var activeClass = idx === roomImagesIndex ? " room-images__file-row--active" : "";
+      return (
+        "<tr class=\"room-images__file-row" + activeClass + "\" data-index=\"" + idx + "\" role=\"row\">" +
+        "<td class=\"room-images__file-preview\"><img src=\"" + safeUrl + "\" alt=\"\" class=\"room-images__file-thumb\" loading=\"lazy\" /></td>" +
+        "<td class=\"room-images__file-name\">" + safeLabel + "</td>" +
+        "<td class=\"room-images__file-type\">JPEG</td>" +
+        "<td class=\"room-images__file-actions\">" +
+        "<button type=\"button\" class=\"room-images__file-delete btn btn--ghost btn--sm\" data-index=\"" + idx + "\" aria-label=\"Delete " + safeLabel + "\">Delete</button>" +
+        "</td></tr>"
+      );
+    }).join("");
+    roomImagesFileBody.querySelectorAll(".room-images__file-row").forEach(function (row) {
+      row.addEventListener("click", function (e) {
+        if (e.target.closest(".room-images__file-delete")) return;
+        var idx = parseInt(row.getAttribute("data-index"), 10);
+        if (!isNaN(idx) && idx >= 0 && idx < roomImagesList.length) {
+          roomImagesIndex = idx;
+          updateRoomImageView();
+        }
+      });
+    });
+    roomImagesFileBody.querySelectorAll(".room-images__file-delete").forEach(function (btn) {
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var idx = parseInt(btn.getAttribute("data-index"), 10);
+        if (isNaN(idx) || idx < 0 || idx >= roomImagesList.length) return;
+        var item = roomImagesList[idx];
+        var req = item.isBanner
+          ? apiPatch("/api/admin/rooms/" + roomId + "/images", { banner: null })
+          : apiPatch("/api/admin/rooms/" + roomId + "/images/gallery/remove", { url: item.url });
+        req.then(function (res) {
+          if (res.ok && res.data && res.data.data) {
+            renderRoomImagesStrip(res.data.data);
+          } else {
+            loadRoomImages(roomId);
+          }
+        }).catch(function () {
+          loadRoomImages(roomId);
+        });
+      });
+    });
+  }
+
+  function renderRoomImagesStrip(images) {
+    if (!imageRoomSelect || !roomImagesStrip) return;
+    var roomId = imageRoomSelect.value;
+    var list = [];
+    if (images && images.banner) list.push(images.banner);
+    if (images && images.gallery && images.gallery.length) list = list.concat(images.gallery);
+    if (list.length === 0) {
+      if (roomImagesViewerWrap) roomImagesViewerWrap.style.display = "none";
+      if (roomImagesFileListWrap) roomImagesFileListWrap.style.display = "none";
+      if (roomImagesEmptyWrap) roomImagesEmptyWrap.style.display = "block";
+      roomImagesStrip.innerHTML = "<p class=\"room-images__empty\">No images for this room yet. Upload a banner or add to gallery.</p>";
+      return;
+    }
+    var bannerUrl = images && images.banner ? images.banner : null;
+    roomImagesList = list.map(function (url, idx) {
+      var isBanner = url === bannerUrl;
+      var label = isBanner ? "Banner" : "Gallery " + (idx - (bannerUrl ? 1 : 0) + 1);
+      return { url: url, isBanner: isBanner, label: label };
+    });
+    roomImagesIndex = 0;
+    if (roomImagesFileListWrap) roomImagesFileListWrap.style.display = "block";
+    if (roomImagesViewerWrap) roomImagesViewerWrap.style.display = "block";
+    if (roomImagesEmptyWrap) roomImagesEmptyWrap.style.display = "none";
+    renderRoomImagesFileList();
+    updateRoomImageView();
+  }
+
+  if (roomImagesPrev) {
+    roomImagesPrev.addEventListener("click", function () {
+      if (roomImagesList.length <= 1) return;
+      roomImagesIndex = (roomImagesIndex - 1 + roomImagesList.length) % roomImagesList.length;
+      updateRoomImageView();
+    });
+  }
+  if (roomImagesNext) {
+    roomImagesNext.addEventListener("click", function () {
+      if (roomImagesList.length <= 1) return;
+      roomImagesIndex = (roomImagesIndex + 1) % roomImagesList.length;
+      updateRoomImageView();
+    });
+  }
+  if (roomImagesDeleteBtn && imageRoomSelect) {
+    roomImagesDeleteBtn.addEventListener("click", function () {
+      if (!roomImagesList.length) return;
+      var roomId = imageRoomSelect.value;
+      var item = roomImagesList[roomImagesIndex];
+      var req = item.isBanner
+        ? apiPatch("/api/admin/rooms/" + roomId + "/images", { banner: null })
+        : apiPatch("/api/admin/rooms/" + roomId + "/images/gallery/remove", { url: item.url });
+      req.then(function (res) {
+        if (res.ok && res.data && res.data.data) {
+          renderRoomImagesStrip(res.data.data);
+        } else {
+          loadRoomImages(roomId);
+        }
+      }).catch(function () {
+        loadRoomImages(roomId);
+      });
+    });
+  }
+
+  function loadRoomImages(roomId) {
+    if (!roomId || !roomImagesStrip) return;
+    if (roomImagesViewerWrap) roomImagesViewerWrap.style.display = "none";
+    if (roomImagesFileListWrap) roomImagesFileListWrap.style.display = "none";
+    if (roomImagesEmptyWrap) roomImagesEmptyWrap.style.display = "block";
+    roomImagesStrip.innerHTML = "<p class=\"room-images__loading\">Loading…</p>";
+    apiGet("/api/admin/rooms/" + roomId).then(function (r) {
+      if (r.ok && r.data && r.data.images) {
+        renderRoomImagesStrip(r.data.images);
+      } else {
+        roomImagesStrip.innerHTML = "<p class=\"room-images__empty\">Could not load images.</p>";
+      }
+    }).catch(function () {
+      if (roomImagesStrip) roomImagesStrip.innerHTML = "<p class=\"room-images__empty\">Could not load images.</p>";
+    });
+  }
+
+  if (imageRoomSelect) {
+    imageRoomSelect.addEventListener("change", function () {
+      loadRoomImages(imageRoomSelect.value);
+    });
+  }
+
+  if (uploadBannerBtn && imageRoomSelect) {
+    uploadBannerBtn.addEventListener("click", function () {
+      openCloudinaryUpload(imageRoomSelect.value, "banner");
+    });
+  }
+  if (uploadGalleryBtn && imageRoomSelect) {
+    uploadGalleryBtn.addEventListener("click", function () {
+      openCloudinaryUpload(imageRoomSelect.value, "gallery");
+    });
+  }
 
   function renderBookingsTable(list) {
     if (!bookingsBody) return;

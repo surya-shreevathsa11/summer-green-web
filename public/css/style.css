@@ -1131,6 +1131,62 @@ main {
   object-fit: contain;
 }
 
+/* Room gallery modal — anudinakuteera-style: full-screen image, solid dark background, prominent left/right scroll */
+#roomGalleryModal .modal__content {
+  position: relative;
+  background: #0d0d0d;
+  padding: 0.5rem;
+  padding-top: max(3rem, env(safe-area-inset-top));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#roomGalleryModal .gallery-lightbox__img {
+  max-height: calc(100vh - 4rem);
+  max-width: calc(100vw - 1rem);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+.room-gallery__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  background: #252525;
+  color: #fff;
+  font-size: 1.35rem;
+  cursor: pointer;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.room-gallery__nav:hover {
+  background: #333;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.room-gallery__nav--prev {
+  left: 1rem;
+}
+.room-gallery__nav--next {
+  right: 1rem;
+}
+.room-gallery__counter {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  z-index: 2;
+}
+
 /* ========== FOOTER (VARA left, Summer Green + copyright centered, contact right) ========== */
 .footer {
   position: relative;

@@ -11,6 +11,7 @@ import {
   getBlockedDates,
   addBlockedDate,
   deleteBlockedDate,
+  getRoomImages,
   updateRoomImages,
   addGalleryImage,
   removeGalleryImage,
@@ -32,6 +33,7 @@ router.post("/block-dates", verifyJWT, addBlockedDate);
 router.delete("/block-dates/:id", verifyJWT, deleteBlockedDate);
 
 router.get("/cloud-signature", verifyJWT, getCloudinarySignature);
+router.get("/rooms/:roomId", verifyJWT, getRoomImages);
 router.patch("/rooms/:roomId/images", verifyJWT, updateRoomImages);
 router.patch("/rooms/:roomId/images/gallery/add", verifyJWT, addGalleryImage);
 router.patch(

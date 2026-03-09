@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="/css/style.css" />
     <link rel="stylesheet" href="/css/theme-yankees.css" />
     <link rel="stylesheet" href="/css/admin.css" />
+    <script src="https://widget.cloudinary.com/v2.0/global/all.js" async></script>
   </head>
   <body class="admin-body">
     <div class="blob-cursor" id="blobCursor" aria-hidden="true">
@@ -186,6 +187,7 @@
             <button type="button" class="admin__tab-btn active" role="tab" id="tabBookings" data-tab="bookings" aria-selected="true">Bookings</button>
             <button type="button" class="admin__tab-btn" role="tab" id="tabPricing" data-tab="pricing" aria-selected="false">Pricing Rules</button>
             <button type="button" class="admin__tab-btn" role="tab" id="tabBlockDates" data-tab="blockdates" aria-selected="false">Block Dates</button>
+            <button type="button" class="admin__tab-btn" role="tab" id="tabRoomImages" data-tab="images" aria-selected="false">Room Images</button>
           </nav>
 
           <div id="tabContentBookings" class="admin__tab-content active" role="tabpanel">
@@ -318,6 +320,58 @@
                 </div>
               </div>
               <div class="admin__season-list" id="blockDatesList"></div>
+            </section>
+          </div>
+
+          <div id="tabContentImages" class="admin__tab-content" role="tabpanel" style="display: none">
+            <section class="admin__section">
+              <h2>Room Images</h2>
+              <p class="admin__msg" id="roomImagesMsg" style="display: none"></p>
+              <div class="admin__season-form">
+                <div class="form__group">
+                  <label for="imageRoom">Room</label>
+                  <select id="imageRoom">
+                    <option value="R1">R1 — Sunflower</option>
+                    <option value="R2">R2 — Lily</option>
+                    <option value="R3">R3 — Marigold</option>
+                    <option value="R4">R4 — Lavender</option>
+                    <option value="R5">R5 — Dahlia</option>
+                    <option value="R6">R6 — Gardenia</option>
+                    <option value="R7">R7 — Petunia</option>
+                    <option value="R8">R8 — Zinnia</option>
+                  </select>
+                </div>
+                <div class="form__group form__group--action">
+                  <button type="button" class="btn btn--outline btn--sm" id="uploadBannerBtn">Upload banner</button>
+                  <button type="button" class="btn btn--outline btn--sm" id="uploadGalleryBtn">Add to gallery</button>
+                </div>
+              </div>
+              <div class="room-images__file-list-wrap" id="roomImagesFileListWrap" style="display: none;">
+                <table class="room-images__file-table" id="roomImagesFileTable" role="table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Preview</th>
+                      <th scope="col">Name</th>
+                      <th scope="col">Type</th>
+                      <th scope="col" class="room-images__th-actions">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="roomImagesFileBody"></tbody>
+                </table>
+              </div>
+              <div class="room-images__viewer-wrap" id="roomImagesViewerWrap" style="display: none;">
+                <button type="button" class="room-images__nav room-images__nav--prev" id="roomImagesPrev" aria-label="Previous image">&#9664;</button>
+                <div class="room-images__viewer-inner">
+                  <img id="roomImagesCurrentImg" src="" alt="" class="room-images__current-img" />
+                  <span class="room-images__label" id="roomImagesLabel"></span>
+                  <button type="button" class="room-images__delete" id="roomImagesDeleteBtn">Delete</button>
+                </div>
+                <button type="button" class="room-images__nav room-images__nav--next" id="roomImagesNext" aria-label="Next image">&#9654;</button>
+                <p class="room-images__counter" id="roomImagesCounter"></p>
+              </div>
+              <div class="room-images__strip-wrap" id="roomImagesEmptyWrap">
+                <div class="room-images__strip" id="roomImagesStrip"></div>
+              </div>
             </section>
           </div>
         </div>

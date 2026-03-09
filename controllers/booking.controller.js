@@ -284,9 +284,13 @@ export const listRooms = async (_req, res) => {
     const rooms = await Room.find({}).lean();
     const list = rooms.map((r) => ({
       id: parseInt(r.roomId.replace(/\D/g, ""), 10) || r.roomId,
+      roomId: r.roomId,
       name: r.name,
       description: r.description,
       price: r.pricePerNight,
+      images: r.images
+        ? { banner: r.images.banner || null, gallery: r.images.gallery || [] }
+        : { banner: null, gallery: [] },
     }));
     return res.status(200).json({ success: true, rooms: list });
   } catch (error) {
