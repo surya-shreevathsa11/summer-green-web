@@ -2,6 +2,7 @@ import { Booking } from "../models/booking.model.js";
 import { Room, VariablePrice } from "../models/pricing.model.js";
 import { Cart } from "../models/cart.model.js";
 import { BlockedDate } from "../models/blocked-date.model.js";
+import { rooms as roomsConfig } from "../config/room.js";
 
 function parseDateOnly(str) {
   // Parse as YYYY-MM-DD and create at UTC midnight
@@ -117,22 +118,55 @@ export const checkAvailability = async (booking) => {
 const validateGuests = async (guestInfo) => {
   try {
     const { roomId, adults, children } = guestInfo;
+    const a = Number(adults);
+    const c = Number(children);
 
-    if (Number.isNaN(Number(adults)) || Number.isNaN(Number(children))) {
+    if (Number.isNaN(a) || Number.isNaN(c)) {
       return { 0: "Invalid guest count" };
     }
 
-    if (!adults) {
-      return { 0: "Atleast one adult required" };
+    if (!a || a < 1) {
+      return { 0: "At least one adult required" };
+    }
+
+    if (c < 0) {
+      return { 0: "Invalid guest count" };
     }
 
     const roomInfo = await Room.findOne({ roomId });
+    if (!roomInfo) {
+      return { 0: "Room not found" };
+    }
 
-    if (
-      adults > roomInfo.capacity.adults ||
-      children > roomInfo.capacity.adults + roomInfo.capacity.children - adults
-    ) {
-      return { 0: "Invalid guest Count selected" };
+    const configRoom = roomsConfig[roomId];
+    const maxAdults = (configRoom && configRoom.capacity) ? configRoom.capacity.adults : roomInfo.capacity?.adults;
+    const maxChildren = (configRoom && configRoom.capacity) ? configRoom.capacity.children : roomInfo.capacity?.children;
+    const adultsOnly = configRoom?.adultsOnly;
+
+    if (maxAdults == null || maxChildren == null) {
+      return { 0: "Room capacity not configured" };
+    }
+
+    if (adultsOnly != null) {
+      if (c === 0) {
+        if (a > adultsOnly) {
+          return {
+            0: `Guest limit exceeded. This room allows up to ${adultsOnly} adult(s) when no children, or up to ${maxAdults} adult(s) and ${maxChildren} child(ren).`,
+          };
+        }
+      } else {
+        if (a > maxAdults || c > maxChildren) {
+          return {
+            0: `Guest limit exceeded. With children, this room allows up to ${maxAdults} adult(s) and ${maxChildren} child(ren).`,
+          };
+        }
+      }
+    } else {
+      if (a > maxAdults || c > maxChildren) {
+        return {
+          0: `Guest limit exceeded. This room allows up to ${maxAdults} adult(s) and ${maxChildren} child(ren).`,
+        };
+      }
     }
 
     return { 1: "ok" };
@@ -282,16 +316,28 @@ export const listCart = async (req, res) => {
 export const listRooms = async (_req, res) => {
   try {
     const rooms = await Room.find({}).lean();
-    const list = rooms.map((r) => ({
-      id: parseInt(r.roomId.replace(/\D/g, ""), 10) || r.roomId,
-      roomId: r.roomId,
-      name: r.name,
-      description: r.description,
-      price: r.pricePerNight,
-      images: r.images
-        ? { banner: r.images.banner || null, gallery: r.images.gallery || [] }
-        : { banner: null, gallery: [] },
-    }));
+    const list = rooms.map((r) => {
+      const configRoom = roomsConfig[r.roomId];
+      const cap = (configRoom && configRoom.capacity)
+        ? { adults: configRoom.capacity.adults, children: configRoom.capacity.children }
+        : (r.capacity != null
+          ? { adults: r.capacity.adults, children: r.capacity.children }
+          : { adults: 1, children: 0 });
+      if (configRoom && configRoom.adultsOnly != null) {
+        cap.adultsOnly = configRoom.adultsOnly;
+      }
+      return {
+        id: parseInt(r.roomId.replace(/\D/g, ""), 10) || r.roomId,
+        roomId: r.roomId,
+        name: r.name,
+        description: r.description,
+        price: r.pricePerNight,
+        capacity: cap,
+        images: r.images
+          ? { banner: r.images.banner || null, gallery: r.images.gallery || [] }
+          : { banner: null, gallery: [] },
+      };
+    });
     return res.status(200).json({ success: true, rooms: list });
   } catch (error) {
     console.error("error listing rooms", error);

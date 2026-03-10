@@ -59,20 +59,30 @@
   });
 
   // --- Add to cart: open book popup; backend validates session and returns message if not signed in ---
-  function onAddToCartClick(id, name, price) {
-    openBookRoomModal(Number(id), name, Number(price));
+  function onAddToCartClick(id, name, price, capacity) {
+    openBookRoomModal(Number(id), name, Number(price), capacity);
   }
 
   document.addEventListener("click", function (e) {
     var btn = e.target.closest("[data-add-cart]");
     if (!btn) return;
+    var capacity = null;
+    if (btn.dataset.maxAdults != null && btn.dataset.maxChildren != null) {
+      capacity = {
+        adults: parseInt(btn.dataset.maxAdults, 10) || 1,
+        children: parseInt(btn.dataset.maxChildren, 10) || 0,
+      };
+      if (btn.dataset.maxAdultsWithChildren != null)
+        capacity.adultsWithChildren = parseInt(btn.dataset.maxAdultsWithChildren, 10);
+    }
     var modal = $("#roomsModal");
     if (modal && modal.classList.contains("active")) {
       e.preventDefault();
       onAddToCartClick(
         btn.dataset.addCart,
         btn.dataset.name,
-        btn.dataset.price
+        btn.dataset.price,
+        capacity
       );
       return;
     }
@@ -82,7 +92,8 @@
       onAddToCartClick(
         btn.dataset.addCart,
         btn.dataset.name,
-        btn.dataset.price
+        btn.dataset.price,
+        capacity
       );
     }
   });
@@ -151,6 +162,25 @@
     bookRoomCheckOut.addEventListener("change", checkDatesAvailability);
   }
 
+  function validateBookRoomGuests(adults, children, capacity) {
+    if (!capacity || capacity.adults == null || capacity.children == null) return null;
+    var a = adults;
+    var c = children;
+    var maxAdults = capacity.adults;
+    var maxChildren = capacity.children;
+    var adultsWithChildren = capacity.adultsWithChildren;
+    if (adultsWithChildren != null) {
+      if (c === 0) {
+        if (a > maxAdults) return "Guest limit exceeded. This room allows up to " + maxAdults + " adult(s) when no children, or up to " + adultsWithChildren + " adult(s) and " + maxChildren + " child(ren).";
+      } else {
+        if (a > adultsWithChildren || c > maxChildren) return "Guest limit exceeded. With children, this room allows up to " + adultsWithChildren + " adult(s) and " + maxChildren + " child(ren).";
+      }
+    } else {
+      if (a > maxAdults || c > maxChildren) return "Guest limit exceeded. This room allows up to " + maxAdults + " adult(s) and " + maxChildren + " child(ren).";
+    }
+    return null;
+  }
+
   var bookRoomForm = $("#bookRoomForm");
   if (bookRoomForm) {
     bookRoomForm.addEventListener("submit", async function (e) {
@@ -164,6 +194,11 @@
       var adults = parseInt($("#bookRoomAdults").value, 10) || 1;
       var children = parseInt($("#bookRoomChildren").value, 10) || 0;
       errEl.textContent = "";
+      var clientError = validateBookRoomGuests(adults, children, pendingBookRoom.capacity);
+      if (clientError) {
+        errEl.textContent = clientError;
+        return;
+      }
       if (submitBtn) submitBtn.disabled = true;
       try {
         var availRes = await fetch("/api/booking/checkAvailability", {
@@ -459,8 +494,16 @@
 
   let pendingBookRoom = null;
 
-  function openBookRoomModal(roomId, roomName, roomPrice) {
-    pendingBookRoom = { id: roomId, name: roomName, price: roomPrice };
+  function openBookRoomModal(roomId, roomName, roomPrice, capacity) {
+    var maxAdults = (capacity && capacity.adults != null) ? capacity.adults : 20;
+    var maxChildren = (capacity && capacity.children != null) ? capacity.children : 20;
+    var maxAdultsWithChildren = (capacity && capacity.adultsWithChildren != null) ? capacity.adultsWithChildren : null;
+    pendingBookRoom = {
+      id: roomId,
+      name: roomName,
+      price: roomPrice,
+      capacity: capacity ? { adults: maxAdults, children: maxChildren, adultsOnly: capacity.adultsOnly, adultsWithChildren: maxAdultsWithChildren } : null,
+    };
     const nameEl = $("#bookRoomName");
     if (nameEl) nameEl.textContent = roomName;
     const errEl = $("#bookRoomError");
@@ -478,8 +521,54 @@
     }
     const adults = $("#bookRoomAdults");
     const children = $("#bookRoomChildren");
-    if (adults) adults.value = 1;
-    if (children) children.value = 0;
+    if (adults) {
+      adults.setAttribute("min", "1");
+      adults.setAttribute("max", String(maxAdults));
+      adults.value = Math.min(1, maxAdults);
+    }
+    if (children) {
+      children.setAttribute("min", "0");
+      children.setAttribute("max", String(maxChildren));
+      children.value = Math.min(0, maxChildren);
+    }
+    function onChildrenInput() {
+      if (maxAdultsWithChildren == null || !children || !adults) return;
+      var c = parseInt(children.value, 10) || 0;
+      var a = parseInt(adults.value, 10) || 1;
+      if (c > 0 && a > maxAdultsWithChildren) {
+        adults.value = String(maxAdultsWithChildren);
+      }
+    }
+    function onAdultsInput() {
+      if (maxAdultsWithChildren == null || !adults || !children) return;
+      var a = parseInt(adults.value, 10) || 1;
+      var c = parseInt(children.value, 10) || 0;
+      if (a > maxAdultsWithChildren && c > 0) {
+        children.value = "0";
+      }
+    }
+    if (adults && adults._bookRoomCapacityListener) {
+      adults.removeEventListener("input", adults._bookRoomCapacityListener);
+      adults.removeEventListener("change", adults._bookRoomCapacityListener);
+      adults._bookRoomCapacityListener = null;
+    }
+    if (children && children._bookRoomCapacityListener) {
+      children.removeEventListener("input", children._bookRoomCapacityListener);
+      children.removeEventListener("change", children._bookRoomCapacityListener);
+      children._bookRoomCapacityListener = null;
+    }
+    if (maxAdultsWithChildren != null) {
+      if (children) {
+        children._bookRoomCapacityListener = onChildrenInput;
+        children.addEventListener("input", onChildrenInput);
+        children.addEventListener("change", onChildrenInput);
+      }
+      if (adults) {
+        adults._bookRoomCapacityListener = onAdultsInput;
+        adults.addEventListener("input", onAdultsInput);
+        adults.addEventListener("change", onAdultsInput);
+      }
+    }
     openModal("#bookRoomModal");
   }
 
@@ -521,6 +610,10 @@
             ? JSON.stringify(galleryOnly)
             : "";
           const descText = room.description || "";
+          const cap = room.capacity || {};
+          const maxAdults = cap.adultsOnly != null ? cap.adultsOnly : (cap.adults != null ? cap.adults : 20);
+          const maxChildren = cap.children != null ? cap.children : 20;
+          const maxAdultsWithChildrenAttr = (cap.adultsOnly != null && cap.adults != null) ? ' data-max-adults-with-children="' + cap.adults + '"' : "";
           return `
         <div class="room-card" data-reveal="slide-down" data-reveal-delay="${Math.min(idx * 100, 400)}"${roomImagesJson ? ' data-room-images="' + roomImagesJson.replace(/"/g, "&quot;") + '" data-room-name="' + (room.name || "").replace(/"/g, "&quot;") + '"' : ""}>
           <div class="room-card__media">
@@ -532,7 +625,7 @@
             <p class="room-card__desc">${escapeHtml(descText)}</p>
             <p class="room-card__price"><span>₹${room.price}</span> / night</p>
             <div class="room-card__actions">
-              <button type="button" class="btn btn--outline btn--sm" data-add-cart="${room.id}" data-name="${escapeHtml(room.name)}" data-price="${room.price}">Add to cart</button>
+              <button type="button" class="btn btn--outline btn--sm" data-add-cart="${room.id}" data-name="${escapeHtml(room.name)}" data-price="${room.price}" data-max-adults="${maxAdults}" data-max-children="${maxChildren}"${maxAdultsWithChildrenAttr}>Add to cart</button>
             </div>
           </div>
         </div>

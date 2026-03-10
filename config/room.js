@@ -27,9 +27,10 @@ export const rooms = {
     description: "Earthy sage and linen textures",
     price: 6500,
     capacity: {
-      adults: 5, //7 adults + 0 children or 5 adults + 2 children
+      adults: 5, // max adults when children > 0
       children: 2,
     },
+    adultsOnly: 7, // when 0 children: up to 7 adults; when children > 0: up to 5 adults + 2 children
   },
 
   R4: {
@@ -38,9 +39,10 @@ export const rooms = {
     description: "Rich clay and rustic warmth",
     price: 5000,
     capacity: {
-      adults: 5, //7 adults + 0 children or 5 adults + 2 children
+      adults: 5, // max adults when children > 0
       children: 2,
     },
+    adultsOnly: 7, // when 0 children: up to 7 adults; when children > 0: up to 5 adults + 2 children
   },
 
   R5: {
