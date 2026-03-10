@@ -520,17 +520,23 @@
           const roomImagesJson = galleryOnly.length
             ? JSON.stringify(galleryOnly)
             : "";
+          const isBudgetRoom = room.id >= 5 && room.id <= 8;
+          const descText = isBudgetRoom
+            ? "A cozy budget room designed for up to 2 guests, offering a comfortable and affordable stay."
+            : (room.description || "");
           return `
         <div class="room-card" data-reveal="slide-down" data-reveal-delay="${Math.min(idx * 100, 400)}"${roomImagesJson ? ' data-room-images="' + roomImagesJson.replace(/"/g, "&quot;") + '" data-room-name="' + (room.name || "").replace(/"/g, "&quot;") + '"' : ""}>
           <div class="room-card__media">
             <img loading="lazy" alt="${escapeHtml(room.name)} cover" src="${imgSrc}">
           </div>
-          <span class="room-card__number">0${room.id}</span>
-          <h3 class="room-card__name">${escapeHtml(room.name)}</h3>
-          <p class="room-card__desc">${escapeHtml(room.description)}</p>
-          <p class="room-card__price"><span>₹${room.price}</span> / night</p>
-          <div class="room-card__actions">
-            <button type="button" class="btn btn--outline btn--sm" data-add-cart="${room.id}" data-name="${escapeHtml(room.name)}" data-price="${room.price}">Add to cart</button>
+          <div class="room-card__content">
+            <span class="room-card__number">0${room.id}</span>
+            <h3 class="room-card__name">${escapeHtml(room.name)}</h3>
+            <p class="room-card__desc">${escapeHtml(descText)}</p>
+            <p class="room-card__price"><span>₹${room.price}</span> / night</p>
+            <div class="room-card__actions">
+              <button type="button" class="btn btn--outline btn--sm" data-add-cart="${room.id}" data-name="${escapeHtml(room.name)}" data-price="${room.price}">Add to cart</button>
+            </div>
           </div>
         </div>
       `;

@@ -789,8 +789,19 @@ main {
 .room-card__desc {
   font-size: 0.85rem;
   color: var(--text-secondary);
-  margin-bottom: 1rem;
   line-height: 1.5;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(16px);
+  margin-bottom: 0;
+  transition: max-height 0.4s ease, opacity 0.4s ease, transform 0.4s ease, margin-bottom 0.4s ease;
+}
+.room-card:hover .room-card__desc {
+  max-height: 5em;
+  opacity: 1;
+  transform: translateY(0);
+  margin-bottom: 1rem;
 }
 .room-card__price {
   font-size: 0.75rem;
