@@ -72,43 +72,41 @@ body {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: var(--cursor-blob-fill, rgba(20, 33, 61, 0.95));
-  box-shadow: var(--cursor-blob-shadow, 0 2px 10px rgba(0,0,0,0.25)),
-    0 0 0 1px rgba(20, 33, 61, 0.2);
+  background: var(--cursor-blob-fill, rgba(20, 33, 61, 0.58));
+  box-shadow: var(--cursor-blob-shadow, 0 2px 10px rgba(0,0,0,0.2)),
+    0 0 0 1px rgba(20, 33, 61, 0.18);
   will-change: transform;
-  transition: box-shadow 0.2s ease, opacity 0.2s ease, background 0.25s ease;
+  transition: transform 0.18s ease-out, box-shadow 0.2s ease, background 0.2s ease;
   opacity: 1;
 }
+/* Hover: ring + slightly denser fill so cursor is easy to use for pointing */
 .blob-cursor.is-hover .blob-cursor__blob {
-  box-shadow: var(--cursor-blob-shadow-hover),
-    0 0 0 1px rgba(20, 33, 61, 0.25);
-  background: var(--cursor-blob-fill, rgba(20, 33, 61, 0.95));
-  opacity: 1;
+  box-shadow: var(--cursor-blob-shadow-hover);
+  background: var(--cursor-blob-fill-hover, var(--cursor-blob-fill, rgba(20, 33, 61, 0.72)));
 }
 .blob-cursor.is-hover-text .blob-cursor__blob {
-  background: var(--cursor-blob-fill, rgba(20, 33, 61, 0.92));
+  background: var(--cursor-blob-fill-hover, var(--cursor-blob-fill, rgba(20, 33, 61, 0.65)));
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 0 0 1px rgba(20, 33, 61, 0.22);
+  box-shadow: var(--cursor-blob-shadow-hover);
 }
-/* Over header: contrasting cursor so header elements stay visible */
+/* Over header/footer: translucent contrasting cursor so elements stay visible */
 .blob-cursor.is-over-header .blob-cursor__blob {
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0,0,0,0.08);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0,0,0,0.1);
 }
 .blob-cursor.is-over-header.is-hover .blob-cursor__blob {
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0,0,0,0.1);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 0 3px rgba(20, 33, 61, 0.35);
 }
 .blob-cursor.is-over-header .blob-cursor__inner {
-  background: rgba(20, 33, 61, 0.9);
+  background: rgba(20, 33, 61, 0.82);
 }
 .blob-cursor.is-over-header.is-hover-text .blob-cursor__blob {
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.68);
 }
 .blob-cursor.is-over-header.is-hover-text .blob-cursor__inner {
-  background: rgba(20, 33, 61, 0.95);
+  background: rgba(20, 33, 61, 0.9);
 }
 .blob-cursor.is-down .blob-cursor__blob {
   transform: translate(-50%, -50%) scale(0.9);
@@ -119,14 +117,14 @@ body {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--cursor-blob-inner, rgba(255, 255, 255, 0.95));
+  background: var(--cursor-blob-inner, rgba(255, 255, 255, 0.88));
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  transition: background 0.25s ease;
+  transition: background 0.2s ease;
 }
 .blob-cursor.is-hover-text .blob-cursor__inner {
-  background: var(--cursor-blob-inner, rgba(255, 255, 255, 0.98));
+  background: var(--cursor-blob-inner, rgba(255, 255, 255, 0.92));
 }
 
 @media (pointer: coarse) {
@@ -1833,6 +1831,40 @@ body.page-cart .nav {
     padding: 0.9rem 0;
     padding-top: max(0.9rem, env(safe-area-inset-top));
   }
+  /* Mobile nav: align logo, hamburger, cart and sign-in on one baseline */
+  .nav__inner {
+    align-items: center;
+    min-height: 52px;
+  }
+  .nav__logo {
+    display: flex;
+    align-items: center;
+  }
+  .nav__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .nav__cart {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .nav__right {
+    display: flex;
+    align-items: center;
+  }
+  .nav__auth-wrap {
+    display: flex;
+    align-items: center;
+  }
+  .nav__auth {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
   .nav__links {
     display: none;
     position: absolute;
@@ -1847,9 +1879,6 @@ body.page-cart .nav {
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   }
   .nav__links.open {
-    display: flex;
-  }
-  .nav__toggle {
     display: flex;
   }
   .cart-page {
@@ -1900,9 +1929,13 @@ body.page-cart .nav {
     text-align: center;
     min-height: 0;
   }
+  /* Mobile: VARA logo at left bottom of footer (Instagram link unchanged) */
   .footer__vara {
-    order: 1;
-    justify-content: center;
+    position: absolute;
+    bottom: 0.75rem;
+    left: max(1rem, env(safe-area-inset-left));
+    order: unset;
+    justify-content: flex-start;
     margin-left: 0;
   }
   .footer__center {
@@ -1923,6 +1956,7 @@ body.page-cart .nav {
   .footer {
     padding-left: max(1rem, env(safe-area-inset-left));
     padding-right: max(1.5rem, env(safe-area-inset-right));
+    position: relative;
   }
   .footer__vara-img {
     width: 2.5rem;
