@@ -12,6 +12,10 @@ import {
 } from "../controllers/booking.controller.js";
 import isAuthenticated from "../middleware/auth.middleware.js";
 
+//the gallery section below (!room section)
+import { getGallery } from "../controllers/admin.gallery.controller.js";
+router.get("/roomGalley", getGallery);
+
 router.get("/rooms", listRooms);
 router.get("/bookings", isAuthenticated, listBookings);
 router.get("/cart", isAuthenticated, listCart);
