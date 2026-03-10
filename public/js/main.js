@@ -504,15 +504,16 @@
     try {
       const res = await fetch("/api/booking/rooms");
       const data = await res.json();
-      if (!data.success) return;
+      if (!data.success || !data.rooms) return;
       const grid = $("#roomsGrid");
+      if (!grid) return;
       grid.innerHTML = data.rooms
 
         .map((room, idx) => {
-          const imgSrc =
-            room.images && room.images.banner
-              ? room.images.banner
-              : roomCoverImages[idx % roomCoverImages.length];
+            const imgSrc =
+              room.images && room.images.banner
+                ? room.images.banner
+                : "/img/summary%20green.jpeg";
           const galleryOnly = [];
           if (room.images && room.images.gallery && room.images.gallery.length)
             galleryOnly.push(...room.images.gallery);
