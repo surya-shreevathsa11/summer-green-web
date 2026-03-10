@@ -8,7 +8,7 @@ import {
   addGalleryImage,
   removeGalleryImage,
   reorderGalleryImages,
-} from "../controllers/admin.gallery.controller";
+} from "../controllers/admin.gallery.controller.js";
 
 router.get("/gallery", verifyJWT, getGallery);
 router.post("/gallery/add", verifyJWT, addGalleryImage);

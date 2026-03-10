@@ -1,4 +1,4 @@
-import { Gallery } from "../models/gallery.model.js";
+import { Gallery } from "../models/admin.gallery.model.js";
 
 const MAX_IMAGES = 6;
 const VALID_SECTIONS = ["allImages", "rooms", "exterior", "dining"];
@@ -27,11 +27,9 @@ export const addGalleryImage = async (req, res) => {
       return res.status(400).json({ message: "section and url are required" });
     }
     if (!VALID_SECTIONS.includes(section)) {
-      return res
-        .status(400)
-        .json({
-          message: `section must be one of: ${VALID_SECTIONS.join(", ")}`,
-        });
+      return res.status(400).json({
+        message: `section must be one of: ${VALID_SECTIONS.join(", ")}`,
+      });
     }
 
     let gallery = await Gallery.findOne();
@@ -80,11 +78,9 @@ export const removeGalleryImage = async (req, res) => {
       return res.status(400).json({ message: "section and url are required" });
     }
     if (!VALID_SECTIONS.includes(section)) {
-      return res
-        .status(400)
-        .json({
-          message: `section must be one of: ${VALID_SECTIONS.join(", ")}`,
-        });
+      return res.status(400).json({
+        message: `section must be one of: ${VALID_SECTIONS.join(", ")}`,
+      });
     }
 
     const gallery = await Gallery.findOne();
