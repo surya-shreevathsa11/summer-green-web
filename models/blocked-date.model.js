@@ -24,5 +24,6 @@ const blockedDateSchema = new Schema(
 );
 
 blockedDateSchema.index({ roomId: 1, from: 1, to: 1 });
+blockedDateSchema.index({ to: 1 }, { expireAfterSeconds: 45 * 24 * 60 * 60 });
 
 export const BlockedDate = mongoose.model("BlockedDate", blockedDateSchema);

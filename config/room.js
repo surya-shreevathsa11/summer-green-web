@@ -3,7 +3,7 @@ export const rooms = {
     id: "01",
     name: "Sunflower",
     description: "Warm tones with olive wood accents",
-    price: 5,
+    price: 3500,
     capacity: {
       adults: 2,
       children: 1,
@@ -14,7 +14,7 @@ export const rooms = {
     id: "02",
     name: "Lily",
     description: "Sun-drenched citrus palette",
-    price: 4,
+    price: 2500,
     capacity: {
       adults: 3,
       children: 1,
@@ -25,10 +25,10 @@ export const rooms = {
     id: "03",
     name: "Marigold",
     description: "Earthy sage and linen textures",
-    price: 4,
+    price: 6500,
     capacity: {
-      adults: 7, //7 adults or 5 adults + 2 children
-      children: 0,
+      adults: 5, //7 adults + 0 children or 5 adults + 2 children
+      children: 2,
     },
   },
 
@@ -36,20 +36,21 @@ export const rooms = {
     id: "04",
     name: "Lavender",
     description: "Rich clay and rustic warmth",
-    price: 4,
+    price: 5000,
     capacity: {
-      adults: 7, //7 adults or 5 adults + 2 children
-      children: 0,
+      adults: 5, //7 adults + 0 children or 5 adults + 2 children
+      children: 2,
     },
   },
 
   R5: {
     id: "05",
     name: "Dahlia",
-    description: "Soft lavender and white stone",
-    price: 4,
+    description:
+      "A cozy budget room designed for up to 2 guests, offering a comfortable and affordable stay.",
+    price: 1250,
     capacity: {
-      adults: 2,
+      adults: 2, //or chlidren 1
       children: 0,
     },
   },
@@ -57,8 +58,9 @@ export const rooms = {
   R6: {
     id: "06",
     name: "Gardenia",
-    description: "Deep greens with cypress views",
-    price: 4,
+    description:
+      "A cozy budget room designed for up to 2 guests, offering a comfortable and affordable stay.",
+    price: 1250,
     capacity: {
       adults: 2,
       children: 0,
@@ -68,8 +70,9 @@ export const rooms = {
   R7: {
     id: "07",
     name: "Petunia",
-    description: "Vineyard-facing with wood beams",
-    price: 155,
+    description:
+      "A cozy budget room designed for up to 2 guests, offering a comfortable and affordable stay.",
+    price: 1250,
     capacity: {
       adults: 2,
       children: 0,
@@ -79,8 +82,9 @@ export const rooms = {
   R8: {
     id: "08",
     name: "Zinnia",
-    description: "West-facing sunset panorama",
-    price: 160,
+    description:
+      "A cozy budget room designed for up to 2 guests, offering a comfortable and affordable stay.",
+    price: 1250,
     capacity: {
       adults: 2,
       children: 0,

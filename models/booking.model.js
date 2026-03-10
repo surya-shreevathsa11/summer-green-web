@@ -98,8 +98,13 @@ const BookingSchema = new Schema(
       enum: ["pending", "confirmed", "cancelled", "blocked"],
       default: "pending",
     },
+
+    expiresAt: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );
 
+BookingSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 export const Booking = mongoose.model("Booking", BookingSchema);

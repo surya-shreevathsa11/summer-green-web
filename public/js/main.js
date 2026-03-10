@@ -510,20 +510,20 @@
       grid.innerHTML = data.rooms
 
         .map((room, idx) => {
-            const imgSrc =
-              room.images && room.images.banner
-                ? room.images.banner
-                : "/img/summary%20green.jpeg";
+          const imgSrc =
+            room.images && room.images.banner
+              ? room.images.banner
+              : "/img/summary%20green.jpeg";
           const galleryOnly = [];
           if (room.images && room.images.gallery && room.images.gallery.length)
             galleryOnly.push(...room.images.gallery);
           const roomImagesJson = galleryOnly.length
             ? JSON.stringify(galleryOnly)
             : "";
-          const isBudgetRoom = room.id >= 5 && room.id <= 8;
-          const descText = isBudgetRoom
-            ? "A cozy budget room designed for up to 2 guests, offering a comfortable and affordable stay."
-            : (room.description || "");
+          // const isBudgetRoom = room.id >= 5 && room.id <= 8;
+          // const descText = isBudgetRoom
+          //   ? "A cozy budget room designed for up to 2 guests, offering a comfortable and affordable stay."
+          //   : (room.description || "");
           return `
         <div class="room-card" data-reveal="slide-down" data-reveal-delay="${Math.min(idx * 100, 400)}"${roomImagesJson ? ' data-room-images="' + roomImagesJson.replace(/"/g, "&quot;") + '" data-room-name="' + (room.name || "").replace(/"/g, "&quot;") + '"' : ""}>
           <div class="room-card__media">

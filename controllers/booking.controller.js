@@ -438,10 +438,18 @@ export const bookRooms = async (req, res) => {
     const receiptId = crypto.randomBytes(6).toString("hex");
 
     const order = await razorpay.orders.create({
-      amount: Math.floor(totalBookingPrice / 2) * 100,
+      amount: Math.floor((totalBookingPrice / 2) * 100),
       currency: "INR",
       receipt: `booking_${receiptId}`,
     });
+
+    const lastCheckout = new Date(
+      Math.max(...rooms.roomInfo.map((r) => new Date(r.checkOut)))
+    );
+
+    const expiresAt = new Date(
+      lastCheckout.getTime() + 45 * 24 * 60 * 60 * 1000
+    );
 
     const booking = await Booking.create({
       userId: req.user._id,
@@ -455,6 +463,7 @@ export const bookRooms = async (req, res) => {
       amountPaid: 0,
       razorpayOrderId: order.id,
       status: "pending",
+      expiresAt,
     });
 
     return res.status(201).json({

@@ -77,6 +77,8 @@ const variablePriceSchema = new Schema({
 });
 
 variablePriceSchema.index({ roomId: 1, from: 1, to: 1 });
+// TTL: delete 45 days after the last valid day
+variablePriceSchema.index({ to: 1 }, { expireAfterSeconds: 45 * 24 * 60 * 60 });
 
 export const VariablePrice = mongoose.model(
   "VariablePrice",
