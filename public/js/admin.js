@@ -112,7 +112,7 @@
   }
 
   function switchTab(tabId) {
-    var tabs = { bookings: "tabContentBookings", pricing: "tabContentPricing", blockdates: "tabContentBlockDates", images: "tabContentImages" };
+    var tabs = { bookings: "tabContentBookings", pricing: "tabContentPricing", blockdates: "tabContentBlockDates", images: "tabContentImages", gallery: "tabContentGallery" };
     var contentId = tabs[tabId];
     if (!contentId) return;
     document.querySelectorAll(".admin__tab-btn").forEach(function (btn) {
@@ -127,6 +127,7 @@
     if (tabId === "pricing") btn = document.getElementById("tabPricing");
     if (tabId === "blockdates") btn = document.getElementById("tabBlockDates");
     if (tabId === "images") btn = document.getElementById("tabRoomImages");
+    if (tabId === "gallery") btn = document.getElementById("tabGallery");
     if (btn) { btn.classList.add("active"); btn.setAttribute("aria-selected", "true"); }
     var panel = document.getElementById(contentId);
     if (panel) { panel.classList.add("active"); panel.style.display = "block"; }
@@ -138,6 +139,9 @@
     }
     if (tabId === "blockdates") {
       loadBlockDates();
+    }
+    if (tabId === "gallery") {
+      loadGallery();
     }
   }
 
@@ -768,7 +772,7 @@
     });
   }
 
-  [["tabBookings", "bookings"], ["tabPricing", "pricing"], ["tabBlockDates", "blockdates"], ["tabRoomImages", "images"]].forEach(function (pair) {
+  [["tabBookings", "bookings"], ["tabPricing", "pricing"], ["tabBlockDates", "blockdates"], ["tabRoomImages", "images"], ["tabGallery", "gallery"]].forEach(function (pair) {
     var btn = document.getElementById(pair[0]);
     if (btn) btn.addEventListener("click", function () { switchTab(pair[1]); });
   });
@@ -1010,6 +1014,121 @@
   if (uploadGalleryBtn && imageRoomSelect) {
     uploadGalleryBtn.addEventListener("click", function () {
       openCloudinaryUpload(imageRoomSelect.value, "gallery");
+    });
+  }
+
+  // ─── Website Gallery (main page gallery section) ───────────────────────────────
+  var galleryData = null;
+
+  function loadGallery() {
+    var msgEl = document.getElementById("galleryMsg");
+    var listEl = document.getElementById("galleryList");
+    var emptyEl = document.getElementById("galleryEmpty");
+    if (msgEl) msgEl.style.display = "none";
+    if (listEl) listEl.innerHTML = "<p class=\"admin__gallery-loading\">Loading…</p>";
+    if (emptyEl) emptyEl.style.display = "none";
+    apiGet("/api/admin/gallery").then(function (r) {
+      if (r.ok && r.data && r.data.data) {
+        galleryData = r.data.data;
+        renderGalleryList();
+      } else {
+        if (listEl) listEl.innerHTML = "";
+        if (emptyEl) emptyEl.style.display = "block";
+        setMsg(msgEl, (r.data && r.data.message) || "Could not load gallery.", true);
+      }
+    }).catch(function () {
+      if (listEl) listEl.innerHTML = "";
+      if (emptyEl) emptyEl.style.display = "block";
+      setMsg(msgEl, "Could not load gallery.", true);
+    });
+  }
+
+  function renderGalleryList() {
+    var listEl = document.getElementById("galleryList");
+    var emptyEl = document.getElementById("galleryEmpty");
+    var sectionEl = document.getElementById("gallerySection");
+    if (!listEl || !sectionEl || !galleryData) return;
+    var section = sectionEl.value || "allImages";
+    var images = Array.isArray(galleryData[section]) ? galleryData[section] : [];
+    if (images.length === 0) {
+      listEl.innerHTML = "";
+      if (emptyEl) emptyEl.style.display = "block";
+      return;
+    }
+    if (emptyEl) emptyEl.style.display = "none";
+    listEl.innerHTML = images.map(function (url, i) {
+      var safe = (url || "").replace(/"/g, "&quot;");
+      return (
+        "<div class=\"admin__gallery-item\" data-url=\"" + safe + "\" data-section=\"" + (section || "").replace(/"/g, "&quot;") + "\">" +
+        "<img src=\"" + safe + "\" alt=\"\" class=\"admin__gallery-thumb\" loading=\"lazy\" />" +
+        "<button type=\"button\" class=\"btn admin__gallery-remove\" aria-label=\"Remove image\">Remove</button>" +
+        "</div>"
+      );
+    }).join("");
+    listEl.querySelectorAll(".admin__gallery-remove").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var item = btn.closest(".admin__gallery-item");
+        if (!item) return;
+        var url = item.getAttribute("data-url");
+        var sec = item.getAttribute("data-section");
+        if (!url || !sec) return;
+        fetch("/api/admin/gallery/remove", {
+          method: "DELETE",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ section: sec, url: url }),
+        }).then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); }).then(function (r) {
+          if (r.ok) loadGallery();
+          else setMsg(document.getElementById("galleryMsg"), (r.data && r.data.message) || "Remove failed.", true);
+        });
+      });
+    });
+  }
+
+  var addGalleryImageBtn = document.getElementById("addGalleryImageBtn");
+  var gallerySectionEl = document.getElementById("gallerySection");
+  if (gallerySectionEl) {
+    gallerySectionEl.addEventListener("change", function () { renderGalleryList(); });
+  }
+  if (addGalleryImageBtn && gallerySectionEl) {
+    addGalleryImageBtn.addEventListener("click", function () {
+      var section = gallerySectionEl.value || "allImages";
+      if (typeof cloudinary === "undefined") {
+        setMsg(document.getElementById("galleryMsg"), "Cloudinary widget is loading. Try again in a moment.", true);
+        return;
+      }
+      apiGet("/api/admin/cloud-signature").then(function (r) {
+        if (!r.ok || !r.data) {
+          setMsg(document.getElementById("galleryMsg"), "Could not get upload signature.", true);
+          return;
+        }
+        var d = r.data;
+        var widget = cloudinary.createUploadWidget(
+          {
+            cloudName: d.cloudName,
+            apiKey: d.apiKey,
+            uploadSignature: d.signature,
+            uploadSignatureTimestamp: d.timestamp,
+            folder: d.folder,
+            sources: ["local", "camera"],
+            multiple: false,
+          },
+          function (error, result) {
+            if (error) return;
+            if (result.event === "success") {
+              var url = result.info && result.info.secure_url;
+              if (!url) return;
+              apiPost("/api/admin/gallery/add", { section: section, url: url }).then(function (res) {
+                setMsg(document.getElementById("galleryMsg"), res.ok ? "Image added." : (res.data && res.data.message) || "Add failed.", !res.ok);
+                if (res.ok) loadGallery();
+              });
+            }
+          }
+        );
+        widget.open();
+      }).catch(function () {
+        setMsg(document.getElementById("galleryMsg"), "Could not get upload signature.", true);
+      });
     });
   }
 

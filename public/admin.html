@@ -188,6 +188,7 @@
             <button type="button" class="admin__tab-btn" role="tab" id="tabPricing" data-tab="pricing" aria-selected="false"><span class="admin__tab-icon" aria-hidden="true">🏷</span> Pricing Rules</button>
             <button type="button" class="admin__tab-btn" role="tab" id="tabBlockDates" data-tab="blockdates" aria-selected="false"><span class="admin__tab-icon" aria-hidden="true">⊘</span> Block Dates</button>
             <button type="button" class="admin__tab-btn" role="tab" id="tabRoomImages" data-tab="images" aria-selected="false">Room Images</button>
+            <button type="button" class="admin__tab-btn" role="tab" id="tabGallery" data-tab="gallery" aria-selected="false"><span class="admin__tab-icon" aria-hidden="true">🖼</span> Gallery</button>
           </nav>
 
           <div id="tabContentBookings" class="admin__tab-content active" role="tabpanel">
@@ -416,6 +417,32 @@
                     <button type="button" class="btn admin__btn-block-dates" id="addBlockDateBtn">Block Dates</button>
                   </div>
                 </div>
+              </div>
+            </section>
+          </div>
+
+          <div id="tabContentGallery" class="admin__tab-content" role="tabpanel" style="display: none">
+            <section class="admin__section admin__gallery-section">
+              <div class="admin__gallery-card">
+                <h2 class="admin__gallery-title">Website Gallery</h2>
+                <p class="admin__msg admin__gallery-msg" id="galleryMsg" style="display: none"></p>
+                <div class="admin__gallery-controls">
+                  <div class="form__group">
+                    <label for="gallerySection">Category</label>
+                    <select id="gallerySection">
+                      <option value="allImages">All Images</option>
+                      <option value="rooms">Rooms</option>
+                      <option value="exterior">Exterior</option>
+                      <option value="dining">Dining</option>
+                    </select>
+                  </div>
+                  <div class="form__group form__group--action">
+                    <button type="button" class="btn admin__btn-add-gallery" id="addGalleryImageBtn">+ Add Image</button>
+                  </div>
+                </div>
+                <p class="admin__gallery-hint">Max 6 images per category. Images appear in the Gallery section on the main website.</p>
+                <div class="admin__gallery-list" id="galleryList"></div>
+                <div class="admin__gallery-empty" id="galleryEmpty">No images in this category yet. Click &quot;Add Image&quot; to upload.</div>
               </div>
             </section>
           </div>

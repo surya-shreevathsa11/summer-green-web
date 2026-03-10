@@ -550,6 +550,55 @@
     }
   }
 
+  // --- Gallery: fetch from API and render (admin-managed gallery) ---
+  var galleryGrid = $("#galleryGrid");
+  if (galleryGrid) {
+    fetch("/api/booking/gallery")
+      .then((r) => r.json())
+      .then((res) => {
+        var gallery = res && res.data;
+        if (!gallery) return;
+        var sections = [
+          { key: "allImages", category: "all", label: "Gallery" },
+          { key: "rooms", category: "rooms", label: "Rooms" },
+          { key: "exterior", category: "exterior", label: "Exterior" },
+          { key: "dining", category: "dining", label: "Dining" },
+        ];
+        var list = [];
+        sections.forEach((s, idx) => {
+          var urls = Array.isArray(gallery[s.key]) ? gallery[s.key] : [];
+          urls.forEach((url, i) => {
+            list.push({
+              url: url,
+              category: s.category,
+              label: s.label,
+              delay: 80 + (idx * 80 + i) * 40,
+            });
+          });
+        });
+        if (list.length === 0) return;
+        galleryGrid.innerHTML = list
+          .map(
+            (it) =>
+              '<div class="gallery__item" data-category="' +
+              (it.category || "all") +
+              '" data-reveal="slide-down" data-reveal-delay="' +
+              (it.delay || 0) +
+              '">' +
+              '<img class="gallery__img" alt="' +
+              (it.label || "").replace(/"/g, "&quot;") +
+              '" src="' +
+              (it.url || "").replace(/"/g, "&quot;") +
+              '" loading="lazy" />' +
+              '<div class="gallery__label">' +
+              (it.label || "").replace(/</g, "&lt;") +
+              "</div></div>"
+          )
+          .join("");
+      })
+      .catch(() => {});
+  }
+
   // --- Gallery filter ---
   $$(".gallery__filter").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -567,7 +616,6 @@
   });
 
   // --- Gallery image click: full-screen popup ---
-  var galleryGrid = $("#galleryGrid");
   if (galleryGrid) {
     galleryGrid.addEventListener("click", function (e) {
       var item = e.target.closest(".gallery__item");

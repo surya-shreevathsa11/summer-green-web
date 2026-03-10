@@ -12,9 +12,9 @@ import {
 } from "../controllers/booking.controller.js";
 import isAuthenticated from "../middleware/auth.middleware.js";
 
-//the gallery section below (!room section)
+// Public gallery (no auth) for main page
 import { getGallery } from "../controllers/admin.gallery.controller.js";
-router.get("/roomGalley", getGallery);
+router.get("/gallery", getGallery);
 
 router.get("/rooms", listRooms);
 router.get("/bookings", isAuthenticated, listBookings);
