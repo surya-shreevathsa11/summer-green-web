@@ -520,10 +520,7 @@
           const roomImagesJson = galleryOnly.length
             ? JSON.stringify(galleryOnly)
             : "";
-          // const isBudgetRoom = room.id >= 5 && room.id <= 8;
-          // const descText = isBudgetRoom
-          //   ? "A cozy budget room designed for up to 2 guests, offering a comfortable and affordable stay."
-          //   : (room.description || "");
+          const descText = room.description || "";
           return `
         <div class="room-card" data-reveal="slide-down" data-reveal-delay="${Math.min(idx * 100, 400)}"${roomImagesJson ? ' data-room-images="' + roomImagesJson.replace(/"/g, "&quot;") + '" data-room-name="' + (room.name || "").replace(/"/g, "&quot;") + '"' : ""}>
           <div class="room-card__media">
