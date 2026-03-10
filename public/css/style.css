@@ -2000,6 +2000,8 @@ body.page-cart .nav {
   }
   .hero__cta {
     gap: 0.75rem;
+    justify-content: center;
+    align-items: center;
   }
   .hero__cta .btn {
     padding: 0.75rem 1.5rem;
@@ -2100,6 +2102,8 @@ body.page-cart .nav {
   }
   .hero__cta {
     flex-direction: column;
+    justify-content: center;
+    align-items: center;
   }
   .hero__cta .btn {
     width: 100%;
