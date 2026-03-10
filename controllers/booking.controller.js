@@ -438,7 +438,7 @@ export const bookRooms = async (req, res) => {
     const receiptId = crypto.randomBytes(6).toString("hex");
 
     const order = await razorpay.orders.create({
-      amount: totalBookingPrice * 100,
+      amount: Math.floor(totalBookingPrice / 2) * 100,
       currency: "INR",
       receipt: `booking_${receiptId}`,
     });

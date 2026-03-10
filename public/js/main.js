@@ -25,16 +25,20 @@
   function scrollToSection(selector, offset) {
     var el = typeof selector === "string" ? $(selector) : selector;
     if (!el) return;
-    var lenis = typeof window.getLenis === "function" ? window.getLenis() : null;
+    var lenis =
+      typeof window.getLenis === "function" ? window.getLenis() : null;
     if (lenis && typeof lenis.scrollTo === "function") {
-      lenis.scrollTo(el, { offset: offset != null ? offset : -80, duration: 1.2 });
+      lenis.scrollTo(el, {
+        offset: offset != null ? offset : -80,
+        duration: 1.2,
+      });
     } else {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }
 
   $$(
-    ".nav__links a, .hero .btn, .footer__links a, .section__actions a",
+    ".nav__links a, .hero .btn, .footer__links a, .section__actions a"
   ).forEach((link) => {
     link.addEventListener("click", (e) => {
       const href = link.getAttribute("href");
@@ -68,7 +72,7 @@
       onAddToCartClick(
         btn.dataset.addCart,
         btn.dataset.name,
-        btn.dataset.price,
+        btn.dataset.price
       );
       return;
     }
@@ -78,7 +82,7 @@
       onAddToCartClick(
         btn.dataset.addCart,
         btn.dataset.name,
-        btn.dataset.price,
+        btn.dataset.price
       );
     }
   });
@@ -95,7 +99,7 @@
     availEl.textContent = "Checking availability…";
     availEl.classList.remove(
       "form__availability--ok",
-      "form__availability--error",
+      "form__availability--error"
     );
     fetch("/api/booking/checkAvailability", {
       method: "POST",
@@ -129,7 +133,7 @@
         availEl.textContent = "";
         availEl.classList.remove(
           "form__availability--ok",
-          "form__availability--error",
+          "form__availability--error"
         );
       });
   }
@@ -279,7 +283,7 @@
       const isOpen = navProfileDropdown.classList.toggle("is-open");
       navProfileTrigger.setAttribute(
         "aria-expanded",
-        isOpen ? "true" : "false",
+        isOpen ? "true" : "false"
       );
     });
     navProfileDropdown.addEventListener("click", (e) => e.stopPropagation());
@@ -311,41 +315,88 @@
       var emptyEl = $("#myBookingsError");
       var emptyMsgEl = $("#myBookingsEmpty");
       if (listEl) listEl.innerHTML = "";
-      if (emptyEl) { emptyEl.style.display = "none"; emptyEl.textContent = ""; }
+      if (emptyEl) {
+        emptyEl.style.display = "none";
+        emptyEl.textContent = "";
+      }
       if (emptyMsgEl) emptyMsgEl.style.display = "none";
 
       fetch("/api/booking/bookings", { credentials: "same-origin" })
-        .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+        .then(function (res) {
+          return res.json().then(function (data) {
+            return { ok: res.ok, data: data };
+          });
+        })
         .then(function (result) {
           if (!result.ok) {
             if (emptyEl) {
-              emptyEl.textContent = result.data && result.data.message ? result.data.message : "Please sign in to view bookings.";
+              emptyEl.textContent =
+                result.data && result.data.message
+                  ? result.data.message
+                  : "Please sign in to view bookings.";
               emptyEl.style.display = "block";
             }
             openModal("#myBookingsModal");
             return;
           }
-          var bookings = result.data && result.data.data ? result.data.data : [];
+          var bookings =
+            result.data && result.data.data ? result.data.data : [];
           if (bookings.length === 0) {
             if (emptyMsgEl) emptyMsgEl.style.display = "block";
           } else if (listEl) {
-            listEl.innerHTML = bookings.map(function (b) {
-              var rooms = b.rooms || [];
-              var roomsSummary = rooms.map(function (r) { return r.roomName || r.roomId || "—"; }).join(", ");
-              var checkIn = rooms[0] && rooms[0].checkIn ? new Date(rooms[0].checkIn).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
-              var checkOut = rooms[0] && rooms[0].checkOut ? new Date(rooms[0].checkOut).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
-              var status = (b.status || "pending").toLowerCase();
-              var guestName = (b.guest && b.guest.name) ? b.guest.name : "—";
-              return (
-                "<div class=\"my-bookings__item\">" +
-                "<span class=\"my-bookings__guest\">" + (guestName.replace(/</g, "&lt;").replace(/>/g, "&gt;")) + "</span>" +
-                "<span class=\"my-bookings__rooms\">" + (roomsSummary.replace(/</g, "&lt;").replace(/>/g, "&gt;")) + "</span>" +
-                "<span class=\"my-bookings__dates\">" + checkIn + " – " + checkOut + "</span>" +
-                "<span class=\"my-bookings__total\">₹" + (b.totalAmount != null ? Number(b.totalAmount).toLocaleString("en-IN") : "0") + "</span>" +
-                "<span class=\"my-bookings__status my-bookings__status--" + status + "\">" + status + "</span>" +
-                "</div>"
-              );
-            }).join("");
+            listEl.innerHTML = bookings
+              .map(function (b) {
+                var rooms = b.rooms || [];
+                var roomsSummary = rooms
+                  .map(function (r) {
+                    return r.roomName || r.roomId || "—";
+                  })
+                  .join(", ");
+                var checkIn =
+                  rooms[0] && rooms[0].checkIn
+                    ? new Date(rooms[0].checkIn).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })
+                    : "—";
+                var checkOut =
+                  rooms[0] && rooms[0].checkOut
+                    ? new Date(rooms[0].checkOut).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })
+                    : "—";
+                var status = (b.status || "pending").toLowerCase();
+                var guestName = b.guest && b.guest.name ? b.guest.name : "—";
+                return (
+                  '<div class="my-bookings__item">' +
+                  '<span class="my-bookings__guest">' +
+                  guestName.replace(/</g, "&lt;").replace(/>/g, "&gt;") +
+                  "</span>" +
+                  '<span class="my-bookings__rooms">' +
+                  roomsSummary.replace(/</g, "&lt;").replace(/>/g, "&gt;") +
+                  "</span>" +
+                  '<span class="my-bookings__dates">' +
+                  checkIn +
+                  " – " +
+                  checkOut +
+                  "</span>" +
+                  '<span class="my-bookings__total">₹' +
+                  (b.totalAmount != null
+                    ? Number(b.totalAmount).toLocaleString("en-IN")
+                    : "0") +
+                  "</span>" +
+                  '<span class="my-bookings__status my-bookings__status--' +
+                  status +
+                  '">' +
+                  status +
+                  "</span>" +
+                  "</div>"
+                );
+              })
+              .join("");
           }
           openModal("#myBookingsModal");
         })
@@ -456,17 +507,19 @@
       if (!data.success) return;
       const grid = $("#roomsGrid");
       grid.innerHTML = data.rooms
-        .map(
-          (room, idx) => {
-            const imgSrc =
-              room.images && room.images.banner
-                ? room.images.banner
-                : "/img/summary%20green.jpeg";
-            const galleryOnly = [];
-            if (room.images && room.images.gallery && room.images.gallery.length)
-              galleryOnly.push(...room.images.gallery);
-            const roomImagesJson = galleryOnly.length ? JSON.stringify(galleryOnly) : "";
-            return `
+
+        .map((room, idx) => {
+          const imgSrc =
+            room.images && room.images.banner
+              ? room.images.banner
+              : roomCoverImages[idx % roomCoverImages.length];
+          const galleryOnly = [];
+          if (room.images && room.images.gallery && room.images.gallery.length)
+            galleryOnly.push(...room.images.gallery);
+          const roomImagesJson = galleryOnly.length
+            ? JSON.stringify(galleryOnly)
+            : "";
+          return `
         <div class="room-card" data-reveal="slide-down" data-reveal-delay="${Math.min(idx * 100, 400)}"${roomImagesJson ? ' data-room-images="' + roomImagesJson.replace(/"/g, "&quot;") + '" data-room-name="' + (room.name || "").replace(/"/g, "&quot;") + '"' : ""}>
           <div class="room-card__media">
             <img loading="lazy" alt="${escapeHtml(room.name)} cover" src="${imgSrc}">
@@ -480,8 +533,7 @@
           </div>
         </div>
       `;
-          },
-        )
+        })
         .join("");
       if (window.refreshScrollReveals) window.refreshScrollReveals();
       updateCartUI();
@@ -536,7 +588,10 @@
 
   function toJpegUrl(url) {
     if (!url || typeof url !== "string") return url;
-    if (url.indexOf("cloudinary.com") !== -1 && url.indexOf("/upload/") !== -1) {
+    if (
+      url.indexOf("cloudinary.com") !== -1 &&
+      url.indexOf("/upload/") !== -1
+    ) {
       return url.replace("/upload/", "/upload/f_jpg/");
     }
     return url;
@@ -551,10 +606,15 @@
     roomGalleryImg.src = toJpegUrl(roomGalleryUrls[roomGalleryIndex]);
     roomGalleryImg.alt = "Room image " + (roomGalleryIndex + 1);
     if (roomGalleryCounter) {
-      roomGalleryCounter.textContent = (roomGalleryIndex + 1) + " / " + roomGalleryUrls.length;
+      roomGalleryCounter.textContent =
+        roomGalleryIndex + 1 + " / " + roomGalleryUrls.length;
     }
-    if (roomGalleryPrev) roomGalleryPrev.style.visibility = roomGalleryUrls.length > 1 ? "visible" : "hidden";
-    if (roomGalleryNext) roomGalleryNext.style.visibility = roomGalleryUrls.length > 1 ? "visible" : "hidden";
+    if (roomGalleryPrev)
+      roomGalleryPrev.style.visibility =
+        roomGalleryUrls.length > 1 ? "visible" : "hidden";
+    if (roomGalleryNext)
+      roomGalleryNext.style.visibility =
+        roomGalleryUrls.length > 1 ? "visible" : "hidden";
   }
 
   function openRoomGallery(urls, roomName) {
@@ -570,7 +630,11 @@
     roomsGridEl.addEventListener("click", function (e) {
       var card = e.target.closest(".room-card");
       if (!card) return;
-      if (e.target.closest("[data-add-cart]") || e.target.closest(".room-card__actions")) return;
+      if (
+        e.target.closest("[data-add-cart]") ||
+        e.target.closest(".room-card__actions")
+      )
+        return;
       var raw = card.getAttribute("data-room-images");
       if (!raw) return;
       var urls = [];
@@ -588,7 +652,9 @@
     roomGalleryPrev.addEventListener("click", function (e) {
       e.preventDefault();
       if (roomGalleryUrls.length <= 1) return;
-      roomGalleryIndex = (roomGalleryIndex - 1 + roomGalleryUrls.length) % roomGalleryUrls.length;
+      roomGalleryIndex =
+        (roomGalleryIndex - 1 + roomGalleryUrls.length) %
+        roomGalleryUrls.length;
       updateRoomGalleryImage();
     });
   }
@@ -622,7 +688,7 @@
 
     let idx = Math.max(
       0,
-      slides.findIndex((s) => s.classList.contains("is-active")),
+      slides.findIndex((s) => s.classList.contains("is-active"))
     );
     function show(nextIdx) {
       slides[idx].classList.remove("is-active");
@@ -690,7 +756,7 @@
         y = e.clientY;
         setVisible(true);
       },
-      { passive: true },
+      { passive: true }
     );
 
     window.addEventListener("mouseleave", () => setVisible(false));
@@ -745,7 +811,10 @@
         e.relatedTarget.closest && e.relatedTarget.closest(textSelector);
       hovering = Boolean(stillHover);
       container.classList.toggle("is-hover-text", Boolean(stillText));
-      container.classList.toggle("is-over-header", isOverHeader(e.relatedTarget));
+      container.classList.toggle(
+        "is-over-header",
+        isOverHeader(e.relatedTarget)
+      );
       if (!hovering && activeHoverEl) {
         activeHoverEl.classList.remove("cursor-target");
         activeHoverEl = null;

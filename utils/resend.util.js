@@ -273,7 +273,7 @@ function buildAdminEmailHtml(booking) {
         <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
           <tr>
             <td style="background:#1a1408;border-radius:12px 12px 0 0;padding:28px 40px;">
-              <p style="margin:0;font-family:'Georgia',serif;font-size:24px;color:#f5f0e8;">&#128bell; New Booking Received</p>
+              <p style="margin:0;font-family:'Georgia',serif;font-size:24px;color:#f5f0e8;">; New Booking Received</p>
               <p style="margin:6px 0 0;font-size:12px;color:#8a7a5a;font-family:Helvetica,Arial,sans-serif;">Summer Green Admin Notification</p>
             </td>
           </tr>
