@@ -2,7 +2,7 @@ export const rooms = {
   R1: {
     id: "01",
     name: "Sunflower",
-    description: "A spacious air-conditioned room for up to 2 guests, with complimentary breakfast included.",
+    description: "Spacious AC room for up to 2 guests with complimentary breakfast.",
     price: 3500,
     capacity: {
       adults: 2,
@@ -13,7 +13,7 @@ export const rooms = {
   R2: {
     id: "02",
     name: "Lily",
-    description: "A spacious air-conditioned room for up to 3 guests, with complimentary breakfast included.",
+    description: "Spacious AC room for up to 3 guests with complimentary breakfast.",
     price: 2500,
     capacity: {
       adults: 3,
@@ -24,7 +24,7 @@ export const rooms = {
   R3: {
     id: "03",
     name: "Marigold",
-    description: "A spacious 2BHK accommodation for up to 7 guests, featuring comfortable living areas, a private dining space, and a refrigerator.",
+    description: "Spacious 2BHK for 7 guests with living area, dining space, and refrigerator.",
     price: 6500,
     capacity: {
       adults: 5, // max adults when children > 0
@@ -36,7 +36,7 @@ export const rooms = {
   R4: {
     id: "04",
     name: "Lavender",
-    description: "A spacious 2BHK accommodation for up to 7 guests, featuring comfortable living areas, a private dining space, and a refrigerator.",
+    description: "Spacious 2BHK for 7 guests with living area, dining space, and refrigerator.",
     price: 5000,
     capacity: {
       adults: 5, // max adults when children > 0
