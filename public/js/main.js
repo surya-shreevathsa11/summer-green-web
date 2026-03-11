@@ -181,6 +181,18 @@
     return null;
   }
 
+  var bookRoomAdultsEl = $("#bookRoomAdults");
+  var bookRoomChildrenEl = $("#bookRoomChildren");
+  function allowNumericOnly(el) {
+    if (!el) return;
+    el.addEventListener("input", function () {
+      var v = this.value.replace(/\D/g, "");
+      if (this.value !== v) this.value = v;
+    });
+  }
+  allowNumericOnly(bookRoomAdultsEl);
+  allowNumericOnly(bookRoomChildrenEl);
+
   var bookRoomForm = $("#bookRoomForm");
   if (bookRoomForm) {
     bookRoomForm.addEventListener("submit", async function (e) {
