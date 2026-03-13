@@ -3,7 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const imgPath = path.join(__dirname, "..", "public", "img", "summary green.jpeg");
+const imgPath = path.join(__dirname, "..", "public", "img", "SummerGreenUpdated.jpeg");
 const buf = fs.readFileSync(imgPath);
 const base64 = buf.toString("base64");
 const dataUri = "data:image/jpeg;base64," + base64;
