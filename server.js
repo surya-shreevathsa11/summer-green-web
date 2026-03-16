@@ -34,6 +34,10 @@ app.use(
   express.raw({ type: "application/json" })
 );
 app.use(express.static(path.join(__dirname, "public")));
+app.get("/favicon.ico", (_req, res) => {
+  res.setHeader("Content-Type", "image/svg+xml");
+  res.sendFile(path.join(__dirname, "public", "favicon.svg"));
+});
 app.get("/cart", (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "cart.html"));
 });

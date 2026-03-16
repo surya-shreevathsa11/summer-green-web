@@ -23,7 +23,7 @@
       y = 0;
     var rx = 0,
       ry = 0;
-    var lerpRate = 0.42;
+    var lerpRate = 0.55;
     var visible = false;
     var hovering = false;
     var down = false;

@@ -608,13 +608,14 @@
       if (!data.success || !data.rooms) return;
       const grid = $("#roomsGrid");
       if (!grid) return;
-      grid.innerHTML = data.rooms
+      const roomsSorted = data.rooms.slice().sort((a, b) => Number(a.id) - Number(b.id));
+      grid.innerHTML = roomsSorted
 
         .map((room, idx) => {
           const imgSrc =
             room.images && room.images.banner
               ? room.images.banner
-              : "/img/summary%20green.jpeg";
+              : "/img/SummerGreenUpdated.jpeg";
           const galleryOnly = [];
           if (room.images && room.images.gallery && room.images.gallery.length)
             galleryOnly.push(...room.images.gallery);
@@ -890,7 +891,7 @@
       y = 0;
     let rx = 0,
       ry = 0;
-    const lerpRate = 0.42;
+    const lerpRate = 0.55;
     let visible = false;
     let hovering = false;
     let down = false;
