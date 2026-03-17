@@ -21,8 +21,9 @@ async function run() {
   const icoBuf = await pngToIco([png32, png48]);
   fs.writeFileSync(path.join(publicDir, "favicon.ico"), icoBuf);
   fs.writeFileSync(path.join(publicDir, "favicon.png"), png32);
+  fs.writeFileSync(path.join(publicDir, "favicon-48.png"), png48);
 
-  console.log("public/favicon.ico and public/favicon.png written.");
+  console.log("public/favicon.ico, public/favicon.png, and public/favicon-48.png written.");
 }
 
 run().catch((e) => {
