@@ -1,95 +1,117 @@
 export const rooms = {
   R1: {
-    id: "01",
+    roomId: "R1",
     name: "Sunflower",
     description: "Spacious AC room for up to 2 guests with complimentary breakfast.",
-    price: 3500,
+    type: "Room",
+    pricePerNight: 3500,
     capacity: {
-      adults: 2,
-      children: 1,
+      minAdults: 1,
+      maxAdults: 2,
+      maxChildren: 1,
+      maxTotal: 3,
     },
   },
 
   R2: {
-    id: "02",
+    roomId: "R2",
     name: "Lily",
     description: "Spacious AC room for up to 3 guests with complimentary breakfast.",
-    price: 2500,
+    type: "Room",
+    pricePerNight: 2500,
     capacity: {
-      adults: 3,
-      children: 1,
+      minAdults: 1,
+      maxAdults: 3,
+      maxChildren: 3,
+      maxTotal: 4,
     },
   },
 
   R3: {
-    id: "03",
+    roomId: "R3",
     name: "Marigold",
     description: "Spacious 2BHK for 7 guests with living area, dining space, and refrigerator.",
-    price: 6500,
+    type: "Room",
+    pricePerNight: 6500,
     capacity: {
-      adults: 5, // max adults when children > 0
-      children: 2,
+      minAdults: 1,
+      maxAdults: 7,
+      maxChildren: 7,
+      maxTotal: 7,
     },
-    adultsOnly: 7, // when 0 children: up to 7 adults; when children > 0: up to 5 adults + 2 children
   },
 
   R4: {
-    id: "04",
+    roomId: "R4",
     name: "Lavender",
     description: "Spacious 2BHK for 7 guests with living area, dining space, and refrigerator.",
-    price: 5000,
+    type: "Room",
+    pricePerNight: 5000,
     capacity: {
-      adults: 5, // max adults when children > 0
-      children: 2,
+      minAdults: 1,
+      maxAdults: 7,
+      maxChildren: 7,
+      maxTotal: 7,
     },
-    adultsOnly: 7, // when 0 children: up to 7 adults; when children > 0: up to 5 adults + 2 children
   },
 
   R5: {
-    id: "05",
+    roomId: "R5",
     name: "Dahlia",
     description:
       "A cozy budget room designed for up to 2 guests, offering a comfortable and affordable stay.",
-    price: 1250,
+    type: "Room",
+    pricePerNight: 1250,
     capacity: {
-      adults: 2, //or chlidren 1
-      children: 0,
+      minAdults: 1,
+      maxAdults: 2,
+      maxChildren: 1,
+      maxTotal: 2,
     },
   },
 
   R6: {
-    id: "06",
+    roomId: "R6",
     name: "Gardenia",
     description:
       "A cozy budget room designed for up to 2 guests, offering a comfortable and affordable stay.",
-    price: 1250,
+    type: "Room",
+    pricePerNight: 1250,
     capacity: {
-      adults: 2,
-      children: 0,
+      minAdults: 1,
+      maxAdults: 2,
+      maxChildren: 1,
+      maxTotal: 2,
     },
   },
 
   R7: {
-    id: "07",
+    roomId: "R7",
     name: "Petunia",
     description:
       "A cozy budget room designed for up to 2 guests, offering a comfortable and affordable stay.",
-    price: 1250,
+    type: "Room",
+    pricePerNight: 1250,
     capacity: {
-      adults: 2,
-      children: 0,
+      minAdults: 1,
+      maxAdults: 2,
+      maxChildren: 1,
+      maxTotal: 2,
     },
   },
 
   R8: {
-    id: "08",
+    roomId: "R8",
     name: "Zinnia",
     description:
       "A cozy budget room designed for up to 2 guests, offering a comfortable and affordable stay.",
-    price: 1250,
+    type: "Room",
+    pricePerNight: 1250,
     capacity: {
-      adults: 2,
-      children: 0,
+      minAdults: 1,
+      maxAdults: 2,
+      maxChildren: 1,
+      maxTotal: 2,
     },
   },
 };

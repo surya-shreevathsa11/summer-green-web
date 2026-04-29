@@ -38,7 +38,7 @@
           <li><a href="/#terms">Terms</a></li>
         </ul>
         <a
-          href="/cart"
+          href="/cart.html"
           class="nav__cart cursor-target"
           aria-label="Booking cart"
         >
@@ -210,6 +210,13 @@
       </svg>
     </a>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+      window.__VARA_CONFIG = {
+        apiBaseUrl: "http://localhost:3000",
+        propertySlug: "summergreen"
+      };
+    </script>
+    <script src="/js/api/varaClient.js"></script>
     <script src="/js/blob-cursor.js"></script>
     <script src="/js/cart.js"></script>
   </body>

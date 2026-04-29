@@ -1,20 +1,28 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
-const roomIds = ["R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8"];
+const roomIds = JSON.parse(process.env.ROOM_IDS);
 
 //this contains info about the room and the base price also
 const capacitySchema = new Schema(
   {
-    adults: {
+    minAdults: {
       type: Number,
       required: true,
     },
-    children: {
+    maxAdults: {
+      type: Number,
+      required: true,
+    },
+    maxChildren: {
+      type: Number,
+      required: true,
+    },
+    maxTotal: {
       type: Number,
       required: true,
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const roomSchema = new Schema({
@@ -22,7 +30,11 @@ const roomSchema = new Schema({
     type: String,
     enum: roomIds,
     required: true,
-    unique: true,
+  },
+
+  propertyId: {
+    type: String,
+    required: true,
   },
 
   name: {
@@ -33,6 +45,12 @@ const roomSchema = new Schema({
   description: {
     type: String,
     required: true,
+  },
+
+  type: {
+    type: String,
+    required: true,
+    enum: ["Room", "Dormitory"],
   },
 
   pricePerNight: {
@@ -52,6 +70,11 @@ const variablePriceSchema = new Schema({
   roomId: {
     type: String,
     enum: roomIds,
+    required: true,
+  },
+
+  propertyId: {
+    type: String,
     required: true,
   },
 
@@ -76,13 +99,9 @@ const variablePriceSchema = new Schema({
   },
 });
 
-variablePriceSchema.index({ roomId: 1, from: 1, to: 1 });
-// TTL: delete 45 days after the last valid day
-variablePriceSchema.index({ to: 1 }, { expireAfterSeconds: 45 * 24 * 60 * 60 });
-
 export const VariablePrice = mongoose.model(
   "VariablePrice",
-  variablePriceSchema
+  variablePriceSchema,
 );
 
 export const Room = mongoose.model("Room", roomSchema);

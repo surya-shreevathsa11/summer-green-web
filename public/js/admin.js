@@ -1,5 +1,9 @@
 (function () {
   "use strict";
+  var API_BASE = (
+    (window.__VARA_CONFIG && window.__VARA_CONFIG.apiBaseUrl) ||
+    window.location.origin
+  ).replace(/\/$/, "");
 
   // ─── DOM refs ────────────────────────────────────────────────────────────────
   var viewLogin = document.getElementById("adminLogin");
@@ -162,8 +166,14 @@
     });
   }
 
+  function apiUrl(url) {
+    if (!url) return API_BASE;
+    if (/^https?:\/\//i.test(url)) return url;
+    return API_BASE + url;
+  }
+
   function apiPost(url, body) {
-    return fetch(url, {
+    return fetch(apiUrl(url), {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -180,7 +190,7 @@
   }
 
   function apiGet(url) {
-    return fetch(url, { credentials: "include" }).then(function (res) {
+    return fetch(apiUrl(url), { credentials: "include" }).then(function (res) {
       return res.json().then(function (data) {
         return { ok: res.ok, data: data };
       });
@@ -188,7 +198,7 @@
   }
 
   function apiPatch(url, body) {
-    return fetch(url, {
+    return fetch(apiUrl(url), {
       method: "PATCH",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -201,7 +211,7 @@
   }
 
   function apiPut(url, body) {
-    return fetch(url, {
+    return fetch(apiUrl(url), {
       method: "PUT",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -213,11 +223,16 @@
     });
   }
 
-  function apiDelete(url) {
-    return fetch(url, {
+  function apiDelete(url, body) {
+    var opts = {
       method: "DELETE",
       credentials: "include",
-    }).then(function (res) {
+    };
+    if (body != null) {
+      opts.headers = { "Content-Type": "application/json" };
+      opts.body = JSON.stringify(body);
+    }
+    return fetch(apiUrl(url), opts).then(function (res) {
       return res.text().then(function (text) {
         var data = {};
         try {
@@ -1072,12 +1087,7 @@
         var url = item.getAttribute("data-url");
         var sec = item.getAttribute("data-section");
         if (!url || !sec) return;
-        fetch("/api/admin/gallery/remove", {
-          method: "DELETE",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ section: sec, url: url }),
-        }).then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); }).then(function (r) {
+        apiDelete("/api/admin/gallery/remove", { section: sec, url: url }).then(function (r) {
           if (r.ok) loadGallery();
           else setMsg(document.getElementById("galleryMsg"), (r.data && r.data.message) || "Remove failed.", true);
         });
@@ -1472,7 +1482,7 @@
   }
 
   function runInit() {
-    fetch("/api/admin/bookings", { credentials: "include" })
+    fetch(apiUrl("/api/admin/bookings"), { credentials: "include" })
       .then(function (res) {
         if (res.ok) {
           showView("adminDashboard");

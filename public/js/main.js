@@ -1,5 +1,9 @@
 (function () {
   let currentUser = null;
+  const POST_LOGIN_REDIRECT_KEY = "summer-green-post-login";
+  const VaraApi = window.VaraApi;
+  let pendingAuthEmail = "";
+  let pendingAuthName = "";
 
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => document.querySelectorAll(sel);
@@ -112,40 +116,22 @@
       "form__availability--ok",
       "form__availability--error"
     );
-    fetch("/api/booking/checkAvailability", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        roomId: roomId,
-        checkIn: checkIn,
-        checkOut: checkOut,
-      }),
+    VaraApi.getPublicQuote({
+      roomId: roomId,
+      checkIn: checkIn,
+      checkOut: checkOut,
+      adults: 1,
+      children: 0,
     })
-      .then(function (res) {
-        return res.json().then(function (data) {
-          return { ok: res.ok, data: data };
-        });
-      })
-      .then(function (result) {
-        if (result.ok) {
+      .then(function () {
           availEl.textContent = "Rooms are available.";
           availEl.classList.add("form__availability--ok");
           availEl.classList.remove("form__availability--error");
-        } else {
-          availEl.textContent =
-            result.data && result.data.message
-              ? result.data.message
-              : "Dates not available.";
-          availEl.classList.add("form__availability--error");
-          availEl.classList.remove("form__availability--ok");
-        }
       })
-      .catch(function () {
-        availEl.textContent = "";
-        availEl.classList.remove(
-          "form__availability--ok",
-          "form__availability--error"
-        );
+      .catch(function (err) {
+        availEl.textContent = err && err.message ? err.message : "Dates not available.";
+        availEl.classList.add("form__availability--error");
+        availEl.classList.remove("form__availability--ok");
       });
   }
 
@@ -213,42 +199,20 @@
       }
       if (submitBtn) submitBtn.disabled = true;
       try {
-        var availRes = await fetch("/api/booking/checkAvailability", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            roomId: roomId,
-            checkIn: checkIn,
-            checkOut: checkOut,
-          }),
+        await VaraApi.getPublicQuote({
+          roomId: roomId,
+          checkIn: checkIn,
+          checkOut: checkOut,
+          adults: adults,
+          children: children,
         });
-        if (!availRes.ok) {
-          var availData = await availRes.json().catch(function () {
-            return {};
-          });
-          errEl.textContent =
-            availData.message || "Selected dates are not available.";
-          return;
-        }
-        var cartRes = await fetch("/api/booking/cart", {
-          method: "POST",
-          credentials: "same-origin",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+        await VaraApi.addGuestCartItem({
             roomId: roomId,
             checkIn: checkIn,
             checkOut: checkOut,
             adults: adults,
             children: children,
-          }),
         });
-        if (!cartRes.ok) {
-          var cartData = await cartRes.json().catch(function () {
-            return {};
-          });
-          errEl.textContent = cartData.message || "Could not add to cart.";
-          return;
-        }
         closeAllModals();
         var infoEl = $("#roomAddedInfo");
         var roomAddedModal = $("#roomAddedModal");
@@ -258,6 +222,13 @@
         if (roomAddedModal) openModal("#roomAddedModal");
         pendingBookRoom = null;
         fetchCartCount();
+      } catch (err) {
+        if (err && err.isAuthError) {
+          errEl.textContent = "Please sign in with PIN to add rooms to cart.";
+          openModal("#signInModal");
+          return;
+        }
+        errEl.textContent = err && err.message ? err.message : "Could not add to cart.";
       } finally {
         if (submitBtn) submitBtn.disabled = false;
       }
@@ -344,10 +315,10 @@
   const navProfileLogout = $("#navProfileLogout");
   if (navProfileLogout) {
     navProfileLogout.addEventListener("click", () => {
-      fetch("/api/auth/logout", { method: "POST" }).then(() => {
-        currentUser = null;
-        updateAuthUI();
-      });
+      VaraApi.clearGuestSession();
+      currentUser = null;
+      updateAuthUI();
+      fetchCartCount();
     });
   }
   const navProfileBookings = $("#navProfileBookings");
@@ -368,26 +339,8 @@
       }
       if (emptyMsgEl) emptyMsgEl.style.display = "none";
 
-      fetch("/api/booking/bookings", { credentials: "same-origin" })
-        .then(function (res) {
-          return res.json().then(function (data) {
-            return { ok: res.ok, data: data };
-          });
-        })
-        .then(function (result) {
-          if (!result.ok) {
-            if (emptyEl) {
-              emptyEl.textContent =
-                result.data && result.data.message
-                  ? result.data.message
-                  : "Please sign in to view bookings.";
-              emptyEl.style.display = "block";
-            }
-            openModal("#myBookingsModal");
-            return;
-          }
-          var bookings =
-            result.data && result.data.data ? result.data.data : [];
+      VaraApi.getGuestBookings()
+        .then(function (bookings) {
           if (bookings.length === 0) {
             if (emptyMsgEl) emptyMsgEl.style.display = "block";
           } else if (listEl) {
@@ -447,9 +400,14 @@
           }
           openModal("#myBookingsModal");
         })
-        .catch(function () {
+        .catch(function (err) {
           if (emptyEl) {
-            emptyEl.textContent = "Could not load bookings.";
+            emptyEl.textContent =
+              err && err.isAuthError
+                ? "Please sign in to view bookings."
+                : err && err.message
+                  ? err.message
+                  : "Could not load bookings.";
             emptyEl.style.display = "block";
           }
           openModal("#myBookingsModal");
@@ -457,51 +415,101 @@
     });
   }
 
-  // --- Google Sign In ---
-  $("#googleSignInBtn").addEventListener("click", () => {
-    window.location.href = "/api/auth/google";
-  });
+  // --- Guest PIN Sign In ---
+  var guestAuthRequestForm = $("#guestAuthRequestForm");
+  var guestAuthVerifyForm = $("#guestAuthVerifyForm");
+  var guestAuthError = $("#guestAuthError");
+  var guestAuthVerifyError = $("#guestAuthVerifyError");
+  var guestAuthRequestBtn = $("#guestAuthRequestBtn");
+  var guestAuthVerifyBtn = $("#guestAuthVerifyBtn");
+  if (guestAuthRequestForm) {
+    guestAuthRequestForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var name = ($("#guestAuthName") && $("#guestAuthName").value || "").trim();
+      var email = ($("#guestAuthContact") && $("#guestAuthContact").value || "").trim();
+      if (!name || !email) return;
+      pendingAuthName = name;
+      pendingAuthEmail = email;
+      guestAuthError.textContent = "";
+      guestAuthRequestBtn.disabled = true;
+      try {
+        await VaraApi.requestGuestPin({ name: name, email: email, propertySlug: VaraApi.getConfig().propertySlug });
+        guestAuthVerifyForm.style.display = "block";
+      } catch (err) {
+        guestAuthError.textContent = err && err.message ? err.message : "Could not send PIN.";
+      } finally {
+        guestAuthRequestBtn.disabled = false;
+      }
+    });
+  }
+  if (guestAuthVerifyForm) {
+    guestAuthVerifyForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var pin = ($("#guestAuthPin") && $("#guestAuthPin").value || "").trim();
+      if (!pin || !pendingAuthEmail) return;
+      guestAuthVerifyError.textContent = "";
+      guestAuthVerifyBtn.disabled = true;
+      try {
+        var payload = await VaraApi.verifyGuestPin({
+          name: pendingAuthName,
+          email: pendingAuthEmail,
+          pin: pin,
+          propertySlug: VaraApi.getConfig().propertySlug,
+        });
+        currentUser =
+          (payload && payload.data && payload.data.guest) ||
+          payload.guest ||
+          { name: pendingAuthName || "Guest", avatar: "/img/default-avatar.svg" };
+        updateAuthUI();
+        closeAllModals();
+        fetchCartCount();
+      } catch (err) {
+        guestAuthVerifyError.textContent = err && err.message ? err.message : "PIN verification failed.";
+      } finally {
+        guestAuthVerifyBtn.disabled = false;
+      }
+    });
+  }
 
   // --- Auth check: used before booking and for redirect after sign-in ---
   async function checkAuth(cb) {
+    const token = VaraApi.readGuestToken();
+    const profile = VaraApi.readGuestProfile();
+    if (token) {
+      currentUser = profile || { name: "Guest", avatar: "/img/default-avatar.svg" };
+      updateAuthUI();
+      fetchCartCount();
+      if (cb) cb(currentUser);
+      return;
+    }
+    currentUser = null;
+    updateAuthUI();
+    const countEl = $("#navCartCount");
+    if (countEl) {
+      countEl.textContent = "0";
+      countEl.setAttribute("data-count", "0");
+    }
+    if (cb) cb(null);
+  }
+
+  async function fetchCartCount() {
     try {
-      const res = await fetch("/api/auth/status", {
-        credentials: "same-origin",
-      });
-      const data = await res.json();
-      if (data.loggedIn) {
-        currentUser = data.user;
-        updateAuthUI();
-        fetchCartCount();
-      } else {
-        currentUser = null;
-        updateAuthUI();
+      const cartItems = await VaraApi.getGuestCart();
+      const count = Array.isArray(cartItems) ? cartItems.length : 0;
+      const countEl = $("#navCartCount");
+      if (countEl) {
+        countEl.textContent = count;
+        countEl.setAttribute("data-count", count);
+      }
+    } catch (err) {
+      if (err && err.isAuthError) {
         const countEl = $("#navCartCount");
         if (countEl) {
           countEl.textContent = "0";
           countEl.setAttribute("data-count", "0");
         }
       }
-      if (cb) cb(data.loggedIn ? data.user : null);
-    } catch {
-      if (cb) cb(null);
     }
-  }
-
-  async function fetchCartCount() {
-    try {
-      const res = await fetch("/api/booking/cart", {
-        credentials: "same-origin",
-      });
-      if (!res.ok) return;
-      const data = await res.json();
-      const count = Array.isArray(data.message) ? data.message.length : 0;
-      const countEl = $("#navCartCount");
-      if (countEl) {
-        countEl.textContent = count;
-        countEl.setAttribute("data-count", count);
-      }
-    } catch (_) {}
   }
 
   let pendingBookRoom = null;
@@ -603,12 +611,11 @@
   // --- Render rooms ---
   async function renderRooms() {
     try {
-      const res = await fetch("/api/booking/rooms");
-      const data = await res.json();
-      if (!data.success || !data.rooms) return;
+      const payload = await VaraApi.getPublicRoomsPayload();
+      const rooms = VaraApi.normalizeRooms(payload);
       const grid = $("#roomsGrid");
       if (!grid) return;
-      const roomsSorted = data.rooms.slice().sort((a, b) => Number(a.id) - Number(b.id));
+      const roomsSorted = rooms.slice().sort((a, b) => Number(a.id) - Number(b.id));
       grid.innerHTML = roomsSorted
 
         .map((room, idx) => {
@@ -648,58 +655,62 @@
       if (window.refreshScrollReveals) window.refreshScrollReveals();
       updateCartUI();
       updateRoomCartButtons();
+      renderGalleryFromPayload(payload);
     } catch {
       /* silent */
     }
   }
 
-  // --- Gallery: fetch from API and render (admin-managed gallery) ---
+  // --- Gallery: backend-first, static fallback ---
   var galleryGrid = $("#galleryGrid");
-  if (galleryGrid) {
-    fetch("/api/booking/gallery")
-      .then((r) => r.json())
-      .then((res) => {
-        var gallery = res && res.data;
-        if (!gallery) return;
-        var sections = [
-          { key: "allImages", category: "all", label: "Gallery" },
-          { key: "rooms", category: "rooms", label: "Rooms" },
-          { key: "exterior", category: "exterior", label: "Exterior" },
-          { key: "dining", category: "dining", label: "Dining" },
-        ];
-        var list = [];
-        sections.forEach((s, idx) => {
-          var urls = Array.isArray(gallery[s.key]) ? gallery[s.key] : [];
-          urls.forEach((url, i) => {
-            list.push({
-              url: url,
-              category: s.category,
-              label: s.label,
-              delay: 80 + (idx * 80 + i) * 40,
-            });
-          });
-        });
-        if (list.length === 0) return;
-        galleryGrid.innerHTML = list
-          .map(
-            (it) =>
-              '<div class="gallery__item" data-category="' +
-              (it.category || "all") +
-              '" data-reveal="slide-down" data-reveal-delay="' +
-              (it.delay || 0) +
-              '">' +
-              '<img class="gallery__img" alt="' +
-              (it.label || "").replace(/"/g, "&quot;") +
-              '" src="' +
-              (it.url || "").replace(/"/g, "&quot;") +
-              '" loading="lazy" />' +
-              '<div class="gallery__label">' +
-              (it.label || "").replace(/</g, "&lt;") +
-              "</div></div>"
-          )
-          .join("");
+  function renderGalleryFromPayload(payload) {
+    if (!galleryGrid) return;
+    var siteGallery = payload && payload.siteGallery ? payload.siteGallery : null;
+    var images = siteGallery && Array.isArray(siteGallery.images) ? siteGallery.images : [];
+    if (!images.length) return; // keep existing static HTML fallback
+
+    var list = images
+      .map(function (item, idx) {
+        if (typeof item === "string") {
+          return {
+            url: item,
+            category: "all",
+            label: "Gallery",
+            delay: 80 + idx * 40,
+          };
+        }
+        return {
+          url: item.url || item.imageUrl || "",
+          category: item.category || item.type || "all",
+          label: item.label || item.title || "Gallery",
+          delay: 80 + idx * 40,
+        };
       })
-      .catch(() => {});
+      .filter(function (it) {
+        return !!it.url;
+      });
+    if (!list.length) return;
+
+    galleryGrid.innerHTML = list
+      .map(function (it) {
+        return (
+          '<div class="gallery__item" data-category="' +
+          (it.category || "all").replace(/"/g, "&quot;") +
+          '" data-reveal="slide-down" data-reveal-delay="' +
+          (it.delay || 0) +
+          '">' +
+          '<img class="gallery__img" alt="' +
+          (it.label || "").replace(/"/g, "&quot;") +
+          '" src="' +
+          (it.url || "").replace(/"/g, "&quot;") +
+          '" loading="lazy" />' +
+          '<div class="gallery__label">' +
+          (it.label || "").replace(/</g, "&lt;").replace(/>/g, "&gt;") +
+          "</div></div>"
+        );
+      })
+      .join("");
+    if (window.refreshScrollReveals) window.refreshScrollReveals();
   }
 
   // --- Gallery filter ---
@@ -1008,7 +1019,7 @@
       try {
         if (sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY) === "cart") {
           sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
-          window.location.href = "/cart";
+          window.location.href = "/cart.html";
         }
       } catch (_) {}
     }
