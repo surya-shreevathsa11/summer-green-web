@@ -431,11 +431,15 @@
       pendingAuthName = name;
       pendingAuthEmail = email;
       guestAuthError.textContent = "";
+      guestAuthError.style.color = "";
       guestAuthRequestBtn.disabled = true;
       try {
         await VaraApi.requestGuestPin({ name: name, email: email, propertySlug: VaraApi.getConfig().propertySlug });
         guestAuthVerifyForm.style.display = "block";
+        guestAuthError.style.color = "var(--color-steel-gray)";
+        guestAuthError.textContent = "OTP sent to your email. Enter it below to continue.";
       } catch (err) {
+        guestAuthError.style.color = "";
         guestAuthError.textContent = err && err.message ? err.message : "Could not send PIN.";
       } finally {
         guestAuthRequestBtn.disabled = false;
@@ -663,6 +667,63 @@
 
   // --- Gallery: backend-first, static fallback ---
   var galleryGrid = $("#galleryGrid");
+  var galleryAutoRaf = null;
+  var galleryAutoLastTs = 0;
+  var galleryAutoPaused = false;
+  var galleryAutoSpeed = 0.04;
+  function setupGalleryAutoLoop() {
+    if (!galleryGrid) return;
+    if (galleryAutoRaf) {
+      cancelAnimationFrame(galleryAutoRaf);
+      galleryAutoRaf = null;
+    }
+    galleryAutoLastTs = 0;
+    $$(".gallery__item--clone", galleryGrid).forEach(function (el) {
+      el.remove();
+    });
+    var originals = $$(".gallery__item", galleryGrid);
+    if (!originals.length) return;
+    originals.forEach(function (item) {
+      var clone = item.cloneNode(true);
+      clone.classList.add("gallery__item--clone");
+      clone.setAttribute("aria-hidden", "true");
+      galleryGrid.appendChild(clone);
+    });
+    galleryGrid.scrollLeft = 0;
+    var isTabletOrMobile =
+      (window.matchMedia && window.matchMedia("(max-width: 1024px)").matches) ||
+      (window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+    galleryAutoSpeed = isTabletOrMobile ? 0.028 : 0.04;
+    function tick(ts) {
+      if (!galleryGrid) return;
+      if (!galleryAutoLastTs) galleryAutoLastTs = ts;
+      var dt = Math.min(ts - galleryAutoLastTs, 34);
+      galleryAutoLastTs = ts;
+      if (!galleryAutoPaused) {
+        galleryGrid.scrollLeft += dt * galleryAutoSpeed;
+        var loopWidth = galleryGrid.scrollWidth / 2;
+        if (galleryGrid.scrollLeft >= loopWidth) {
+          galleryGrid.scrollLeft -= loopWidth;
+        }
+      }
+      galleryAutoRaf = requestAnimationFrame(tick);
+    }
+    galleryAutoRaf = requestAnimationFrame(tick);
+  }
+  if (galleryGrid) {
+    galleryGrid.addEventListener("mouseenter", function () {
+      galleryAutoPaused = true;
+    });
+    galleryGrid.addEventListener("mouseleave", function () {
+      galleryAutoPaused = false;
+    });
+    galleryGrid.addEventListener("touchstart", function () {
+      galleryAutoPaused = true;
+    }, { passive: true });
+    galleryGrid.addEventListener("touchend", function () {
+      galleryAutoPaused = false;
+    }, { passive: true });
+  }
   function renderGalleryFromPayload(payload) {
     if (!galleryGrid) return;
     var siteGallery = payload && payload.siteGallery ? payload.siteGallery : null;
@@ -710,24 +771,10 @@
         );
       })
       .join("");
+    setupGalleryAutoLoop();
     if (window.refreshScrollReveals) window.refreshScrollReveals();
   }
-
-  // --- Gallery filter ---
-  $$(".gallery__filter").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      $$(".gallery__filter").forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      const filter = btn.dataset.filter;
-      $$(".gallery__item").forEach((item) => {
-        if (filter === "all" || item.dataset.category === filter) {
-          item.classList.remove("hidden");
-        } else {
-          item.classList.add("hidden");
-        }
-      });
-    });
-  });
+  if (galleryGrid) setupGalleryAutoLoop();
 
   // --- Gallery image click: full-screen popup ---
   if (galleryGrid) {

@@ -838,11 +838,19 @@ main {
   border-bottom-color: var(--color-burnt-copper);
 }
 .gallery__grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
   gap: 0.75rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 0;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.25rem;
 }
 .gallery__item {
+  flex: 0 0 calc((100% - 1.5rem) / 3);
+  min-width: 0;
+  scroll-snap-align: start;
   aspect-ratio: 4/3;
   background: var(--color-urban-white);
   border-radius: 0.75rem;
@@ -884,6 +892,16 @@ main {
   text-transform: uppercase;
   color: rgba(248, 248, 248, 0.88);
   background: linear-gradient(to top, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0));
+}
+.gallery__grid::-webkit-scrollbar {
+  height: 8px;
+}
+.gallery__grid::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 999px;
+}
+.gallery__grid::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 /* ========== TESTIMONIALS ========== */
@@ -1914,11 +1932,10 @@ body.page-cart .nav {
     flex-wrap: wrap;
   }
   .gallery__grid {
-    grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
   }
-  .gallery__filters {
-    gap: 0.75rem;
+  .gallery__item {
+    flex-basis: calc((100% - 0.5rem) / 2);
   }
   .contact__grid {
     grid-template-columns: 1fr;
@@ -2084,6 +2101,9 @@ body.page-cart .nav {
 
 /* Small phones */
 @media (max-width: 480px) {
+  .gallery__item {
+    flex-basis: 100%;
+  }
   .form__row {
     grid-template-columns: 1fr;
   }
