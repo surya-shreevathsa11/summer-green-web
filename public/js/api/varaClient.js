@@ -167,7 +167,7 @@
     });
   }
 
-  function normalizeCart(payload) {
+  function extractCartItems(payload) {
     var list =
       (payload && payload.data && payload.data.items) ||
       (payload && payload.data && payload.data.cartItems) ||
@@ -194,39 +194,77 @@
     }
 
     if (!Array.isArray(list)) return [];
+    return list;
+  }
 
-    return list.map(function (item) {
+  function normalizeCartItem(item) {
       var room = (item && item.room) || (item && item.roomDetails) || {};
       var pricing = (item && item.pricing) || {};
-      return {
-        itemId: (item && (item.itemId || item.id || item.cartItemId)) || null,
-        roomId: (item && item.roomId) || room.roomId || room.id || null,
-        roomName: (item && item.roomName) || room.name || null,
-        checkIn: (item && (item.checkIn || item.startDate)) || null,
-        checkOut: (item && (item.checkOut || item.endDate)) || null,
-        adults:
-          item && item.adults != null
-            ? item.adults
-            : item && item.guests && item.guests.adults != null
-              ? item.guests.adults
-              : 1,
-        children:
-          item && item.children != null
-            ? item.children
-            : item && item.guests && item.guests.children != null
-              ? item.guests.children
-              : 0,
-        price:
-          (item && (item.price || item.total || item.totalAmount || item.payableAmount)) ||
-          pricing.total ||
-          pricing.totalAmount ||
-          0,
-        priceBreakdown:
-          (item && item.priceBreakdown) ||
-          pricing.breakdown ||
-          [],
-      };
-    });
+    return {
+      itemId: (item && (item.itemId || item.id || item.cartItemId)) || null,
+      roomId: (item && item.roomId) || room.roomId || room.id || null,
+      roomName: (item && item.roomName) || room.name || null,
+      checkIn: (item && (item.checkIn || item.startDate)) || null,
+      checkOut: (item && (item.checkOut || item.endDate)) || null,
+      adults:
+        item && item.adults != null
+          ? item.adults
+          : item && item.guests && item.guests.adults != null
+            ? item.guests.adults
+            : 1,
+      children:
+        item && item.children != null
+          ? item.children
+          : item && item.guests && item.guests.children != null
+            ? item.guests.children
+            : 0,
+      price:
+        (item && (item.price || item.total || item.totalAmount || item.payableAmount)) ||
+        pricing.total ||
+        pricing.totalAmount ||
+        0,
+      priceBreakdown:
+        (item && item.priceBreakdown) ||
+        pricing.breakdown ||
+        [],
+      prepaidOptions: (item && item.prepaidOptions) || [],
+      lowerPrepaidAmount: item && item.lowerPrepaidAmount != null ? item.lowerPrepaidAmount : null,
+      upperPrepaidAmount: item && item.upperPrepaidAmount != null ? item.upperPrepaidAmount : null,
+      type: item && item.type ? item.type : room.type || null,
+    };
+  }
+
+  function normalizeCart(payload) {
+    return extractCartItems(payload).map(normalizeCartItem);
+  }
+
+  function normalizeCartSummary(payload, items) {
+    var totalPrice =
+      (payload && payload.totalPrice) ||
+      (payload && payload.data && payload.data.totalPrice) ||
+      (payload && payload.cart && payload.cart.totalPrice) ||
+      items.reduce(function (sum, it) {
+        return sum + (Number(it.price) || 0);
+      }, 0);
+    return {
+      totalPrice: Number(totalPrice) || 0,
+      lowerPayableTotal:
+        (payload && payload.lowerPayableTotal) ||
+        (payload && payload.data && payload.data.lowerPayableTotal) ||
+        null,
+      upperPayableTotal:
+        (payload && payload.upperPayableTotal) ||
+        (payload && payload.data && payload.data.upperPayableTotal) ||
+        null,
+      lowerPercent:
+        (payload && payload.lowerPercent) ||
+        (payload && payload.data && payload.data.lowerPercent) ||
+        null,
+      upperPercent:
+        (payload && payload.upperPercent) ||
+        (payload && payload.data && payload.data.upperPercent) ||
+        null,
+    };
   }
 
   function normalizeBookings(payload) {
@@ -328,11 +366,21 @@
     },
 
     async getGuestCart() {
+      var details = await this.getGuestCartDetails();
+      return details.items;
+    },
+
+    async getGuestCartDetails() {
       var payload = await requestWithRetry("/api/guest/bookings/cart", {
         requiresAuth: true,
         retries: 1,
       });
-      return normalizeCart(payload);
+      var items = normalizeCart(payload);
+      return {
+        items: items,
+        summary: normalizeCartSummary(payload, items),
+        raw: payload,
+      };
     },
 
     async addGuestCartItem(input) {

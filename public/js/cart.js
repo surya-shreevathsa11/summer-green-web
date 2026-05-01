@@ -7,6 +7,14 @@
   var $$ = function (sel) { return document.querySelectorAll(sel); };
 
   var serverCart = [];
+  var cartSummary = {
+    totalPrice: 0,
+    lowerPayableTotal: null,
+    upperPayableTotal: null,
+    lowerPercent: null,
+    upperPercent: null,
+  };
+  var selectedPaymentPlan = null;
 
   function escapeHtml(s) {
     var div = document.createElement("div");
@@ -36,13 +44,21 @@
   }
 
   function fetchCart() {
-    return VaraApi.getGuestCart()
-      .then(function (items) {
-        serverCart = items;
+    return VaraApi.getGuestCartDetails()
+      .then(function (details) {
+        serverCart = (details && details.items) || [];
+        cartSummary = (details && details.summary) || cartSummary;
         return { ok: true, unauthorized: false };
       })
       .catch(function (err) {
         serverCart = [];
+        cartSummary = {
+          totalPrice: 0,
+          lowerPayableTotal: null,
+          upperPayableTotal: null,
+          lowerPercent: null,
+          upperPercent: null,
+        };
         return { ok: false, unauthorized: !!(err && err.isAuthError), error: err };
       });
   }
@@ -57,6 +73,7 @@
     if (serverCart.length === 0) {
       if (emptyEl) emptyEl.style.display = "block";
       if (footerEl) footerEl.style.display = "none";
+      selectedPaymentPlan = null;
       updateNavCartCount(0);
       return;
     }
@@ -74,7 +91,9 @@
       var roomName = room.roomName || room.roomId || room.name || "Room";
       var itemId = room.itemId || room.id || room.cartItemId || "";
       var breakdown = Array.isArray(room.priceBreakdown) ? room.priceBreakdown : [];
-      var breakdownHtml = breakdown.length
+      var breakdownId = "breakdown-" + (room.itemId || room.roomId || Math.random().toString(36).slice(2));
+      var hasBreakdown = breakdown.length > 0;
+      var breakdownHtml = hasBreakdown
         ? '<div class="cart__item-breakdown">' +
           breakdown.map(function (row) {
             var d = row.date != null ? formatDate(row.date) : "";
@@ -91,17 +110,24 @@
       var item = document.createElement("div");
       item.className = "cart__item";
       item.innerHTML =
-        '<div class="cart__item-info">' +
-        '<div class="cart__item-name">' + escapeHtml(roomName) + "</div>" +
-        '<div class="cart__item-meta">' + checkIn + " - " + checkOut +
-        (adults || children ? " - " + adults + " adult(s)" + (children ? ", " + children + " kid(s)" : "") : "") +
-        "</div>" +
-        '<div class="cart__item-price">INR ' + price + " total</div>" +
-        breakdownHtml +
-        "</div>" +
-        '<button type="button" class="cart__item-remove cursor-target" data-remove data-item-id="' + escapeHtml(String(itemId)) +
-        '" data-room-id="' + escapeHtml(room.roomId || "") + '" data-check-in="' + escapeHtml(checkIn) +
-        '" data-check-out="' + escapeHtml(checkOut) + '">Remove</button>';
+        '<div class="cart__item-card">' +
+          '<div class="cart__item-info">' +
+            '<div class="cart__item-name">' + escapeHtml(roomName) + "</div>" +
+            '<div class="cart__item-meta">' + checkIn + " to " + checkOut +
+              (adults || children ? " - " + adults + " adult(s)" + (children ? ", " + children + " kid(s)" : "") : "") +
+            "</div>" +
+            '<div class="cart__item-price">INR ' + price + "</div>" +
+            (hasBreakdown
+              ? '<button type="button" class="cart__details-toggle" data-toggle-breakdown="' + escapeHtml(breakdownId) + '">View detailed pricing</button>'
+              : "") +
+            (hasBreakdown
+              ? '<div id="' + escapeHtml(breakdownId) + '" class="cart__details-wrap" style="display:none;">' + breakdownHtml + "</div>"
+              : "") +
+          "</div>" +
+          '<button type="button" class="cart__item-remove cursor-target" aria-label="Remove room" title="Remove room" data-remove data-item-id="' + escapeHtml(String(itemId)) +
+          '" data-room-id="' + escapeHtml(room.roomId || "") + '" data-check-in="' + escapeHtml(checkIn) +
+          '" data-check-out="' + escapeHtml(checkOut) + '">✕</button>' +
+        "</div>";
       listEl.appendChild(item);
     });
 
@@ -115,7 +141,86 @@
         );
       });
     });
-    if (totalEl) totalEl.textContent = "INR " + total;
+    listEl.querySelectorAll("[data-toggle-breakdown]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var targetId = btn.getAttribute("data-toggle-breakdown");
+        var el = targetId ? document.getElementById(targetId) : null;
+        if (!el) return;
+        var isHidden = el.style.display === "none";
+        el.style.display = isHidden ? "block" : "none";
+        btn.textContent = isHidden ? "Hide detailed pricing" : "View detailed pricing";
+      });
+    });
+    var totalFromBackend =
+      cartSummary && cartSummary.totalPrice != null
+        ? Number(cartSummary.totalPrice)
+        : total;
+    if (totalEl) totalEl.textContent = "INR " + totalFromBackend;
+    var payableEl = $("#cartPayableSummary");
+    if (payableEl) {
+      var lower = cartSummary && cartSummary.lowerPayableTotal != null ? Number(cartSummary.lowerPayableTotal) : null;
+      var upper = cartSummary && cartSummary.upperPayableTotal != null ? Number(cartSummary.upperPayableTotal) : null;
+      var lowerPct = cartSummary && cartSummary.lowerPercent != null ? Number(cartSummary.lowerPercent) : null;
+      var upperPct = cartSummary && cartSummary.upperPercent != null ? Number(cartSummary.upperPercent) : null;
+      if (lower != null || upper != null) {
+        payableEl.style.display = "block";
+        if (!selectedPaymentPlan && lower != null) {
+          selectedPaymentPlan = {
+            kind: "lower",
+            percent: lowerPct,
+            payableAmount: lower,
+            refundAvailable: false,
+            optionId: "standard",
+          };
+        }
+        var selectedLabel = selectedPaymentPlan
+          ? "Selected: " + (selectedPaymentPlan.percent != null ? selectedPaymentPlan.percent + "%" : "custom") +
+            " (" + (selectedPaymentPlan.refundAvailable ? "refundable" : "non-refundable") + ")"
+          : "Select a payment option";
+        payableEl.innerHTML =
+          '<div class="cart__payable-title">Payable now</div>' +
+          '<div class="cart__payment-options">' +
+          (lower != null
+            ? '<label class="cart__payment-option"><input type="radio" name="cartPayOption" value="lower"' +
+              (selectedPaymentPlan && selectedPaymentPlan.kind === "lower" ? " checked" : "") +
+              '><span>Pay ' + (lowerPct != null ? lowerPct : "30") + '% (non-refundable) <strong>INR ' + lower + "</strong></span></label>"
+            : "") +
+          (upper != null
+            ? '<label class="cart__payment-option"><input type="radio" name="cartPayOption" value="upper"' +
+              (selectedPaymentPlan && selectedPaymentPlan.kind === "upper" ? " checked" : "") +
+              '><span>Pay ' + (upperPct != null ? upperPct : "50") + '% (refundable) <strong>INR ' + upper + "</strong></span></label>"
+            : "") +
+          '<div class="cart__payment-selected">' + escapeHtml(selectedLabel) + "</div>" +
+          "</div>";
+
+        payableEl.querySelectorAll('input[name="cartPayOption"]').forEach(function (input) {
+          input.addEventListener("change", function () {
+            if (input.value === "lower") {
+              selectedPaymentPlan = {
+                kind: "lower",
+                percent: lowerPct,
+                payableAmount: lower,
+                refundAvailable: false,
+                optionId: "standard",
+              };
+            } else if (input.value === "upper") {
+              selectedPaymentPlan = {
+                kind: "upper",
+                percent: upperPct,
+                payableAmount: upper,
+                refundAvailable: true,
+                optionId: "primary",
+              };
+            }
+            renderCartList();
+          });
+        });
+      } else {
+        payableEl.style.display = "none";
+        payableEl.innerHTML = "";
+        selectedPaymentPlan = null;
+      }
+    }
     updateNavCartCount(serverCart.length);
   }
 
@@ -164,6 +269,11 @@
         });
       }
     }
+    var payableEl = $("#cartPayableSummary");
+    if (payableEl) {
+      payableEl.style.display = "none";
+      payableEl.innerHTML = "";
+    }
     updateNavCartCount(0);
   }
 
@@ -177,6 +287,11 @@
       emptyEl.style.display = "block";
       emptyEl.innerHTML = (message || "Could not load cart right now.") +
         '<br><a href="/#rooms">Go back to rooms</a>.';
+    }
+    var payableEl = $("#cartPayableSummary");
+    if (payableEl) {
+      payableEl.style.display = "none";
+      payableEl.innerHTML = "";
     }
     updateNavCartCount(0);
   }
@@ -236,6 +351,10 @@
           errEl.textContent = "Please fill in name, email and phone.";
           return;
         }
+        if (!selectedPaymentPlan) {
+          errEl.textContent = "Please select a payment option (lower/upper) before proceeding.";
+          return;
+        }
         openTermsModal();
       });
     }
@@ -270,6 +389,10 @@
           email: email,
           phone: phone,
           guest: { name: name, email: email, phone: phone },
+          prepaidOptionId: selectedPaymentPlan && selectedPaymentPlan.optionId,
+          prepaidPercent: selectedPaymentPlan && selectedPaymentPlan.percent,
+          payableAmount: selectedPaymentPlan && selectedPaymentPlan.payableAmount,
+          refundAvailable: selectedPaymentPlan && selectedPaymentPlan.refundAvailable,
           rooms: rooms,
           propertySlug: VaraApi.getConfig().propertySlug,
         })
@@ -277,7 +400,11 @@
             var bookingData = (result && result.data && result.data.order) || (result && result.data) || result || {};
             var razorpayOrderId = bookingData.razorpayOrderId || bookingData.orderId || bookingData.id;
             var razorpayKey = bookingData.key || bookingData.razorpayKey || bookingData.keyId;
-            var payableAmount = bookingData.payableAmount != null ? Number(bookingData.payableAmount) : Number(bookingData.totalAmount || 0);
+            var payableAmount = bookingData.payableAmount != null
+              ? Number(bookingData.payableAmount)
+              : selectedPaymentPlan && selectedPaymentPlan.payableAmount != null
+                ? Number(selectedPaymentPlan.payableAmount)
+                : Number(bookingData.totalAmount || 0);
 
             if (!razorpayOrderId || !razorpayKey) {
               throw new Error("Could not create payment order. Please try again.");
