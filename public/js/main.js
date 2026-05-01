@@ -671,6 +671,23 @@
   var galleryAutoLastTs = 0;
   var galleryAutoPaused = false;
   var galleryAutoSpeed = 0.04;
+  var galleryAutoResumeTimer = null;
+  function isMobileOrTabletViewport() {
+    return (
+      (window.matchMedia && window.matchMedia("(max-width: 1024px)").matches) ||
+      (window.matchMedia && window.matchMedia("(pointer: coarse)").matches)
+    );
+  }
+  function pauseGalleryAutoTemporarily(delayMs) {
+    galleryAutoPaused = true;
+    if (galleryAutoResumeTimer) {
+      clearTimeout(galleryAutoResumeTimer);
+      galleryAutoResumeTimer = null;
+    }
+    galleryAutoResumeTimer = setTimeout(function () {
+      galleryAutoPaused = false;
+    }, delayMs);
+  }
   function setupGalleryAutoLoop() {
     if (!galleryGrid) return;
     if (galleryAutoRaf) {
@@ -684,9 +701,7 @@
     var originals = $$(".gallery__item", galleryGrid);
     if (!originals.length) return;
     galleryGrid.scrollLeft = 0;
-    var isTabletOrMobile =
-      (window.matchMedia && window.matchMedia("(max-width: 1024px)").matches) ||
-      (window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+    var isTabletOrMobile = isMobileOrTabletViewport();
     galleryAutoSpeed = isTabletOrMobile ? 0.028 : 0.04;
     function tick(ts) {
       if (!galleryGrid) return;
@@ -712,10 +727,15 @@
       galleryAutoPaused = false;
     });
     galleryGrid.addEventListener("touchstart", function () {
-      galleryAutoPaused = true;
+      if (isMobileOrTabletViewport()) pauseGalleryAutoTemporarily(1400);
+      else galleryAutoPaused = true;
     }, { passive: true });
     galleryGrid.addEventListener("touchend", function () {
-      galleryAutoPaused = false;
+      if (isMobileOrTabletViewport()) pauseGalleryAutoTemporarily(1400);
+      else galleryAutoPaused = false;
+    }, { passive: true });
+    galleryGrid.addEventListener("scroll", function () {
+      if (isMobileOrTabletViewport()) pauseGalleryAutoTemporarily(1400);
     }, { passive: true });
   }
   function renderGalleryFromPayload(payload) {

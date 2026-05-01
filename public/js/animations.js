@@ -12,6 +12,10 @@
    * smoothTouch/touchMultiplier so mobile and tablet scroll stays consistent in future. */
   function initLenis() {
     if (typeof Lenis === "undefined") return null;
+    var disableLenisForTouchDevices =
+      (window.matchMedia && window.matchMedia("(max-width: 1024px)").matches) ||
+      (window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+    if (disableLenisForTouchDevices) return null;
     try {
       var lenis = new Lenis({
         duration: 1.2,
