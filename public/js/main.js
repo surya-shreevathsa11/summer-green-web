@@ -678,17 +678,11 @@
       galleryAutoRaf = null;
     }
     galleryAutoLastTs = 0;
-    $$(".gallery__item--clone", galleryGrid).forEach(function (el) {
+    $$(".gallery__item--clone").forEach(function (el) {
       el.remove();
     });
     var originals = $$(".gallery__item", galleryGrid);
     if (!originals.length) return;
-    originals.forEach(function (item) {
-      var clone = item.cloneNode(true);
-      clone.classList.add("gallery__item--clone");
-      clone.setAttribute("aria-hidden", "true");
-      galleryGrid.appendChild(clone);
-    });
     galleryGrid.scrollLeft = 0;
     var isTabletOrMobile =
       (window.matchMedia && window.matchMedia("(max-width: 1024px)").matches) ||
@@ -701,9 +695,9 @@
       galleryAutoLastTs = ts;
       if (!galleryAutoPaused) {
         galleryGrid.scrollLeft += dt * galleryAutoSpeed;
-        var loopWidth = galleryGrid.scrollWidth / 2;
-        if (galleryGrid.scrollLeft >= loopWidth) {
-          galleryGrid.scrollLeft -= loopWidth;
+        var maxScrollLeft = Math.max(0, galleryGrid.scrollWidth - galleryGrid.clientWidth);
+        if (galleryGrid.scrollLeft >= maxScrollLeft) {
+          galleryGrid.scrollLeft = 0;
         }
       }
       galleryAutoRaf = requestAnimationFrame(tick);
