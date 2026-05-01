@@ -1,11 +1,108 @@
 import crypto from "crypto";
+import mongoose from "mongoose";
 import { Booking } from "../models/booking.model.js";
+import { BookedNight } from "../models/booked-night.model.js";
 import {
   sendConfirmationMailToAdmin,
   sendConfirmationMailToGuest,
   sendPaymentFailedMailToGuest,
 } from "../utils/resend.util.js";
 import { Cart } from "../models/cart.model.js";
+
+function normalizeToUtcMidnight(dateInput) {
+  const date = new Date(dateInput);
+  return new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+  );
+}
+
+function enumerateStayNights(checkIn, checkOut) {
+  const start = normalizeToUtcMidnight(checkIn);
+  const end = normalizeToUtcMidnight(checkOut);
+  const nights = [];
+
+  for (let cursor = new Date(start); cursor < end; ) {
+    nights.push(new Date(cursor));
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+
+  return nights;
+}
+
+async function finalizeBookingAfterPayment({
+  razorpayOrderId,
+  razorpayPaymentId,
+  amountPaid,
+}) {
+  const session = await mongoose.startSession();
+  let finalizedBooking = null;
+  let finalizeState = "unknown";
+
+  try {
+    await session.withTransaction(async () => {
+      const booking = await Booking.findOne({ razorpayOrderId }).session(session);
+
+      if (!booking) {
+        finalizeState = "not_found";
+        return;
+      }
+
+      if (booking.status === "confirmed") {
+        finalizedBooking = booking;
+        finalizeState = "already_confirmed";
+        return;
+      }
+
+      if (booking.status !== "pending") {
+        finalizeState = "invalid_state";
+        return;
+      }
+
+      const nightClaims = [];
+
+      for (const room of booking.rooms) {
+        const nights = enumerateStayNights(room.checkIn, room.checkOut);
+        for (const night of nights) {
+          nightClaims.push({
+            bookingId: booking._id,
+            roomId: room.roomId,
+            date: night,
+          });
+        }
+      }
+
+      if (nightClaims.length > 0) {
+        await BookedNight.insertMany(nightClaims, { session, ordered: true });
+      }
+
+      booking.status = "confirmed";
+      booking.razorpayPaymentId = razorpayPaymentId || booking.razorpayPaymentId;
+      if (typeof amountPaid === "number" && !Number.isNaN(amountPaid)) {
+        booking.amountPaid = amountPaid;
+      }
+      await booking.save({ session });
+
+      await Cart.deleteOne({ userId: booking.userId }).session(session);
+
+      finalizedBooking = booking;
+      finalizeState = "confirmed";
+    });
+  } catch (error) {
+    if (error?.code === 11000) {
+      const cancelledBooking = await Booking.findOneAndUpdate(
+        { razorpayOrderId, status: "pending" },
+        { $set: { status: "cancelled" } },
+        { new: true }
+      );
+      return { state: "conflict", booking: cancelledBooking };
+    }
+    throw error;
+  } finally {
+    await session.endSession();
+  }
+
+  return { state: finalizeState, booking: finalizedBooking };
+}
 /*
  * Razorpay sends webhooks for:
  * - payment.captured → Payment successful
@@ -87,26 +184,34 @@ async function handlePaymentCaptured(payload) {
     console.log("Payment captured:", paymentId, "for order:", orderId);
     console.log("Amount paid:", amountPaid);
 
-    // Find booking by Razorpay order ID
-    const booking = await Booking.findOne({ razorpayOrderId: orderId });
+    const result = await finalizeBookingAfterPayment({
+      razorpayOrderId: orderId,
+      razorpayPaymentId: paymentId,
+      amountPaid,
+    });
 
-    if (!booking) {
+    if (result.state === "not_found") {
       console.error("Booking not found for order:", orderId);
       return;
     }
 
-    const totalPrice = booking.totalAmount || 0;
+    if (result.state === "conflict") {
+      console.warn("Booking conflict while confirming order:", orderId);
+      return;
+    }
 
-    // Update booking with payment details
-    booking.status = "confirmed";
-    booking.razorpayPaymentId = paymentId;
+    if (result.state === "invalid_state") {
+      console.warn("Skipping confirm due to invalid booking state:", orderId);
+      return;
+    }
 
-    booking.amountPaid = amountPaid;
+    if (result.state === "already_confirmed") {
+      console.log("Booking already confirmed for order:", orderId);
+      return;
+    }
 
-    await booking.save();
-
-    //delete cart after confirmation
-    await Cart.deleteOne({ userId: booking.userId });
+    const booking = result.booking;
+    if (!booking) return;
 
     // Send confirmation emails
     await sendConfirmationMailToGuest(booking);
@@ -150,18 +255,13 @@ async function handleOrderPaid(payload) {
 
     console.log("Order paid:", orderId);
 
-    // This is redundant with payment.captured but can be used as backup
-    const booking = await Booking.findOne({ razorpayOrderId: orderId });
-
-    if (!booking) {
-      console.error("Booking not found for order:", orderId);
-      return;
-    }
-
-    if (booking.status !== "confirmed") {
-      booking.status = "confirmed";
-      await booking.save();
-      console.log("Booking confirmed via order.paid:", booking._id);
+    const result = await finalizeBookingAfterPayment({
+      razorpayOrderId: orderId,
+      razorpayPaymentId: null,
+      amountPaid: null,
+    });
+    if (result.state === "confirmed") {
+      console.log("Booking confirmed via order.paid:", result.booking?._id);
     }
   } catch (error) {
     console.error("Error handling order paid:", error);
@@ -193,23 +293,40 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
-    // Find and update booking
-    const booking = await Booking.findOne({
+    const result = await finalizeBookingAfterPayment({
       razorpayOrderId: razorpay_order_id,
+      razorpayPaymentId: razorpay_payment_id,
+      amountPaid: null,
     });
-    // console.log(booking);
 
-    if (!booking) {
+    if (result.state === "not_found") {
       return res.status(404).json({
         success: false,
         message: "Booking not found",
       });
     }
 
-    // Update booking
-    booking.status = "confirmed";
-    booking.razorpayPaymentId = razorpay_payment_id;
-    await booking.save();
+    if (result.state === "conflict") {
+      return res.status(409).json({
+        success: false,
+        message: "Room is no longer available for one or more selected dates",
+      });
+    }
+
+    if (result.state === "invalid_state") {
+      return res.status(400).json({
+        success: false,
+        message: "Booking is not in a payable state",
+      });
+    }
+
+    const booking = result.booking;
+    if (!booking) {
+      return res.status(500).json({
+        success: false,
+        message: "Unable to finalize booking",
+      });
+    }
 
     //  await sendConfirmationMailToGuest(booking);
     // await sendConfirmationMailToAdmin(booking)

@@ -29,7 +29,7 @@ A full-stack homestay booking website for **Summer Green Homestay** (Madikeri, C
 ├── controllers/      # Route handlers (auth, booking, admin, payment)
 ├── db.js             # MongoDB connection
 ├── middleware/       # Auth (guest + admin), JWT verification
-├── models/           # Mongoose models (User, Booking, Cart, etc.)
+├── models/           # Mongoose models (User, Booking, Cart, BookedNight, etc.)
 ├── public/           # Static frontend
 │   ├── css/          # Styles (theme variants)
 │   ├── img/          # Images, logos, favicon
@@ -146,6 +146,21 @@ Static assets (HTML, CSS, JS, images) are served from `public/`. SPA-style navig
 | GET | `/api/booking/bookings` | Yes | User’s bookings |
 | POST | `/api/payment/verify` | Yes | Verify Razorpay payment |
 | POST | `/api/payment/razorpay-webhook` | No | Razorpay webhook (raw body) |
+
+---
+
+## Booking Concurrency (Race Condition Handling)
+
+To avoid double-booking when multiple users pay at the same time, the project now confirms bookings with an atomic room-night claim step:
+
+- Checkout still creates a `pending` booking and Razorpay order.
+- On payment confirmation (`/api/payment/verify` or webhook), backend runs a MongoDB transaction.
+- The transaction inserts one `BookedNight` document per `(roomId, date)` in the stay.
+- `BookedNight` has a unique index on `{ roomId, date }`, so only one booking can claim a room-night.
+- If any insert hits duplicate key (`E11000`), the transaction rolls back and booking is marked `cancelled` (conflict).
+- Only after all room-nights are successfully claimed is booking status moved to `confirmed`.
+
+This gives "first successful confirmer wins" semantics and removes the read-check-write race that can happen under concurrent payments.
 
 ### Admin (JWT required)
 
