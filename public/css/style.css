@@ -191,7 +191,7 @@ textarea {
   /* UI */
   --border-light: #e5e7eb;
   --shadow-soft: rgba(0, 0, 0, 0.06);
-  --overlay-dark: rgba(10, 10, 10, 0.28);
+  --overlay-dark: rgba(10, 10, 10, 0.4);
   /* Nav: dark background when scrolled */
   --nav-scrolled-bg: #1a1d24;
   /* Blob cursor — shadow, less transparent, hover */
@@ -847,6 +847,9 @@ main {
   -webkit-overflow-scrolling: touch;
   padding-bottom: 0.25rem;
 }
+.gallery__carousel {
+  position: relative;
+}
 .gallery__item {
   flex: 0 0 calc((100% - 1.5rem) / 3);
   min-width: 0;
@@ -882,16 +885,48 @@ main {
   filter: saturate(1.02) contrast(1.08);
 }
 .gallery__label {
+  display: none;
+}
+.gallery__nav {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 0.85rem 0.9rem;
-  font-size: 0.75rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(248, 248, 248, 0.88);
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0));
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  background: rgba(20, 33, 61, 0.35);
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 1.2rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+}
+.gallery__nav:hover {
+  background: rgba(20, 33, 61, 0.5);
+}
+.gallery__nav:active {
+  transform: translateY(-50%) scale(0.96);
+}
+.gallery__nav--prev {
+  left: 0.5rem;
+}
+.gallery__nav--next {
+  right: 0.5rem;
+}
+@media (min-width: 1025px) {
+  .gallery__nav--prev {
+    left: -1.5cm;
+  }
+  .gallery__nav--next {
+    right: -1.5cm;
+  }
 }
 .gallery__grid::-webkit-scrollbar {
   height: 8px;

@@ -667,6 +667,8 @@
 
   // --- Gallery: backend-first, static fallback ---
   var galleryGrid = $("#galleryGrid");
+  var galleryPrevBtn = $("#galleryPrevBtn");
+  var galleryNextBtn = $("#galleryNextBtn");
   var galleryAutoRaf = null;
   var galleryAutoLastTs = 0;
   var galleryAutoPaused = false;
@@ -703,6 +705,13 @@
     galleryGrid.scrollLeft = 0;
     var isTabletOrMobile = isMobileOrTabletViewport();
     galleryAutoSpeed = isTabletOrMobile ? 0.028 : 0.04;
+    var firstItem = originals[0];
+    var gapPx = 0;
+    if (firstItem) {
+      var styles = window.getComputedStyle(galleryGrid);
+      gapPx = parseFloat(styles.columnGap || styles.gap || "0") || 0;
+    }
+    var rotateStep = firstItem ? firstItem.getBoundingClientRect().width + gapPx : 0;
     function tick(ts) {
       if (!galleryGrid) return;
       if (!galleryAutoLastTs) galleryAutoLastTs = ts;
@@ -710,9 +719,18 @@
       galleryAutoLastTs = ts;
       if (!galleryAutoPaused) {
         galleryGrid.scrollLeft += dt * galleryAutoSpeed;
-        var maxScrollLeft = Math.max(0, galleryGrid.scrollWidth - galleryGrid.clientWidth);
-        if (galleryGrid.scrollLeft >= maxScrollLeft) {
-          galleryGrid.scrollLeft = 0;
+        if (!isTabletOrMobile && rotateStep > 0) {
+          while (galleryGrid.scrollLeft >= rotateStep) {
+            var first = galleryGrid.querySelector(".gallery__item");
+            if (!first) break;
+            galleryGrid.appendChild(first);
+            galleryGrid.scrollLeft -= rotateStep;
+          }
+        } else {
+          var maxScrollLeft = Math.max(0, galleryGrid.scrollWidth - galleryGrid.clientWidth);
+          if (galleryGrid.scrollLeft >= maxScrollLeft) {
+            galleryGrid.scrollLeft = 0;
+          }
         }
       }
       galleryAutoRaf = requestAnimationFrame(tick);
@@ -737,6 +755,24 @@
     galleryGrid.addEventListener("scroll", function () {
       if (isMobileOrTabletViewport()) pauseGalleryAutoTemporarily(1400);
     }, { passive: true });
+  }
+  function scrollGalleryBy(direction) {
+    if (!galleryGrid) return;
+    var distance = Math.max(180, galleryGrid.clientWidth * 0.9);
+    galleryGrid.scrollBy({ left: direction * distance, behavior: "smooth" });
+    pauseGalleryAutoTemporarily(1600);
+  }
+  if (galleryPrevBtn) {
+    galleryPrevBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      scrollGalleryBy(-1);
+    });
+  }
+  if (galleryNextBtn) {
+    galleryNextBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      scrollGalleryBy(1);
+    });
   }
   function renderGalleryFromPayload(payload) {
     if (!galleryGrid) return;

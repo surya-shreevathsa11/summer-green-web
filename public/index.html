@@ -333,7 +333,16 @@
           <p class="section__subtitle" data-reveal="fade-up">Visual Journey</p>
           <h2 class="section__title" data-reveal="clip">Gallery</h2>
           <div class="divider" data-reveal="flow" data-reveal-delay="80"></div>
-          <div class="gallery__grid" id="galleryGrid">
+          <div class="gallery__carousel">
+            <button
+              type="button"
+              class="gallery__nav gallery__nav--prev"
+              id="galleryPrevBtn"
+              aria-label="Scroll gallery left"
+            >
+              &#10094;
+            </button>
+            <div class="gallery__grid" id="galleryGrid">
             <div
               class="gallery__item"
               data-category="exterior"
@@ -412,6 +421,15 @@
               />
               <div class="gallery__label">Wine Cellar</div>
             </div>
+            </div>
+            <button
+              type="button"
+              class="gallery__nav gallery__nav--next"
+              id="galleryNextBtn"
+              aria-label="Scroll gallery right"
+            >
+              &#10095;
+            </button>
           </div>
         </div>
       </section>
