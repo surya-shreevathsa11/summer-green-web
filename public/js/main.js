@@ -322,97 +322,343 @@
     });
   }
   const navProfileBookings = $("#navProfileBookings");
+  var myBookingsRefreshBound = false;
+
+  function formatBookingDate(dateStr) {
+    if (!dateStr) return "—";
+    var d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "—";
+    return d.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  }
+
+  function formatBookingDateTime(dateStr) {
+    if (!dateStr) return "—";
+    var d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "—";
+    return d.toLocaleString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
+
+  function bookingStatusMessage(b) {
+    var status = (b.status || "").toLowerCase();
+    if (status === "requested") {
+      return "Request pending — waiting for property confirmation";
+    }
+    if (status === "approved") {
+      var expires = b.expiresAt ? formatBookingDateTime(b.expiresAt) : null;
+      var expired =
+        b.expiresAt && !isNaN(new Date(b.expiresAt).getTime())
+          ? new Date(b.expiresAt).getTime() < Date.now()
+          : false;
+      if (expired) {
+        return "Payment window expired. Please submit a new booking request.";
+      }
+      return expires
+        ? "Approved — complete payment by " + expires
+        : "Approved — complete payment to confirm";
+    }
+    if (status === "rejected") {
+      return b.rejectionReason
+        ? "Request declined: " + b.rejectionReason
+        : "Request declined";
+    }
+    if (status === "confirmed") {
+      return "Booking confirmed";
+    }
+    if (status === "cancelled") {
+      return "Booking cancelled";
+    }
+    return status || "—";
+  }
+
+  function isApprovedPayable(b) {
+    if (!b || (b.status || "").toLowerCase() !== "approved") return false;
+    if (!b.expiresAt) return true;
+    var t = new Date(b.expiresAt).getTime();
+    if (isNaN(t)) return true;
+    return t > Date.now();
+  }
+
+  function payForApprovedBooking(bookingId, btn) {
+    if (!bookingId) return;
+    if (btn) btn.disabled = true;
+    var orderBody = { bookingId: bookingId };
+    VaraApi.createPaymentOrder(orderBody)
+      .then(function (result) {
+        var bookingData =
+          (result && result.data && result.data.order) ||
+          (result && result.data) ||
+          result ||
+          {};
+        var razorpayOrderId =
+          bookingData.razorpayOrderId ||
+          bookingData.orderId ||
+          bookingData.id;
+        var razorpayKey =
+          bookingData.key || bookingData.razorpayKey || bookingData.keyId;
+        var payableAmount =
+          bookingData.payableAmount != null
+            ? Number(bookingData.payableAmount)
+            : Number(bookingData.totalAmount || 0);
+        if (!razorpayOrderId || !razorpayKey) {
+          throw new Error("Could not create payment order. Please try again.");
+        }
+        if (!window.Razorpay) {
+          throw new Error(
+            "Razorpay checkout script not loaded. Please refresh the page and try again."
+          );
+        }
+        var guest = (bookingData.guest) || {};
+        var options = {
+          key: razorpayKey,
+          amount: Math.round(payableAmount * 100),
+          currency: bookingData.currency || "INR",
+          order_id: razorpayOrderId,
+          name: "Summer Green",
+          description: "Room Booking",
+          prefill: {
+            name: guest.name || "",
+            email: guest.email || "",
+            contact: guest.phone || "",
+          },
+          handler: function (response) {
+            VaraApi.verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            })
+              .then(function () {
+                loadMyBookings();
+                alert("Payment successful. Your booking is confirmed.");
+              })
+              .catch(function (error) {
+                alert(
+                  (error && error.message
+                    ? error.message
+                    : "Could not verify payment.") +
+                    " Payment ID: " +
+                    response.razorpay_payment_id
+                );
+                if (btn) btn.disabled = false;
+              });
+          },
+          modal: {
+            ondismiss: function () {
+              if (btn) btn.disabled = false;
+            },
+          },
+        };
+        var rzp = new window.Razorpay(options);
+        rzp.on("payment.failed", function (response) {
+          alert(
+            "Payment failed: " +
+              ((response && response.error && response.error.description) ||
+                "Please try again.")
+          );
+          if (btn) btn.disabled = false;
+        });
+        rzp.open();
+      })
+      .catch(function (err) {
+        var msg =
+          err && err.message
+            ? err.message
+            : "Could not start payment. Please try again.";
+        if (err && err.status === 410) {
+          msg =
+            "Payment window expired. Please submit a new booking request from your cart.";
+        } else if (err && err.status === 400) {
+          msg =
+            msg ||
+            "This booking is not payable yet. Wait for property approval.";
+        }
+        alert(msg);
+        if (btn) btn.disabled = false;
+        loadMyBookings();
+      });
+  }
+
+  function renderMyBookingsList(bookings) {
+    var listEl = $("#myBookingsList");
+    var emptyEl = $("#myBookingsError");
+    var emptyMsgEl = $("#myBookingsEmpty");
+    if (listEl) listEl.innerHTML = "";
+    if (emptyEl) {
+      emptyEl.style.display = "none";
+      emptyEl.textContent = "";
+    }
+    if (emptyMsgEl) emptyMsgEl.style.display = "none";
+
+    if (!bookings || bookings.length === 0) {
+      if (emptyMsgEl) emptyMsgEl.style.display = "block";
+      return;
+    }
+    if (!listEl) return;
+
+    listEl.innerHTML = bookings
+      .map(function (b) {
+        var rooms = b.rooms || [];
+        var roomsSummary = rooms
+          .map(function (r) {
+            return r.roomName || r.roomId || "—";
+          })
+          .join(", ");
+        var checkIn = formatBookingDate(rooms[0] && rooms[0].checkIn);
+        var checkOut = formatBookingDate(rooms[0] && rooms[0].checkOut);
+        var status = (b.status || "requested").toLowerCase();
+        var guestName = b.guest && b.guest.name ? b.guest.name : "—";
+        var bookingId = b.bookingId || b.id || "";
+        var statusMsg = bookingStatusMessage(b);
+        var canPay = isApprovedPayable(b);
+        var actionsHtml = "";
+        if (status === "approved") {
+          if (canPay) {
+            actionsHtml =
+              '<button type="button" class="btn btn--primary btn--sm my-bookings__pay" data-pay-booking="' +
+              String(bookingId).replace(/"/g, "&quot;") +
+              '">Pay now</button>';
+          } else {
+            actionsHtml =
+              '<span class="my-bookings__hint">Submit a new request to book again.</span>';
+          }
+        } else if (status === "requested") {
+          actionsHtml =
+            '<span class="my-bookings__hint">Payment available after approval</span>';
+        }
+
+        return (
+          '<div class="my-bookings__item" data-booking-status="' +
+          status +
+          '">' +
+          '<span class="my-bookings__guest">' +
+          guestName.replace(/</g, "&lt;").replace(/>/g, "&gt;") +
+          "</span>" +
+          '<span class="my-bookings__rooms">' +
+          roomsSummary.replace(/</g, "&lt;").replace(/>/g, "&gt;") +
+          "</span>" +
+          '<span class="my-bookings__dates">' +
+          checkIn +
+          " – " +
+          checkOut +
+          "</span>" +
+          '<span class="my-bookings__total">₹' +
+          (b.totalAmount != null
+            ? Number(b.totalAmount).toLocaleString("en-IN")
+            : "0") +
+          "</span>" +
+          '<span class="my-bookings__status my-bookings__status--' +
+          status +
+          '">' +
+          status +
+          "</span>" +
+          '<p class="my-bookings__message">' +
+          String(statusMsg)
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;") +
+          "</p>" +
+          (actionsHtml
+            ? '<div class="my-bookings__actions">' + actionsHtml + "</div>"
+            : "") +
+          "</div>"
+        );
+      })
+      .join("");
+
+    listEl.querySelectorAll("[data-pay-booking]").forEach(function (btn) {
+      btn.addEventListener("click", function (e) {
+        e.preventDefault();
+        payForApprovedBooking(btn.getAttribute("data-pay-booking"), btn);
+      });
+    });
+  }
+
+  function loadMyBookings() {
+    var emptyEl = $("#myBookingsError");
+    var emptyMsgEl = $("#myBookingsEmpty");
+    var listEl = $("#myBookingsList");
+    if (listEl) listEl.innerHTML = "";
+    if (emptyEl) {
+      emptyEl.style.display = "none";
+      emptyEl.textContent = "";
+    }
+    if (emptyMsgEl) emptyMsgEl.style.display = "none";
+
+    return VaraApi.getGuestBookings()
+      .then(function (bookings) {
+        renderMyBookingsList(bookings);
+      })
+      .catch(function (err) {
+        if (emptyEl) {
+          emptyEl.textContent =
+            err && err.isAuthError
+              ? "Please sign in to view bookings."
+              : err && err.message
+                ? err.message
+                : "Could not load bookings.";
+          emptyEl.style.display = "block";
+        }
+      });
+  }
+
+  function openMyBookingsModal() {
+    openModal("#myBookingsModal");
+    loadMyBookings();
+    if (!myBookingsRefreshBound) {
+      myBookingsRefreshBound = true;
+      document.addEventListener("visibilitychange", function () {
+        var modal = $("#myBookingsModal");
+        if (
+          document.visibilityState === "visible" &&
+          modal &&
+          modal.classList.contains("active")
+        ) {
+          loadMyBookings();
+        }
+      });
+      window.addEventListener("focus", function () {
+        var modal = $("#myBookingsModal");
+        if (modal && modal.classList.contains("active")) {
+          loadMyBookings();
+        }
+      });
+    }
+  }
+
   if (navProfileBookings) {
     navProfileBookings.addEventListener("click", (e) => {
       e.preventDefault();
       if (navProfileDropdown) navProfileDropdown.classList.remove("is-open");
       const navLinks = $("#navLinks");
       if (navLinks) navLinks.classList.remove("open");
-
-      var listEl = $("#myBookingsList");
-      var emptyEl = $("#myBookingsError");
-      var emptyMsgEl = $("#myBookingsEmpty");
-      if (listEl) listEl.innerHTML = "";
-      if (emptyEl) {
-        emptyEl.style.display = "none";
-        emptyEl.textContent = "";
-      }
-      if (emptyMsgEl) emptyMsgEl.style.display = "none";
-
-      VaraApi.getGuestBookings()
-        .then(function (bookings) {
-          if (bookings.length === 0) {
-            if (emptyMsgEl) emptyMsgEl.style.display = "block";
-          } else if (listEl) {
-            listEl.innerHTML = bookings
-              .map(function (b) {
-                var rooms = b.rooms || [];
-                var roomsSummary = rooms
-                  .map(function (r) {
-                    return r.roomName || r.roomId || "—";
-                  })
-                  .join(", ");
-                var checkIn =
-                  rooms[0] && rooms[0].checkIn
-                    ? new Date(rooms[0].checkIn).toLocaleDateString("en-IN", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })
-                    : "—";
-                var checkOut =
-                  rooms[0] && rooms[0].checkOut
-                    ? new Date(rooms[0].checkOut).toLocaleDateString("en-IN", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })
-                    : "—";
-                var status = (b.status || "pending").toLowerCase();
-                var guestName = b.guest && b.guest.name ? b.guest.name : "—";
-                return (
-                  '<div class="my-bookings__item">' +
-                  '<span class="my-bookings__guest">' +
-                  guestName.replace(/</g, "&lt;").replace(/>/g, "&gt;") +
-                  "</span>" +
-                  '<span class="my-bookings__rooms">' +
-                  roomsSummary.replace(/</g, "&lt;").replace(/>/g, "&gt;") +
-                  "</span>" +
-                  '<span class="my-bookings__dates">' +
-                  checkIn +
-                  " – " +
-                  checkOut +
-                  "</span>" +
-                  '<span class="my-bookings__total">₹' +
-                  (b.totalAmount != null
-                    ? Number(b.totalAmount).toLocaleString("en-IN")
-                    : "0") +
-                  "</span>" +
-                  '<span class="my-bookings__status my-bookings__status--' +
-                  status +
-                  '">' +
-                  status +
-                  "</span>" +
-                  "</div>"
-                );
-              })
-              .join("");
-          }
-          openModal("#myBookingsModal");
-        })
-        .catch(function (err) {
-          if (emptyEl) {
-            emptyEl.textContent =
-              err && err.isAuthError
-                ? "Please sign in to view bookings."
-                : err && err.message
-                  ? err.message
-                  : "Could not load bookings.";
-            emptyEl.style.display = "block";
-          }
-          openModal("#myBookingsModal");
-        });
+      openMyBookingsModal();
     });
+  }
+
+  try {
+    if (sessionStorage.getItem("summer-green-open-bookings") === "1") {
+      sessionStorage.removeItem("summer-green-open-bookings");
+      setTimeout(function () {
+        if (VaraApi.readGuestToken()) openMyBookingsModal();
+      }, 400);
+    }
+  } catch (_) {}
+
+  if (
+    typeof URLSearchParams !== "undefined" &&
+    new URLSearchParams(window.location.search).get("payment") === "success"
+  ) {
+    setTimeout(function () {
+      if (VaraApi.readGuestToken()) openMyBookingsModal();
+    }, 400);
   }
 
   // --- Guest PIN Sign In ---

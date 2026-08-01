@@ -1577,8 +1577,26 @@ main {
 .my-bookings__total { font-weight: 500; }
 .my-bookings__status { text-transform: capitalize; }
 .my-bookings__status--confirmed { color: var(--color-ok, #0a7); }
-.my-bookings__status--pending { color: var(--color-burnt-copper, #b8860b); }
+.my-bookings__status--pending,
+.my-bookings__status--requested,
+.my-bookings__status--approved { color: var(--color-burnt-copper, #b8860b); }
+.my-bookings__status--rejected { color: #b33; }
 .my-bookings__status--cancelled { color: var(--text-muted, #999); }
+.my-bookings__message {
+  grid-column: 1 / -1;
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #555);
+  line-height: 1.4;
+}
+.my-bookings__actions {
+  grid-column: 1 / -1;
+  margin-top: 0.35rem;
+}
+.my-bookings__hint {
+  font-size: 0.78rem;
+  color: var(--text-muted, #777);
+}
 .my-bookings__empty,
 .my-bookings__error { margin: 1rem 0 0; color: var(--text-muted); font-size: 0.9rem; }
 .modal__title {

@@ -178,7 +178,7 @@
             " (" + (selectedPaymentPlan.refundAvailable ? "refundable" : "non-refundable") + ")"
           : "Select a payment option";
         payableEl.innerHTML =
-          '<div class="cart__payable-title">Payable now</div>' +
+          '<div class="cart__payable-title">Estimated advance (pay after approval)</div>' +
           '<div class="cart__payment-options">' +
           (lower != null
             ? '<label class="cart__payment-option"><input type="radio" name="cartPayOption" value="lower"' +
@@ -351,10 +351,6 @@
           errEl.textContent = "Please fill in name, email and phone.";
           return;
         }
-        if (!selectedPaymentPlan) {
-          errEl.textContent = "Please select a payment option (lower/upper) before proceeding.";
-          return;
-        }
         openTermsModal();
       });
     }
@@ -371,84 +367,35 @@
         var name = $("#checkoutName").value.trim();
         var email = $("#checkoutEmail").value.trim();
         var phone = $("#checkoutPhone").value.trim();
+        var errEl = $("#checkoutError");
         termsProceedBtn.disabled = true;
 
-        var rooms = serverCart.map(function (r) {
-          return {
-            itemId: r.itemId || r.id || r.cartItemId || undefined,
-            roomId: r.roomId,
-            checkIn: formatDate(r.checkIn),
-            checkOut: formatDate(r.checkOut),
-            adults: r.adults != null ? r.adults : 1,
-            children: r.children != null ? r.children : 0,
-          };
-        });
-
-        VaraApi.createPaymentOrder({
+        VaraApi.createBookingRequest({
           name: name,
           email: email,
           phone: phone,
-          guest: { name: name, email: email, phone: phone },
-          prepaidOptionId: selectedPaymentPlan && selectedPaymentPlan.optionId,
-          prepaidPercent: selectedPaymentPlan && selectedPaymentPlan.percent,
-          payableAmount: selectedPaymentPlan && selectedPaymentPlan.payableAmount,
-          refundAvailable: selectedPaymentPlan && selectedPaymentPlan.refundAvailable,
-          rooms: rooms,
-          propertySlug: VaraApi.getConfig().propertySlug,
         })
-          .then(function (result) {
-            var bookingData = (result && result.data && result.data.order) || (result && result.data) || result || {};
-            var razorpayOrderId = bookingData.razorpayOrderId || bookingData.orderId || bookingData.id;
-            var razorpayKey = bookingData.key || bookingData.razorpayKey || bookingData.keyId;
-            var payableAmount = bookingData.payableAmount != null
-              ? Number(bookingData.payableAmount)
-              : selectedPaymentPlan && selectedPaymentPlan.payableAmount != null
-                ? Number(selectedPaymentPlan.payableAmount)
-                : Number(bookingData.totalAmount || 0);
-
-            if (!razorpayOrderId || !razorpayKey) {
-              throw new Error("Could not create payment order. Please try again.");
-            }
-
+          .then(function () {
             closeTermsModal();
-            if (!window.Razorpay) {
-              alert("Razorpay checkout script not loaded. Please refresh the page and try again.");
-              termsProceedBtn.disabled = false;
-              return;
-            }
-
-            var options = {
-              key: razorpayKey,
-              amount: Math.round(payableAmount * 100),
-              currency: bookingData.currency || "INR",
-              order_id: razorpayOrderId,
-              name: "Summer Green",
-              description: "Room Booking",
-              prefill: { name: name, email: email, contact: phone },
-              handler: function (response) {
-                VaraApi.verifyPayment({
-                  razorpay_order_id: response.razorpay_order_id,
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_signature: response.razorpay_signature,
-                })
-                  .then(function () { window.location.href = "/?payment=success"; })
-                  .catch(function (error) {
-                    alert((error && error.message ? error.message : "Could not verify payment.") + " Payment ID: " + response.razorpay_payment_id);
-                    termsProceedBtn.disabled = false;
-                  });
-              },
-              modal: { ondismiss: function () { termsProceedBtn.disabled = false; } },
-            };
-
-            var rzp = new window.Razorpay(options);
-            rzp.on("payment.failed", function (response) {
-              alert("Payment failed: " + (response.error.description || "Please try again."));
-              termsProceedBtn.disabled = false;
-            });
-            rzp.open();
+            serverCart = [];
+            selectedPaymentPlan = null;
+            renderCartList();
+            updateNavCartCount(0);
+            showStep("stepRequestSuccess");
+            try {
+              sessionStorage.setItem("summer-green-open-bookings", "1");
+            } catch (_) {}
           })
           .catch(function (err) {
-            alert(err && err.message ? err.message : "Something went wrong. Please try again.");
+            closeTermsModal();
+            if (errEl) {
+              errEl.textContent =
+                err && err.message
+                  ? err.message
+                  : "Could not submit booking request. Please try again.";
+            } else {
+              alert(err && err.message ? err.message : "Could not submit booking request. Please try again.");
+            }
             termsProceedBtn.disabled = false;
           });
       });

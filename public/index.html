@@ -750,7 +750,7 @@
         <button class="modal__close" data-close aria-label="Close">&times;</button>
         <h3 class="modal__title">My Bookings</h3>
         <div class="my-bookings__list" id="myBookingsList"></div>
-        <p class="my-bookings__empty" id="myBookingsEmpty" style="display: none;">No upcoming bookings.</p>
+        <p class="my-bookings__empty" id="myBookingsEmpty" style="display: none;">No bookings yet.</p>
         <p class="my-bookings__error" id="myBookingsError" style="display: none;"></p>
       </div>
     </div>
@@ -817,6 +817,7 @@
       </div>
     </div>
 
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
       window.__VARA_CONFIG = {
         apiBaseUrl: "https://api.varalabs.in",

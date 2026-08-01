@@ -133,14 +133,25 @@
               class="btn btn--primary btn--full cursor-target"
               id="checkoutSubmitBtn"
             >
-              Proceed to payment
+              Request booking
             </button>
           </form>
+        </section>
+
+        <!-- Step 3: Request submitted -->
+        <section class="cart-step cart-step--hidden" id="stepRequestSuccess">
+          <h2 class="cart-step__heading">Request submitted</h2>
+          <p id="requestSuccessMsg" style="margin: 0.75rem 0 1rem; color: var(--text-secondary, #555); line-height: 1.5;">
+            Your booking request has been submitted. You will be notified when the property confirms it. Payment is only needed after approval.
+          </p>
+          <a href="/" class="btn btn--primary btn--full cursor-target" id="requestSuccessBookingsLink">
+            Back to home — open My Bookings from your profile
+          </a>
         </section>
       </div>
     </main>
 
-    <!-- Terms & conditions popup (shown before Razorpay redirect) -->
+    <!-- Terms & conditions popup (shown before submitting booking request) -->
     <div
       class="modal"
       id="termsModal"
@@ -163,7 +174,7 @@
           class="terms__scroll terms__scroll--page"
           style="max-height: 280px; margin-bottom: 1rem"
         >
-          <p>By proceeding, you agree to the following:</p>
+          <p>By submitting a booking request, you agree to the following:</p>
           <ul>
             <li>100% refund for cancellations made 15+ days before check-in. No refund after.</li>
             <li>Cancellation requests must be made through admin.</li>
@@ -188,7 +199,7 @@
           disabled
           style="margin-top: 1rem"
         >
-          Proceed to Checkout
+          Submit request
         </button>
       </div>
     </div>

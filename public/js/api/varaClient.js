@@ -273,7 +273,23 @@
       (payload && payload.bookings) ||
       (payload && payload.data) ||
       [];
-    return Array.isArray(list) ? list : [];
+    if (!Array.isArray(list)) return [];
+    return list.map(function (b) {
+      if (!b || typeof b !== "object") return b;
+      return {
+        id: b.id || b.bookingId || b._id || null,
+        bookingId: b.bookingId || b.id || b._id || null,
+        status: (b.status || "requested").toLowerCase(),
+        expiresAt: b.expiresAt || b.paymentExpiresAt || null,
+        rejectionReason: b.rejectionReason || b.rejectReason || null,
+        totalAmount: b.totalAmount != null ? b.totalAmount : b.total || null,
+        payableAmount: b.payableAmount != null ? b.payableAmount : null,
+        prepaidOptions: Array.isArray(b.prepaidOptions) ? b.prepaidOptions : [],
+        guest: b.guest || null,
+        rooms: Array.isArray(b.rooms) ? b.rooms : Array.isArray(b.roomInfo) ? b.roomInfo : [],
+        raw: b,
+      };
+    });
   }
 
   var VaraApi = {
@@ -411,11 +427,34 @@
       return normalizeBookings(payload);
     },
 
+    async createBookingRequest(input) {
+      return requestWithRetry("/api/guest/bookings/requests", {
+        method: "POST",
+        requiresAuth: true,
+        body: {
+          name: input && input.name,
+          email: input && input.email,
+          phone: input && input.phone,
+        },
+        retries: 1,
+        idempotent: true,
+      });
+    },
+
     async createPaymentOrder(input) {
+      var body = {
+        bookingId: input && (input.bookingId || input.id),
+      };
+      if (input && input.prepaidOptionId != null) {
+        body.prepaidOptionId = input.prepaidOptionId;
+      }
+      if (input && input.prepaidPercent != null) {
+        body.prepaidPercent = input.prepaidPercent;
+      }
       return requestWithRetry("/api/guest/payments/order", {
         method: "POST",
         requiresAuth: true,
-        body: input,
+        body: body,
         retries: 1,
         idempotent: true,
       });
